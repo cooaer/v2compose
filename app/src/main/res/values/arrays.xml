@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="main_navigation_items">
+        <item>主页</item>
+        <item>节点</item>
+        <item>通知</item>
+        <item>我的</item>
+    </string-array>
+</resources>

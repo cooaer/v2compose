@@ -1,4 +1,4 @@
-package io.github.cooaer.v2compose
+package io.github.v2compose
 
 import org.junit.Test
 

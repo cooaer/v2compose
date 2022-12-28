@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace 'io.github.cooaer.v2compose'
+    namespace 'io.github.v2compose'
     compileSdk 33
 
     defaultConfig {
-        applicationId "io.github.cooaer.v2compose"
+        applicationId "io.github.v2compose"
         minSdk 26
         targetSdk 33
         versionCode 1
@@ -47,15 +47,21 @@ android {
 }
 
 dependencies {
+    def nav_version = "2.5.3"
+
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
     implementation 'androidx.activity:activity-compose:1.6.1'
+    implementation "androidx.annotation:annotation:1.5.0"
+    implementation "androidx.navigation:navigation-compose:$nav_version"
+
 
     //compose
     implementation platform('androidx.compose:compose-bom:2022.10.00')
     implementation 'androidx.compose.material3:material3'
     implementation "androidx.compose.ui:ui"
     implementation "androidx.compose.ui:ui-tooling-preview"
+    implementation "androidx.compose.material:material-icons-extended"
 
     //test
     testImplementation 'junit:junit:4.13.2'
@@ -65,4 +71,21 @@ dependencies {
     androidTestImplementation "androidx.compose.ui:ui-test-junit4"
     debugImplementation "androidx.compose.ui:ui-tooling"
     debugImplementation "androidx.compose.ui:ui-test-manifest"
+
+    //v2er-ghui
+    implementation 'me.ghui:Fruit:1.0.4'
+    implementation 'me.ghui:fruit-converter-retrofit:1.0.5'
+    implementation 'me.ghui:global-retrofit-converter:1.0.2'
+
+
+    implementation "com.squareup.okhttp3:okhttp:4.10.0"
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.10.0'
+    implementation 'com.github.bumptech.glide:okhttp3-integration:4.1.1'
+    implementation 'com.google.code.gson:gson:2.10'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.orhanobut:logger:2.2.0'
+
+
+    implementation 'org.greenrobot:eventbus:3.3.1'
+
 }

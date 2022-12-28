@@ -1,4 +1,4 @@
-package io.github.cooaer.v2compose.ui.theme
+package io.github.v2compose.ui.theme
 
 import android.app.Activity
 import android.os.Build

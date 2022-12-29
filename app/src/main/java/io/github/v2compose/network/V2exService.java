@@ -102,7 +102,6 @@ public class V2exService {
 
     public static WebkitCookieManagerProxy cookieJar() {
         if (sCookieJar == null) {
-//            sCookieJar = new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(App.get()));
             sCookieJar = new WebkitCookieManagerProxy();
         }
         return sCookieJar;

@@ -5,13 +5,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import io.github.v2compose.network.V2exService
+import androidx.core.view.WindowCompat
+import dagger.hilt.android.AndroidEntryPoint
 import io.github.v2compose.ui.main.MainScreen
 import io.github.v2compose.ui.theme.V2composeTheme
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         setContent {
             V2composeTheme {
                 MainScreen()

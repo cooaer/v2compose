@@ -5,8 +5,10 @@ import com.orhanobut.logger.AndroidLogAdapter
 import com.orhanobut.logger.FormatStrategy
 import com.orhanobut.logger.Logger
 import com.orhanobut.logger.PrettyFormatStrategy
+import dagger.hilt.android.HiltAndroidApp
 import io.github.v2compose.network.V2exService
 
+@HiltAndroidApp
 class App : Application() {
     override fun onCreate() {
         super.onCreate()

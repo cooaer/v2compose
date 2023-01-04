@@ -3,6 +3,8 @@ package io.github.v2compose.network.bean;
 
 import android.text.TextUtils;
 
+import androidx.compose.runtime.Stable;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -16,6 +18,7 @@ import io.github.v2compose.util.UriUtils;
  * Created by ghui on 04/04/2017.
  */
 
+@Stable
 @Pick("div#Wrapper")
 public class NewsInfo extends BaseInfo {
 
@@ -58,6 +61,7 @@ public class NewsInfo extends BaseInfo {
         return Check.isEmpty(items) || Check.notEmpty(items.get(0).userName);
     }
 
+    @Stable
     public static class Item implements Serializable {
         @Pick(value = "span.item_title > a")
         private String title;

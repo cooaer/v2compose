@@ -8,7 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @Composable
-fun NotificationsScreen() {
+fun NotificationsContent() {
     Box(modifier = Modifier.fillMaxSize()) {
         Text(text = "notifications", modifier = Modifier.align(Alignment.Center))
     }

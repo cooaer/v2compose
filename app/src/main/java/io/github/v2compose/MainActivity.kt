@@ -18,7 +18,7 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
-            V2composeTheme {
+            V2composeTheme(androidTheme = true) {
                 MainScreen()
             }
         }
@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
 @Preview(showBackground = true, widthDp = 440, heightDp = 880)
 @Composable
 fun DefaultPreview() {
-    V2composeTheme {
+    V2composeTheme(androidTheme = true) {
         MainScreen()
     }
 }

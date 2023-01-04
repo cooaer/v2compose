@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">V2compose</string>
+    <string name="n_comment">评论%d</string>
 </resources>

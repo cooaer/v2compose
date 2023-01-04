@@ -64,7 +64,7 @@ public class V2exService {
         }
     }
 
-    public static V2exApi get() {
+    public static V2exApi api() {
         return mAPI_SERVICE;
     }
 
@@ -93,7 +93,7 @@ public class V2exService {
                     .addInterceptor(new ConfigInterceptor());
             if (BuildConfig.DEBUG) {
                 builder.addInterceptor(new HttpLoggingInterceptor(L::v)
-                        .setLevel(HttpLoggingInterceptor.Level.BODY));
+                        .setLevel(HttpLoggingInterceptor.Level.BASIC));
             }
             sHttpClient = builder.build();
         }

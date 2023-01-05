@@ -21,10 +21,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSavedStateRegistryOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
+import androidx.hilt.navigation.HiltViewModelFactory
 import androidx.lifecycle.DEFAULT_ARGS_KEY
 import androidx.lifecycle.SAVED_STATE_REGISTRY_OWNER_KEY
 import androidx.lifecycle.VIEW_MODEL_STORE_OWNER_KEY
@@ -34,6 +36,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.MutableCreationExtras
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import io.github.v2compose.network.bean.NewsInfo
@@ -48,7 +51,7 @@ import kotlinx.coroutines.launch
 fun NewsTab(
     newsTabInfo: NewsTabInfo,
 ) {
-    val viewModel: NewsViewModel = rememberViewModel(newsTabInfo.value)
+    val viewModel: NewsViewModel = rememberNewsViewModel(newsTabInfo.value)
 
     var newsUiState = viewModel.newsInfo.value
     if (newsUiState !is NewsUiState.Success) {
@@ -59,8 +62,25 @@ fun NewsTab(
 }
 
 @Composable
-private fun rememberViewModel(tabValue: String): NewsViewModel =
-    viewModel(key = tabValue, extras = rememberCreationExtras(tabValue))
+private fun rememberNewsViewModel(tabValue: String): NewsViewModel {
+    val viewModelStoreOwner = checkNotNull(LocalViewModelStoreOwner.current) {
+        "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
+    }
+    val factory = if (viewModelStoreOwner is NavBackStackEntry) {
+        HiltViewModelFactory(
+            context = LocalContext.current,
+            navBackStackEntry = viewModelStoreOwner
+        )
+    } else {
+        null
+    }
+    return viewModel(
+        viewModelStoreOwner = viewModelStoreOwner,
+        key = tabValue,
+        factory = factory,
+        extras = rememberCreationExtras(tabValue)
+    )
+}
 
 @Composable
 private fun rememberCreationExtras(tabValue: String): CreationExtras {
@@ -120,7 +140,6 @@ private fun NewsList(newsInfo: NewsInfo, onNewsItemClick: Function1<NewsInfo.Ite
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun PullToRefresh(onRefresh: suspend () -> Unit, content: @Composable () -> Unit) {
-
     val refreshScope = rememberCoroutineScope()
     var refreshing by remember { mutableStateOf(false) }
     fun refresh() = refreshScope.launch {
@@ -135,7 +154,9 @@ private fun PullToRefresh(onRefresh: suspend () -> Unit, content: @Composable ()
     )
 
     Box(
-        Modifier.pullRefresh(pullRefreshState)
+        Modifier
+            .pullRefresh(pullRefreshState)
+            .fillMaxSize()
     ) {
 
         content()
@@ -146,35 +167,6 @@ private fun PullToRefresh(onRefresh: suspend () -> Unit, content: @Composable ()
             modifier = Modifier.align(Alignment.TopCenter)
         )
     }
-
-//    ConstraintLayout(
-//        Modifier
-//            .pullRefresh(pullRefreshState)
-//            .fillMaxSize()
-//    ) {
-//        val (list, indicator) = createRefs()
-//        Box(modifier = Modifier.constrainAs(list) {
-//            top.linkTo(parent.top)
-//            start.linkTo(parent.start)
-//            end.linkTo(parent.end)
-//            bottom.linkTo(parent.bottom)
-//            height = Dimension.fillToConstraints
-//        }) {
-//            Box(modifier = Modifier.fillMaxSize()) {
-//                content()
-//            }
-//        }
-//
-//        PullRefreshIndicator(
-//            refreshing = refreshing,
-//            state = pullRefreshState,
-//            modifier = Modifier.constrainAs(indicator) {
-//                top.linkTo(parent.top)
-//                start.linkTo(parent.start)
-//                end.linkTo(parent.end)
-//            }
-//        )
-//    }
 }
 
 @Composable

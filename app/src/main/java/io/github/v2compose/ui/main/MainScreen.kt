@@ -14,24 +14,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import io.github.v2compose.R
 import io.github.v2compose.ui.main.home.HomeContent
-import io.github.v2compose.ui.main.home.HomeViewModel
 import io.github.v2compose.ui.main.mine.MineContent
 import io.github.v2compose.ui.main.nodes.NodesContent
-import io.github.v2compose.ui.main.nodes.NodesViewModel
 import io.github.v2compose.ui.main.notifications.NotificationsContent
-import io.github.v2compose.util.L
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(viewModel: MainViewModel = viewModel()) {
+fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     var navBarSelectedIndex by remember { mutableStateOf(0) }
-    val homeViewModel: HomeViewModel = viewModel()
-    val nodesViewModel: NodesViewModel = viewModel()
-
-    L.d("MainScreen, homeViewModel = $homeViewModel")
 
     Scaffold(
         topBar = { MainTopBar(navBarSelectedIndex) },
@@ -45,16 +38,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
             Box(
                 modifier = Modifier.weight(1f, fill = true)
             ) {
-                val saveableStateHolder = rememberSaveableStateHolder()
-
-                saveableStateHolder.SaveableStateProvider(key = navBarSelectedIndex) {
-                    when (navBarSelectedIndex) {
-                        0 -> HomeContent(viewModel = homeViewModel)
-                        1 -> NodesContent(viewModel = nodesViewModel)
-                        2 -> NotificationsContent()
-                        3 -> MineContent()
-                    }
-                }
+                MainContent(navBarSelectedIndex)
             }
             MainBottomNavigation(navBarSelectedIndex) {
                 navBarSelectedIndex = it
@@ -83,12 +67,10 @@ private fun MainTopBar(currentNavBarIndex: Int) {
 @Composable
 fun MainContent(navBarSelectedIndex: Int) {
     val saveableStateHolder = rememberSaveableStateHolder()
-    val homeViewModel: HomeViewModel = viewModel()
-    val nodesViewModel: NodesViewModel = viewModel()
     saveableStateHolder.SaveableStateProvider(key = navBarSelectedIndex) {
         when (navBarSelectedIndex) {
-            0 -> HomeContent(viewModel = homeViewModel)
-            1 -> NodesContent(viewModel = nodesViewModel)
+            0 -> HomeContent()
+            1 -> NodesContent()
             2 -> NotificationsContent()
             3 -> MineContent()
         }

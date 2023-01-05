@@ -7,13 +7,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.flowlayout.FlowRow
 import io.github.v2compose.network.bean.NodesNavInfo
 import io.github.v2compose.ui.common.NodeTag
@@ -21,9 +20,9 @@ import io.github.v2compose.ui.common.NodeTag
 @SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
-fun NodesContent(viewModel: NodesViewModel = viewModel()) {
+fun NodesContent(viewModel: NodesViewModel = hiltViewModel()) {
     var nodesUiState = viewModel.nodesNavInfo.value
-    if(nodesUiState !is NodesUiState.Success){
+    if (nodesUiState !is NodesUiState.Success) {
         nodesUiState = viewModel.nodesNavInfo.collectAsStateWithLifecycle().value
     }
     when (nodesUiState) {

@@ -19,7 +19,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             V2composeTheme(androidTheme = true) {
-                MainScreen()
+                AppNavGraph()
+//                MainScreen()
             }
         }
     }
@@ -29,6 +30,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun DefaultPreview() {
     V2composeTheme(androidTheme = true) {
-        MainScreen()
+        AppNavGraph()
     }
 }

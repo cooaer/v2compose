@@ -37,8 +37,7 @@ import androidx.lifecycle.viewmodel.MutableCreationExtras
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import coil.compose.AsyncImage
 import io.github.v2compose.network.bean.NewsInfo
 import io.github.v2compose.ui.common.NodeTag
 import io.github.v2compose.ui.main.home.NewsTabInfo
@@ -174,7 +173,7 @@ private fun NewsItem(item: NewsInfo.Item, onItemClick: Function1<NewsInfo.Item, 
     Box(modifier = Modifier.clickable { onItemClick?.invoke(item) }) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                NewsUserAvatar(item.avatar)
+                NewsUserAvatar(item.userName, item.avatar)
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(Modifier.weight(1f)) {
                     Text(item.userName, style = MaterialTheme.typography.bodyLarge)
@@ -207,11 +206,10 @@ private fun NewsItem(item: NewsInfo.Item, onItemClick: Function1<NewsInfo.Item, 
 
 
 @Composable
-@OptIn(ExperimentalGlideComposeApi::class)
-private fun NewsUserAvatar(avatar: String) {
-    GlideImage(
+private fun NewsUserAvatar(userName: String, avatar: String) {
+    AsyncImage(
         model = avatar,
-        contentDescription = "avatar",
+        contentDescription = "$userName's avatar",
         modifier = Modifier
             .size(36.dp)
             .clip(CircleShape)

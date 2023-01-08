@@ -1,6 +1,7 @@
 package io.github.v2compose.ui.main.nodes
 
 import android.annotation.SuppressLint
+import android.webkit.WebView
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.CircularProgressIndicator

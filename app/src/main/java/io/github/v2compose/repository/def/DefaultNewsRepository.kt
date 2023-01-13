@@ -1,6 +1,6 @@
-package io.github.v2compose.data.def
+package io.github.v2compose.repository.def
 
-import io.github.v2compose.data.NewsRepository
+import io.github.v2compose.repository.NewsRepository
 import io.github.v2compose.network.V2exApi
 import io.github.v2compose.network.bean.NewsInfo
 import javax.inject.Inject

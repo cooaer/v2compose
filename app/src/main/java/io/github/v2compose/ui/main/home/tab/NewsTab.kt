@@ -1,67 +1,61 @@
 package io.github.v2compose.ui.main.home.tab
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSavedStateRegistryOwner
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.hilt.navigation.HiltViewModelFactory
 import androidx.lifecycle.DEFAULT_ARGS_KEY
 import androidx.lifecycle.SAVED_STATE_REGISTRY_OWNER_KEY
 import androidx.lifecycle.VIEW_MODEL_STORE_OWNER_KEY
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.MutableCreationExtras
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
-import coil.compose.AsyncImage
 import io.github.v2compose.network.bean.NewsInfo
-import io.github.v2compose.ui.common.NodeTag
+import io.github.v2compose.ui.common.AppendMore
+import io.github.v2compose.ui.common.SimpleTopic
 import io.github.v2compose.ui.main.home.NewsTabInfo
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @SuppressLint("StateFlowValueCalledInComposition")
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun NewsTab(
     newsTabInfo: NewsTabInfo,
+    onNewsItemClick: (NewsInfo.Item) -> Unit,
 ) {
-    val viewModel: NewsViewModel = rememberNewsViewModel(newsTabInfo.value)
+    val viewModel: NewsViewModel = newsViewModel(newsTabInfo.value)
 
-    var newsUiState = viewModel.newsInfo.value
+    var newsUiState = viewModel.newsInfoFlow.value
     if (newsUiState !is NewsUiState.Success) {
-        newsUiState = viewModel.newsInfo.collectAsStateWithLifecycle().value
+        newsUiState = viewModel.newsInfoFlow.collectAsStateWithLifecycle().value
     }
+    val refreshing by viewModel.refreshingFlow.collectAsStateWithLifecycle()
 
-    NewsContent(newsUiState)
+    NewsContent(
+        refreshing = refreshing,
+        newsUiState = newsUiState,
+        onNewsItemClick = onNewsItemClick,
+        onRefreshList = { viewModel.refresh() },
+        onRetryClick = { viewModel.retry() })
 }
 
 @Composable
-private fun rememberNewsViewModel(tabValue: String): NewsViewModel {
+private fun newsViewModel(tabValue: String): NewsViewModel {
     val viewModelStoreOwner = checkNotNull(LocalViewModelStoreOwner.current) {
         "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
     }
@@ -83,26 +77,43 @@ private fun rememberNewsViewModel(tabValue: String): NewsViewModel {
 
 @Composable
 private fun rememberCreationExtras(tabValue: String): CreationExtras {
-    return MutableCreationExtras().apply {
-        set(SAVED_STATE_REGISTRY_OWNER_KEY, LocalSavedStateRegistryOwner.current)
-        LocalViewModelStoreOwner.current?.let {
-            set(VIEW_MODEL_STORE_OWNER_KEY, it)
+    val savedStateRegistryOwner = LocalSavedStateRegistryOwner.current
+    val viewModelStoreOwner = LocalViewModelStoreOwner.current
+    return remember(tabValue, savedStateRegistryOwner, viewModelStoreOwner) {
+        MutableCreationExtras().apply {
+            set(SAVED_STATE_REGISTRY_OWNER_KEY, savedStateRegistryOwner)
+            viewModelStoreOwner?.let {
+                set(VIEW_MODEL_STORE_OWNER_KEY, it)
+            }
+            set(DEFAULT_ARGS_KEY, bundleOf(NewsViewModel.KEY_TAB to tabValue))
         }
-        set(DEFAULT_ARGS_KEY, bundleOf(NewsViewModel.KEY_TAB to tabValue))
     }
 }
 
 @Composable
-fun NewsContent(newsUiState: NewsUiState) {
+fun NewsContent(
+    refreshing: Boolean,
+    newsUiState: NewsUiState,
+    onNewsItemClick: ((NewsInfo.Item) -> Unit),
+    onRetryClick: () -> Unit,
+    onRefreshList: () -> Unit,
+) {
     when (newsUiState) {
         is NewsUiState.Success -> {
-            NewsList(newsInfo = newsUiState.newsInfo)
+            NewsList(
+                refreshing = refreshing,
+                newsInfo = newsUiState.newsInfo,
+                onRefresh = onRefreshList,
+                onNewsItemClick = onNewsItemClick
+            )
         }
-        is NewsUiState.Loading -> {
-            NewsLoading()
-        }
-        is NewsUiState.Error -> {
-            NewsError()
+        else -> {
+            AppendMore(
+                hasError = newsUiState is NewsUiState.Error,
+                error = if (newsUiState is NewsUiState.Error) newsUiState.throwable else null,
+                modifier = Modifier.fillMaxSize(),
+                onRetryClick = onRetryClick
+            )
         }
     }
 }
@@ -123,14 +134,26 @@ private fun NewsLoading() {
 }
 
 @Composable
-private fun NewsList(newsInfo: NewsInfo, onNewsItemClick: Function1<NewsInfo.Item, Unit>? = null) {
-    PullToRefresh(onRefresh = {
-        delay(2_000)
-    }) {
+private fun NewsList(
+    refreshing: Boolean,
+    newsInfo: NewsInfo,
+    onRefresh: () -> Unit,
+    onNewsItemClick: (NewsInfo.Item) -> Unit
+) {
+    PullToRefresh(refreshing = refreshing, onRefresh = onRefresh) {
         val lazyListState = rememberLazyListState()
         LazyColumn(state = lazyListState) {
-            items(newsInfo.items, key = { it.id }) {
-                NewsItem(it, onNewsItemClick)
+            items(newsInfo.items, key = { it.id }) { item ->
+                SimpleTopic(
+                    title = item.title,
+                    userName = item.userName,
+                    avatar = item.avatar,
+                    time = item.time,
+                    replyNum = item.replies.toString(),
+                    nodeId = item.tagId,
+                    nodeName = item.tagName,
+                    onItemClick = { onNewsItemClick(item) }
+                )
             }
         }
     }
@@ -138,18 +161,15 @@ private fun NewsList(newsInfo: NewsInfo, onNewsItemClick: Function1<NewsInfo.Ite
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun PullToRefresh(onRefresh: suspend () -> Unit, content: @Composable () -> Unit) {
-    val refreshScope = rememberCoroutineScope()
-    var refreshing by remember { mutableStateOf(false) }
-    fun refresh() = refreshScope.launch {
-        refreshing = true
-        onRefresh()
-        refreshing = false
-    }
+private fun PullToRefresh(
+    refreshing: Boolean,
+    onRefresh: () -> Unit,
+    content: @Composable () -> Unit
+) {
 
     val pullRefreshState = rememberPullRefreshState(
         refreshing = refreshing,
-        onRefresh = ::refresh
+        onRefresh = onRefresh
     )
 
     Box(
@@ -166,54 +186,4 @@ private fun PullToRefresh(onRefresh: suspend () -> Unit, content: @Composable ()
             modifier = Modifier.align(Alignment.TopCenter)
         )
     }
-}
-
-@Composable
-private fun NewsItem(item: NewsInfo.Item, onItemClick: Function1<NewsInfo.Item, Unit>? = null) {
-    Box(modifier = Modifier.clickable { onItemClick?.invoke(item) }) {
-        Column(Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                NewsUserAvatar(item.userName, item.avatar)
-                Spacer(modifier = Modifier.width(8.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(item.userName, style = MaterialTheme.typography.bodyLarge)
-
-                    Row {
-                        Text(
-                            item.time,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                        )
-                        Text(
-                            stringResource(io.github.v2compose.R.string.n_comment, item.replies),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                NodeTag(nodeName = item.tagName, nodeId = item.tagId)
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(item.title, style = MaterialTheme.typography.bodyLarge)
-        }
-        Divider(
-            color = MaterialTheme.colorScheme.inverseOnSurface,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
-    }
-}
-
-
-@Composable
-private fun NewsUserAvatar(userName: String, avatar: String) {
-    AsyncImage(
-        model = avatar,
-        contentDescription = "$userName's avatar",
-        modifier = Modifier
-            .size(36.dp)
-            .clip(CircleShape)
-            .background(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f)),
-        contentScale = ContentScale.Crop,
-    )
 }

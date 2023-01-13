@@ -42,7 +42,7 @@ public class V2exService {
             "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36";
     public static final String UA_KEY = "user-agent";
 
-    public static final long TIMEOUT_LENGTH = 30;
+    public static final long TIMEOUT_LENGTH = 10;
     private static V2exApi mAPI_SERVICE;
     private static Gson sGson;
     private static Fruit sFruit;
@@ -93,7 +93,7 @@ public class V2exService {
                     .addInterceptor(new ConfigInterceptor());
             if (BuildConfig.DEBUG) {
                 builder.addInterceptor(new HttpLoggingInterceptor(L::v)
-                        .setLevel(HttpLoggingInterceptor.Level.BASIC));
+                        .setLevel(HttpLoggingInterceptor.Level.HEADERS));
             }
             sHttpClient = builder.build();
         }

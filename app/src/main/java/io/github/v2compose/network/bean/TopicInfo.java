@@ -2,6 +2,8 @@ package io.github.v2compose.network.bean;
 
 import android.text.TextUtils;
 
+import androidx.compose.runtime.Stable;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -12,20 +14,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import me.ghui.fruit.Attrs;
-import me.ghui.fruit.annotations.Pick;
 import io.github.v2compose.network.NetConstants;
 import io.github.v2compose.util.AvatarUtils;
 import io.github.v2compose.util.Check;
 import io.github.v2compose.util.UriUtils;
 import io.github.v2compose.util.UserUtils;
 import io.github.v2compose.util.Utils;
+import me.ghui.fruit.Attrs;
+import me.ghui.fruit.annotations.Pick;
 
 
 /**
  * Created by ghui on 04/05/2017.
  */
-
+@Stable
 public class TopicInfo extends BaseInfo {
     @Pick("div#Wrapper")
     private HeaderInfo headerInfo;
@@ -108,7 +110,7 @@ public class TopicInfo extends BaseInfo {
     }
 
     public List<Reply> getReplies() {
-        return replies;
+        return replies == null ? Collections.emptyList() : replies;
     }
 
     public ContentInfo getContentInfo() {
@@ -235,6 +237,12 @@ public class TopicInfo extends BaseInfo {
 
         private String formatedHtml;
 
+        @Pick(value = "div.cell div.topic_content", attr = Attrs.HTML)
+        private String content;
+
+        @Pick("div.subtle")
+        private List<Supplement> supplements;
+
         /**
          * 得到处理后的html, 移除最后一个element(时间，收藏，等不需要显示的信息)
          *
@@ -253,6 +261,14 @@ public class TopicInfo extends BaseInfo {
                 formatedHtml = parentNode.body().html();
             }
             return formatedHtml;
+        }
+
+        public String getContent() {
+            return content == null ? "" : content;
+        }
+
+        public List<Supplement> getSupplements() {
+            return supplements != null ? supplements : Collections.EMPTY_LIST;
         }
 
         @Override
@@ -284,6 +300,21 @@ public class TopicInfo extends BaseInfo {
         public String getAvatar() {
             return null;
         }
+
+        public static class Supplement implements Serializable {
+            @Pick("span.fade")
+            private String title;
+            @Pick(value = "div.topic_content", attr = Attrs.HTML)
+            private String content;
+
+            public String getTitle() {
+                return title;
+            }
+
+            public String getContent() {
+                return content;
+            }
+        }
     }
 
     public static class HeaderInfo extends BaseInfo implements Item {
@@ -299,9 +330,9 @@ public class TopicInfo extends BaseInfo {
         private String tagLink;
         @Pick("div.cell span.gray:contains(回复)")
         private String comment;
-        @Pick("div.box a.page_normal:last-child")
+        @Pick("div.box div.inner a.page_normal:last-of-type")
         private int page;
-        @Pick("div.box span.page_current")
+        @Pick("div.box div.inner span.page_current")
         private int currentPage;
         @Pick("div.box h1")
         private String title;
@@ -401,6 +432,10 @@ public class TopicInfo extends BaseInfo {
             return tag;
         }
 
+        public String getTagId(){
+            return tagLink.replace("/go/", "");
+        }
+
         public String getTime() {
             try {
                 if (Check.isEmpty(computedTime) && Check.notEmpty(time) && time.contains("·")) {
@@ -478,6 +513,7 @@ public class TopicInfo extends BaseInfo {
 
     }
 
+    @Stable
     public static class Reply implements Item {
         @Pick(value = "div.reply_content", attr = Attrs.INNER_HTML)
         private String replyContent;

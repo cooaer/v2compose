@@ -1,6 +1,6 @@
-package io.github.v2compose.data.def
+package io.github.v2compose.repository.def
 
-import io.github.v2compose.data.NodeRepository
+import io.github.v2compose.repository.NodeRepository
 import io.github.v2compose.network.V2exApi
 import io.github.v2compose.network.bean.NodesInfo
 import io.github.v2compose.network.bean.NodesNavInfo

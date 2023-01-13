@@ -6,8 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
+import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
-import io.github.v2compose.ui.main.MainScreen
 import io.github.v2compose.ui.theme.V2composeTheme
 
 @AndroidEntryPoint
@@ -19,8 +19,10 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             V2composeTheme(androidTheme = true) {
-                AppNavGraph()
-//                MainScreen()
+                val navController = rememberNavController()
+                AppNavGraph(navController = navController) {
+                    navController.popBackStack()
+                }
             }
         }
     }
@@ -30,6 +32,9 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun DefaultPreview() {
     V2composeTheme(androidTheme = true) {
-        AppNavGraph()
+        val navController = rememberNavController()
+        AppNavGraph(navController = navController) {
+            navController.popBackStack()
+        }
     }
 }

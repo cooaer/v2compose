@@ -12,14 +12,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.flowlayout.FlowRow
 import io.github.v2compose.network.bean.NodesNavInfo
 import io.github.v2compose.ui.common.NodeTag
 
 @SuppressLint("StateFlowValueCalledInComposition")
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun NodesContent(viewModel: NodesViewModel = hiltViewModel()) {
     var nodesUiState = viewModel.nodesNavInfo.value

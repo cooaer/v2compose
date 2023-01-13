@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import io.github.v2compose.R
+import io.github.v2compose.network.bean.NewsInfo
 import io.github.v2compose.ui.main.home.HomeContent
 import io.github.v2compose.ui.main.mine.MineContent
 import io.github.v2compose.ui.main.nodes.NodesContent
@@ -23,7 +24,10 @@ import io.github.v2compose.ui.main.notifications.NotificationsContent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
+fun MainScreen(
+    viewModel: MainViewModel = hiltViewModel(),
+    onNewsItemClick: (NewsInfo.Item) -> Unit,
+) {
     var navBarSelectedIndex by remember { mutableStateOf(0) }
 
     Scaffold(
@@ -38,7 +42,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             Box(
                 modifier = Modifier.weight(1f, fill = true)
             ) {
-                MainContent(navBarSelectedIndex)
+                MainContent(navBarSelectedIndex, onNewsItemClick)
             }
             MainBottomNavigation(navBarSelectedIndex) {
                 navBarSelectedIndex = it
@@ -65,11 +69,11 @@ private fun MainTopBar(currentNavBarIndex: Int) {
 }
 
 @Composable
-fun MainContent(navBarSelectedIndex: Int) {
+fun MainContent(navBarSelectedIndex: Int, onNewsItemClick: (NewsInfo.Item) -> Unit) {
     val saveableStateHolder = rememberSaveableStateHolder()
     saveableStateHolder.SaveableStateProvider(key = navBarSelectedIndex) {
         when (navBarSelectedIndex) {
-            0 -> HomeContent()
+            0 -> HomeContent(onNewsItemClick = onNewsItemClick)
             1 -> NodesContent()
             2 -> NotificationsContent()
             3 -> MineContent()
@@ -99,5 +103,5 @@ fun MainBottomNavigation(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
 @Preview(showBackground = true, widthDp = 440, heightDp = 880)
 @Composable
 fun MainScreenPreview() {
-    MainScreen()
+    MainScreen(onNewsItemClick = {})
 }

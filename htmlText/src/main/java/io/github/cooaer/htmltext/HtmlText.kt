@@ -1,6 +1,7 @@
 package io.github.cooaer.htmltext
 
-import android.os.Build
+import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -9,6 +10,7 @@ import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
@@ -28,44 +29,53 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.min
-import androidx.compose.ui.unit.sp
-import coil.ImageLoader
-import coil.compose.AsyncImage
+import androidx.compose.ui.unit.*
+import coil.compose.SubcomposeAsyncImage
 import coil.compose.rememberAsyncImagePainter
-import coil.decode.GifDecoder
-import coil.decode.ImageDecoderDecoder
+import coil.request.ImageRequest
+import coil.size.Size
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.jsoup.nodes.TextNode
 
-//TODO 1,斜体，2，图片，3，内联代码块的样式
+private const val TAG = "HtmlText"
+
+//TODO 待解决问题：1,斜体
 @Composable
 fun HtmlText(
     html: String,
     modifier: Modifier = Modifier,
+    selectable: Boolean = false,
+    textStyle: TextStyle = TextStyle.Default,
+    baseUrl: String? = null,
 ) {
     val document = Jsoup.parse(html)
-    val scope = HtmlElementsScope()
-    SelectionContainer(modifier = modifier) {
-        scope.Block(element = document.body())
+    val scope =
+        HtmlElementsScope(baseUrl = baseUrl, linkColor = MaterialTheme.colorScheme.tertiary)
+    if (selectable) {
+        SelectionContainer(modifier = modifier) {
+            scope.Block(element = document.body(), textStyle = textStyle)
+        }
+    } else {
+        Box(modifier = modifier) {
+            scope.Block(element = document.body(), textStyle = textStyle)
+        }
     }
 }
 
 @Composable
-private fun HtmlElementsScope.BlockOrInline(
+private fun HtmlElementsScope.BlockToInlineNodes(
     element: Element,
-    textStyle: TextStyle = TextStyle.Default
+    textStyle: TextStyle
 ) {
     val iterator = element.childNodes().iterator()
     val tempNodes = mutableListOf<Node>()
     while (iterator.hasNext()) {
         val node = iterator.next()
         if (node is Element) {
-            if (node.isBlock) {
+            if (node.isBlock || node.tagName().lowercase() == "img") {
+//            if (node.isBlock) {
                 if (tempNodes.isNotEmpty()) {
                     InlineNodes(tempNodes.toList(), textStyle)
                     tempNodes.clear()
@@ -89,29 +99,33 @@ private fun HtmlElementsScope.BlockOrInline(
 //=========== Block Elements Start ============
 
 @Composable
-private fun HtmlElementsScope.Block(element: Element, textStyle: TextStyle = TextStyle.Default) {
+private fun HtmlElementsScope.Block(
+    element: Element,
+    textStyle: TextStyle
+) {
     when (element.tagName().lowercase()) {
-        "body" -> Body(element)
+        "body" -> Body(element, textStyle)
         "h1" -> Hx(element, textStyle.copy(fontSize = 32.sp))
         "h2" -> Hx(element, textStyle.copy(fontSize = 26.sp))
         "h3" -> Hx(element, textStyle.copy(fontSize = 22.sp))
         "h4" -> Hx(element, textStyle.copy(fontSize = 20.sp))
         "h5" -> Hx(element, textStyle.copy(fontSize = 16.sp))
         "h6" -> Hx(element, textStyle.copy(fontSize = 14.sp))
-        "p" -> P(element)
-        "div" -> Div(element)
-        "ol" -> OlUl(element, true)
-        "ul" -> OlUl(element, false)
-        "table" -> Table(element)
-        "blockquote" -> Blockquote(element)
-        "hr" -> Hr(element)
-        "pre" -> Pre(element)
+        "p" -> P(element, textStyle)
+        "div" -> Div(element, textStyle)
+        "ol" -> OlUl(element, true, textStyle)
+        "ul" -> OlUl(element, false, textStyle)
+        "table" -> Table(element, textStyle)
+        "blockquote" -> Blockquote(element, textStyle)
+        "hr" -> Hr(element, textStyle)
+        "pre" -> Pre(element, textStyle)
+        "img" -> Img(element, textStyle)
+        else -> BlockToInlineNodes(element, textStyle)
     }
 }
 
-
 @Composable
-private fun HtmlElementsScope.Hr(element: Element) {
+private fun HtmlElementsScope.Hr(element: Element, textStyle: TextStyle) {
     Spacer(
         modifier = Modifier
             .fillMaxWidth()
@@ -123,14 +137,14 @@ private fun HtmlElementsScope.Hr(element: Element) {
 }
 
 @Composable
-private fun HtmlElementsScope.Body(element: Element) {
+private fun HtmlElementsScope.Body(element: Element, textStyle: TextStyle) {
     Column() {
-        BlockOrInline(element)
+        BlockToInlineNodes(element, textStyle)
     }
 }
 
 @Composable
-private fun HtmlElementsScope.Blockquote(element: Element) {
+private fun HtmlElementsScope.Blockquote(element: Element, textStyle: TextStyle) {
     val backgroundColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)
     val leftBorderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f)
     Column(
@@ -145,17 +159,17 @@ private fun HtmlElementsScope.Blockquote(element: Element) {
             }
             .padding(start = 8.dp, top = 8.dp, end = 4.dp, bottom = 8.dp)
     ) {
-        BlockOrInline(element)
+        BlockToInlineNodes(element, textStyle)
     }
 }
 
 @Composable
 private fun HtmlElementsScope.Hx(element: Element, textStyle: TextStyle) {
-    BlockOrInline(element, textStyle.copy(fontWeight = FontWeight.SemiBold))
+    BlockToInlineNodes(element, textStyle.copy(fontWeight = FontWeight.SemiBold))
 }
 
 @Composable
-private fun HtmlElementsScope.Table(element: Element) {
+private fun HtmlElementsScope.Table(element: Element, textStyle: TextStyle) {
     val thead =
         element.getElementsByTag("thead").first()?.getElementsByTag("tr")?.first()?.children()
     val tbody = element.getElementsByTag("tbody").first()?.getElementsByTag("tr") ?: return
@@ -175,14 +189,14 @@ private fun HtmlElementsScope.Table(element: Element) {
         thead?.let {
             items(values = it) {
                 Column() {
-                    BlockOrInline(it, TextStyle(fontWeight = FontWeight.SemiBold))
+                    BlockToInlineNodes(it, textStyle.copy(fontWeight = FontWeight.SemiBold))
                 }
             }
         }
         for (row in tbody) {
             items(values = row.children()) {
                 Column() {
-                    BlockOrInline(it)
+                    BlockToInlineNodes(it, textStyle)
                 }
             }
         }
@@ -190,8 +204,8 @@ private fun HtmlElementsScope.Table(element: Element) {
 }
 
 @Composable
-private fun HtmlElementsScope.Div(element: Element) {
-    BlockOrInline(element)
+private fun HtmlElementsScope.Div(element: Element, textStyle: TextStyle) {
+    BlockToInlineNodes(element, textStyle)
 }
 
 
@@ -199,7 +213,7 @@ private fun HtmlElementsScope.Div(element: Element) {
  * 特殊处理 <pre><code> ... </code></pre> 的情况
  */
 @Composable
-private fun HtmlElementsScope.Pre(element: Element) {
+private fun HtmlElementsScope.Pre(element: Element, textStyle: TextStyle) {
     val children = element.children()
     if (children.size == 1 && children.first()!!.tagName().lowercase() == "code") {
         val onlyChild = children.first()!!
@@ -215,16 +229,16 @@ private fun HtmlElementsScope.Pre(element: Element) {
                 .clip(RoundedCornerShape(4.dp))
                 .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f))
                 .padding(8.dp),
-            style = TextStyle(fontFamily = FontFamily.Monospace)
+            style = textStyle.copy(fontFamily = FontFamily.Monospace)
         )
     } else {
-        BlockOrInline(element)
+        BlockToInlineNodes(element, textStyle)
     }
 }
 
 
 @Composable
-private fun HtmlElementsScope.OlUl(element: Element, isOrdered: Boolean) {
+private fun HtmlElementsScope.OlUl(element: Element, isOrdered: Boolean, textStyle: TextStyle) {
     val children = element.children()
     Column(
         modifier = Modifier
@@ -232,14 +246,15 @@ private fun HtmlElementsScope.OlUl(element: Element, isOrdered: Boolean) {
         children.forEachIndexed { index, element ->
             Li(
                 element = element,
-                index = if (isOrdered) index + 1 else null
+                index = if (isOrdered) index + 1 else null,
+                textStyle = textStyle,
             )
         }
     }
 }
 
 @Composable
-private fun HtmlElementsScope.Li(element: Element, index: Int? = null) {
+private fun HtmlElementsScope.Li(element: Element, index: Int? = null, textStyle: TextStyle) {
     Row(
         modifier = Modifier,
     ) {
@@ -260,15 +275,44 @@ private fun HtmlElementsScope.Li(element: Element, index: Int? = null) {
             }
         }
         Column {
-            BlockOrInline(element)
+            BlockToInlineNodes(element, textStyle)
         }
     }
 
 }
 
 @Composable
-private fun HtmlElementsScope.P(element: Element) {
-    BlockOrInline(element)
+private fun HtmlElementsScope.P(element: Element, textStyle: TextStyle) {
+    BlockToInlineNodes(element, textStyle)
+}
+
+@Composable
+private fun HtmlElementsScope.Img(element: Element, textStyle: TextStyle) {
+    val density = LocalDensity.current
+
+    BoxWithConstraints {
+        var img by remember { mutableStateOf(Img(element)) }
+
+        val (realWidth, realHeight) = remember(img, density) {
+
+            val imgWidthDp = with(density) { img.width?.toDp() }
+            val imgHeightDp = with(density) { img.height?.toDp() }
+
+            if (img.width == null || img.height == null) {
+                Pair(maxWidth, maxWidth / 3f)
+            } else if (imgWidthDp!! > maxWidth) {
+                Pair(maxWidth, maxWidth * img.height!! / img.width!!)
+            } else {
+                Pair(imgWidthDp, imgHeightDp!!)
+            }
+        }
+
+        InlineImage(
+            img = img,
+            onLoadSuccess = { oldImg, newImg -> img = newImg },
+            modifier = Modifier.size(realWidth, realHeight)
+        )
+    }
 }
 
 //=========== Block Elements End ============
@@ -279,65 +323,53 @@ private fun HtmlElementsScope.P(element: Element) {
 @Composable
 private fun HtmlElementsScope.InlineNodes(nodes: List<Node>, textStyle: TextStyle) {
     BoxWithConstraints() {
+        val density = LocalDensity.current
 
-        val allImgs = parseImgs(nodes.filterIsInstance<Element>())
-        val annotatedString = buildAnnotatedString {
-            withStyle(style = ParagraphStyle()) {
-                for (node in nodes) {
-                    inlineText(node)
+        val allImgs =
+            remember { parseImgs(nodes.filterIsInstance<Element>()).toMutableStateList() }
+
+        val annotatedString by remember {
+            derivedStateOf {
+                buildAnnotatedString {
+                    withStyle(style = ParagraphStyle()) {
+                        for (node in nodes) {
+                            inlineText(node, this@InlineNodes)
+                        }
+                    }
                 }
             }
         }
 
-        val inlineContentMap = allImgs.associateBy({ it.src }, { img ->
-            with(LocalDensity.current) {
-                var width by remember { mutableStateOf(img.width?.toDp() ?: maxWidth) }
-                var height by remember { mutableStateOf(img.height?.toDp() ?: (maxWidth / 3)) }
-
-                InlineTextContent(
-                    Placeholder(
-                        width = width.toSp(),
-                        height = height.toSp(),
-                        placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter
-                    )
-                ) {
-                    BoxWithConstraints {
-                        AsyncImage(model = img.src,
-                            contentDescription = img.alt,
-                            modifier = Modifier.size(width, height),
-                            contentScale = ContentScale.FillWidth,
-                            placeholder = rememberAsyncImagePainter(
-                                R.drawable.image_holder_loading,
-                                imageLoader = rememberGifLoader()
-                            ),
-                            error = painterResource(R.drawable.image_holder_failed),
-                            onLoading = { loading ->
-
-                            },
-                            onSuccess = { success ->
-                                with(success.result.drawable) {
-                                    width = min(intrinsicWidth.toDp(), maxWidth)
-                                    height = if (intrinsicWidth > maxWidth.toPx()) {
-                                        maxWidth * intrinsicHeight / intrinsicWidth
-                                    } else {
-                                        intrinsicHeight.toDp()
-                                    }
-                                }
-                            },
-                            onError = { error ->
-
-                            })
-                    }
-                }
+        val inlineImageMap by remember {
+            derivedStateOf {
+                allImgs.associateBy({ it.src }, { img ->
+                    createInlineTextImage(
+                        img = img,
+                        maxWidthDp = maxWidth,
+                        density = density,
+                        scope = this@InlineNodes,
+                        onLoadSuccess = { oldImg, newImg ->
+                            allImgs.remove(oldImg)
+                            allImgs.add(newImg)
+                        })
+                })
             }
-        })
+        }
+
+        val lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
+        val inlineCheckboxMap = remember(lineHeight, density) {
+            mapOf("checkbox" to createInlineCheckbox(lineHeight, density))
+        }
 
         val uriHandler = LocalUriHandler.current
 
         ClickableText(
             annotatedString,
             modifier = Modifier.innermostBlockPadding(),
-            inlineContent = inlineContentMap,
+            inlineContent = mutableMapOf<String, InlineTextContent>().apply {
+                putAll(inlineImageMap)
+                putAll(inlineCheckboxMap)
+            },
             style = textStyle,
             onClick = { offset ->
                 annotatedString.getStringAnnotations(
@@ -354,21 +386,100 @@ private fun HtmlElementsScope.InlineNodes(nodes: List<Node>, textStyle: TextStyl
             }
         )
     }
+}
 
+
+private fun createInlineTextImage(
+    img: Img,
+    maxWidthDp: Dp,
+    density: Density,
+    scope: HtmlElementsScope,
+    onLoadSuccess: (Img, Img) -> Unit,
+): InlineTextContent {
+    val imgWidthDp = with(density) { img.width?.toDp() }
+    val imgHeightDp = with(density) { img.height?.toDp() }
+
+    val (realWidth, realHeight) = if (img.width == null || img.height == null) {
+        Pair(maxWidthDp, maxWidthDp / 3f)
+    } else if (imgWidthDp!! > maxWidthDp) {
+        Pair(maxWidthDp, maxWidthDp * img.height / img.width)
+    } else {
+        Pair(imgWidthDp, imgHeightDp!!)
+    }
+
+    return InlineTextContent(
+        Placeholder(
+            width = with(density) { realWidth.toSp() },
+            height = with(density) { realHeight.toSp() },
+            placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter
+        )
+    ) {
+        scope.InlineImage(
+            img = img,
+            onLoadSuccess = onLoadSuccess,
+            modifier = Modifier.size(realWidth, realHeight)
+        )
+    }
 }
 
 @Composable
-private fun rememberGifLoader(): ImageLoader {
-    return ImageLoader.Builder(LocalContext.current).components {
-        if (Build.VERSION.SDK_INT >= 28) {
-            add(ImageDecoderDecoder.Factory())
-        } else {
-            add(GifDecoder.Factory())
+private fun HtmlElementsScope.InlineImage(
+    img: Img,
+    onLoadSuccess: (Img, Img) -> Unit,
+    modifier: Modifier
+) {
+    val context = LocalContext.current
+
+    SubcomposeAsyncImage(
+        model = ImageRequest.Builder(context).data(img.src.fullUrl(baseUrl)).size(Size.ORIGINAL)
+            .build(),
+        contentDescription = img.alt,
+        modifier = modifier,
+        loading = {
+            Image(
+                painter = rememberAsyncImagePainter(model = R.drawable.image_holder_loading),
+                contentDescription = "loading"
+            )
+        },
+        error = {
+            Image(
+                painterResource(id = R.drawable.image_holder_failed),
+                contentDescription = "error"
+            )
+        },
+        onSuccess = {
+            with(it.result.drawable) {
+                onLoadSuccess(img, img.copy(width = intrinsicWidth, height = intrinsicHeight))
+            }
+        },
+        onError = {
+            Log.d(TAG, "load image error, error = ${it.result.throwable}")
         }
-    }.build()
+    )
 }
 
-private fun AnnotatedString.Builder.inlineText(node: Node) {
+
+private fun createInlineCheckbox(lineHeightSp: TextUnit, density: Density): InlineTextContent {
+    return InlineTextContent(
+        Placeholder(
+            width = lineHeightSp,
+            height = lineHeightSp,
+            placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter
+        )
+    ) {
+        with(density) {
+            Checkbox(
+                checked = false,
+                enabled = false,
+                modifier = Modifier
+                    .size(width = lineHeightSp.toDp(), height = lineHeightSp.toDp())
+                    .padding(horizontal = 4.dp),
+                onCheckedChange = {})
+        }
+    }
+}
+
+private fun AnnotatedString.Builder.inlineText(node: Node, scope: HtmlElementsScope) {
     if (node is TextNode) {
         append(node.text())
     } else if (node is Element) {
@@ -378,12 +489,12 @@ private fun AnnotatedString.Builder.inlineText(node: Node) {
             }
             "em" -> {
                 withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
-                    childNodesInlineText(node)
+                    childNodesInlineText(node, scope)
                 }
             }
             "strong" -> {
                 withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                    childNodesInlineText(node)
+                    childNodesInlineText(node, scope)
                 }
             }
             "a" -> {
@@ -391,11 +502,11 @@ private fun AnnotatedString.Builder.inlineText(node: Node) {
                 pushStringAnnotation(tag = "URL", annotation = href)
                 withStyle(
                     SpanStyle(
-                        color = Color.Blue,
+                        color = scope.linkColor,
                         textDecoration = TextDecoration.Underline
                     )
                 ) {
-                    childNodesInlineText(node)
+                    childNodesInlineText(node, scope)
                 }
                 pop()
             }
@@ -407,7 +518,7 @@ private fun AnnotatedString.Builder.inlineText(node: Node) {
                         background = Color(0x1f000000)
                     )
                 ) {
-                    childNodesInlineText(node)
+                    childNodesInlineText(node, scope)
                 }
             }
             "img" -> {
@@ -416,17 +527,26 @@ private fun AnnotatedString.Builder.inlineText(node: Node) {
                     appendInlineContent(src)
                 }
             }
-
+            "input" -> {
+                val type = node.attr("type")
+                val checked = node.hasAttr("checked")
+                if (type.lowercase() == "checkbox") {
+                    appendInlineContent("checkbox")
+                }
+            }
         }
     }
 }
 
-private fun AnnotatedString.Builder.childNodesInlineText(element: Element) {
+private fun AnnotatedString.Builder.childNodesInlineText(
+    element: Element,
+    scope: HtmlElementsScope
+) {
     for (node in element.childNodes()) {
         if (node is TextNode) {
             append(node.text())
         } else if (node is Element) {
-            inlineText(node)
+            inlineText(node, scope)
         }
     }
 }
@@ -434,7 +554,7 @@ private fun AnnotatedString.Builder.childNodesInlineText(element: Element) {
 
 //=========== Inline Elements End ============
 
-data class HtmlElementsScope(val baseUrl: String? = null)
+data class HtmlElementsScope(val baseUrl: String? = null, val linkColor: Color = Color.Blue)
 
 private fun Modifier.innermostBlockPadding() = this.padding(PaddingValues(vertical = 5.dp))
 
@@ -442,28 +562,40 @@ private fun Node.isBlock(): Boolean = this is Element && this.isBlock
 
 private fun Node.firstChildNode(): Node? = if (childNodeSize() == 0) null else childNode(0)
 
+@Stable
 private data class Img(
     val src: String,
     val alt: String? = null,
     val width: Int? = null,
     val height: Int? = null,
-)
+) {
+    constructor(element: Element) : this(
+        element.attr("src"),
+        element.attr("alt"),
+        element.attr("width").toIntOrNull(),
+        element.attr("height").toIntOrNull()
+    )
+}
 
 private fun parseImgs(elements: List<Element>): List<Img> {
     val result = mutableListOf<Img>()
     for (element in elements) {
         if (element.tagName().lowercase() == "img") {
-            result.add(
-                Img(
-                    src = element.attr("src"),
-                    alt = element.attr("alt"),
-                    width = element.attr("width").toIntOrNull(),
-                    height = element.attr("height").toIntOrNull(),
-                )
-            )
+            result.add(Img(element))
         } else {
-            parseImgs(element.children())
+            result.addAll(parseImgs(element.children()))
         }
     }
     return result
+}
+
+private fun String.fullUrl(baseUrl: String? = null): String {
+    if (startsWith("//")) {
+        return "https:$this"
+    } else if (startsWith("/")) {
+        if (baseUrl != null) {
+            return baseUrl.dropLastWhile { it == '/' } + this
+        }
+    }
+    return this
 }

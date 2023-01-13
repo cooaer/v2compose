@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import io.github.v2compose.network.bean.NewsInfo
 import io.github.v2compose.ui.main.home.tab.NewsTab
 import kotlinx.coroutines.launch
 
@@ -19,7 +20,8 @@ private val tabRowHeight = 32.dp
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeContent(
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    onNewsItemClick: (NewsInfo.Item) -> Unit,
 ) {
     val pagerState = rememberPagerState(0)
     val coroutineScope = rememberCoroutineScope()
@@ -35,7 +37,7 @@ fun HomeContent(
             key = { tabInfos[it].value },
         ) { page ->
             rememberSaveableStateHolder().SaveableStateProvider(key = page) {
-                NewsTab(newsTabInfo = tabInfos[page])
+                NewsTab(newsTabInfo = tabInfos[page], onNewsItemClick = onNewsItemClick)
             }
         }
 
@@ -77,5 +79,5 @@ fun HomeContent(
 @Preview(showBackground = true, widthDp = 440, heightDp = 880)
 @Composable
 fun HomeContentPreview() {
-    HomeContent()
+    HomeContent(onNewsItemClick = {})
 }

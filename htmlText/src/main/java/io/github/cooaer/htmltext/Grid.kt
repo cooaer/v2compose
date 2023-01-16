@@ -60,7 +60,7 @@ class GridRowScope(private val columnCount: Int) {
                     strokeWidth = 1.dp.toPx()
                 )
                 val columnWidth = size.width / columnCount
-                for (index in (0..rowCount)) {
+                for (index in (0..columnCount)) {
                     val startX = columnWidth * index
                     drawLine(
                         color = lineColor,

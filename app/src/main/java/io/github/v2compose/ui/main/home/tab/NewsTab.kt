@@ -9,8 +9,6 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,7 +26,7 @@ import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import io.github.v2compose.network.bean.NewsInfo
-import io.github.v2compose.ui.common.AppendMore
+import io.github.v2compose.ui.common.LoadMore
 import io.github.v2compose.ui.common.SimpleTopic
 import io.github.v2compose.ui.main.home.NewsTabInfo
 
@@ -37,13 +35,11 @@ import io.github.v2compose.ui.main.home.NewsTabInfo
 fun NewsTab(
     newsTabInfo: NewsTabInfo,
     onNewsItemClick: (NewsInfo.Item) -> Unit,
+    onNodeClick: (String, String) -> Unit,
 ) {
     val viewModel: NewsViewModel = newsViewModel(newsTabInfo.value)
 
-    var newsUiState = viewModel.newsInfoFlow.value
-    if (newsUiState !is NewsUiState.Success) {
-        newsUiState = viewModel.newsInfoFlow.collectAsStateWithLifecycle().value
-    }
+    val newsUiState by viewModel.newsInfoFlow.collectAsStateWithLifecycle()
     val refreshing by viewModel.refreshingFlow.collectAsStateWithLifecycle()
 
     NewsContent(
@@ -51,21 +47,23 @@ fun NewsTab(
         newsUiState = newsUiState,
         onNewsItemClick = onNewsItemClick,
         onRefreshList = { viewModel.refresh() },
-        onRetryClick = { viewModel.retry() })
+        onRetryClick = { viewModel.retry() },
+        onNodeClick = onNodeClick,
+    )
 }
 
 @Composable
 private fun newsViewModel(tabValue: String): NewsViewModel {
+    val context = LocalContext.current
     val viewModelStoreOwner = checkNotNull(LocalViewModelStoreOwner.current) {
         "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
     }
-    val factory = if (viewModelStoreOwner is NavBackStackEntry) {
-        HiltViewModelFactory(
-            context = LocalContext.current,
-            navBackStackEntry = viewModelStoreOwner
-        )
-    } else {
-        null
+    val factory = remember(context, viewModelStoreOwner) {
+        if (viewModelStoreOwner is NavBackStackEntry) {
+            HiltViewModelFactory(context = context, navBackStackEntry = viewModelStoreOwner)
+        } else {
+            null
+        }
     }
     return viewModel(
         viewModelStoreOwner = viewModelStoreOwner,
@@ -95,8 +93,9 @@ fun NewsContent(
     refreshing: Boolean,
     newsUiState: NewsUiState,
     onNewsItemClick: ((NewsInfo.Item) -> Unit),
+    onNodeClick: (String, String) -> Unit,
     onRetryClick: () -> Unit,
-    onRefreshList: () -> Unit,
+    onRefreshList: () -> Unit
 ) {
     when (newsUiState) {
         is NewsUiState.Success -> {
@@ -104,11 +103,12 @@ fun NewsContent(
                 refreshing = refreshing,
                 newsInfo = newsUiState.newsInfo,
                 onRefresh = onRefreshList,
-                onNewsItemClick = onNewsItemClick
+                onNewsItemClick = onNewsItemClick,
+                onNodeClick = onNodeClick,
             )
         }
         else -> {
-            AppendMore(
+            LoadMore(
                 hasError = newsUiState is NewsUiState.Error,
                 error = if (newsUiState is NewsUiState.Error) newsUiState.throwable else null,
                 modifier = Modifier.fillMaxSize(),
@@ -119,26 +119,12 @@ fun NewsContent(
 }
 
 @Composable
-private fun NewsError() {
-    Text("error")
-}
-
-@Composable
-private fun NewsLoading() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        CircularProgressIndicator()
-    }
-}
-
-@Composable
 private fun NewsList(
     refreshing: Boolean,
     newsInfo: NewsInfo,
     onRefresh: () -> Unit,
-    onNewsItemClick: (NewsInfo.Item) -> Unit
+    onNewsItemClick: (NewsInfo.Item) -> Unit,
+    onNodeClick: (String, String) -> Unit,
 ) {
     PullToRefresh(refreshing = refreshing, onRefresh = onRefresh) {
         val lazyListState = rememberLazyListState()
@@ -152,7 +138,8 @@ private fun NewsList(
                     replyNum = item.replies.toString(),
                     nodeId = item.tagId,
                     nodeName = item.tagName,
-                    onItemClick = { onNewsItemClick(item) }
+                    onItemClick = { onNewsItemClick(item) },
+                    onNodeClick = { onNodeClick(item.tagId, item.tagName) },
                 )
             }
         }
@@ -166,7 +153,6 @@ private fun PullToRefresh(
     onRefresh: () -> Unit,
     content: @Composable () -> Unit
 ) {
-
     val pullRefreshState = rememberPullRefreshState(
         refreshing = refreshing,
         onRefresh = onRefresh

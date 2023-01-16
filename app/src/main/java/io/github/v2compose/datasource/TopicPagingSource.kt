@@ -10,7 +10,8 @@ class TopicPagingSource constructor(
     private val reversed: Boolean
 ) : PagingSource<Int, Any>() {
     companion object {
-        private const val startPageReversed = 9999
+        private const val firstPageIndex = 1
+        private const val startPageReversed = 999
     }
 
     private var startPage = if (reversed) startPageReversed else 1
@@ -39,7 +40,7 @@ class TopicPagingSource constructor(
             }
             val prevPage = if (page == startPage) null else page + (if (reversed) 1 else -1)
             val nextPage = if (reversed) {
-                if (page <= 0) null else page - 1
+                if (page <= firstPageIndex) null else page - 1
             } else {
                 if (page < topicInfo.totalPage) page + 1 else null
             }

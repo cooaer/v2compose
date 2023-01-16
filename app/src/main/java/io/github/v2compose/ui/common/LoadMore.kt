@@ -20,7 +20,7 @@ fun <T : Any> PagingAppendMore(
     onRetryClick: () -> Unit,
 ) {
     with(lazyPagingItems.loadState.append) {
-        AppendMore(
+        LoadMore(
             hasError = this is LoadState.Error,
             error = if (this is LoadState.Error) error else null,
             modifier = modifier,
@@ -30,31 +30,33 @@ fun <T : Any> PagingAppendMore(
 }
 
 @Composable
-fun AppendMore(
+fun LoadMore(
     hasError: Boolean,
     modifier: Modifier = Modifier,
+    onRetryClick: (() -> Unit),
     error: Throwable? = null,
-    onRetryClick: () -> Unit
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .sizeIn(minHeight = 96.dp),
-        contentAlignment = Alignment.Center
-    ) {
+    Box(contentAlignment = Alignment.Center) {
         if (hasError) {
-            LoadError(error = error, onRetryClick = onRetryClick)
+            LoadError(error = error, onRetryClick = onRetryClick, modifier = modifier)
         } else {
-            Loading()
+            Loading(modifier = modifier)
         }
     }
 }
 
+private val LoadModifier = Modifier
+    .fillMaxWidth()
+    .padding(16.dp)
+    .sizeIn(minHeight = 96.dp);
 
 @Composable
-private fun LoadError(error: Throwable?, onRetryClick: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+fun LoadError(error: Throwable?, onRetryClick: () -> Unit, modifier: Modifier = Modifier) {
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.then(LoadModifier),
+    ) {
         Text(error?.message ?: stringResource(R.string.load_failed))
         Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = onRetryClick) {
@@ -64,8 +66,12 @@ private fun LoadError(error: Throwable?, onRetryClick: () -> Unit) {
 }
 
 @Composable
-private fun Loading() {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+fun Loading(modifier: Modifier = Modifier) {
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier.then(LoadModifier),
+    ) {
         CircularProgressIndicator()
 //        Spacer(modifier = Modifier.width(8.dp))
 //        Text(stringResource(id = R.string.loading))

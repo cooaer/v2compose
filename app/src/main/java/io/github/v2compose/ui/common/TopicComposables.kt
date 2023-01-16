@@ -28,13 +28,13 @@ fun SimpleTopic(
     nodeName: String,
     title: String,
     onItemClick: (() -> Unit)? = null,
-    onAvatarClick: (() -> Unit)? = null,
+    onUserAvatarClick: (() -> Unit)? = null,
     onNodeClick: (() -> Unit)? = null,
 ) {
     Box(modifier = Modifier.clickable(enabled = onItemClick != null) { onItemClick?.invoke() }) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                TopicUserAvatar(userName = userName, avatar = avatar, onAvatarClick = onAvatarClick)
+                TopicUserAvatar(userName = userName, avatar = avatar, onUserAvatarClick = onUserAvatarClick)
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(Modifier.weight(1f)) {
                     Text(
@@ -70,8 +70,7 @@ fun SimpleTopic(
             Spacer(modifier = Modifier.height(8.dp))
             Text(title, style = MaterialTheme.typography.bodyLarge)
         }
-        Divider(
-            color = MaterialTheme.colorScheme.inverseOnSurface,
+        ListDivider(
             modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
@@ -83,7 +82,7 @@ fun TopicUserAvatar(
     userName: String,
     avatar: String,
     modifier: Modifier = Modifier,
-    onAvatarClick: (() -> Unit)? = null,
+    onUserAvatarClick: (() -> Unit)? = null,
 ) {
     AsyncImage(
         model = avatar,
@@ -92,7 +91,7 @@ fun TopicUserAvatar(
             .size(36.dp)
             .clip(CircleShape)
             .background(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f))
-            .clickable(enabled = onAvatarClick != null) { onAvatarClick?.invoke() },
+            .clickable(enabled = onUserAvatarClick != null) { onUserAvatarClick?.invoke() },
         contentScale = ContentScale.Crop,
     )
 }

@@ -8,7 +8,10 @@
     <string name="retry">重试</string>
 
     <string name="n_comment">评论%s</string>
+    <string name="n_floor">%d楼</string>
 
+
+    <!-- Topic Screen Start -->
     <string name="topic">主题</string>
     <string name="topic_menu_item_sort">浏览顺序</string>
     <string name="topic_menu_item_add_bookmark">添加收藏</string>
@@ -26,4 +29,11 @@
 
     <string name="replies_order_positive">最早</string>
     <string name="replies_order_negative">最新</string>
+    <!-- Topic Screen End -->
+
+    <!-- Node Screen Start -->
+    <string name="node">节点</string>
+    <string name="node_topics_and_favorites">%d条主题  %d次收藏</string>
+    <string name="node_click_times">%d 次点击</string>
+    <!-- Node Screen End -->
 </resources>

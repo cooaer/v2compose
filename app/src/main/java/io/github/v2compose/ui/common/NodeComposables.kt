@@ -19,7 +19,7 @@ fun NodeTag(
         nodeName,
         modifier = Modifier
             .clickable {
-                onItemClick?.invoke(nodeName, nodeId)
+                onItemClick?.invoke(nodeId, nodeName)
             }
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(horizontal = 8.dp, vertical = 4.dp),

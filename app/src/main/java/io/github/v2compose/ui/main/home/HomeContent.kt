@@ -22,6 +22,7 @@ private val tabRowHeight = 32.dp
 fun HomeContent(
     viewModel: HomeViewModel = hiltViewModel(),
     onNewsItemClick: (NewsInfo.Item) -> Unit,
+    onNodeClick: (String, String) -> Unit,
 ) {
     val pagerState = rememberPagerState(0)
     val coroutineScope = rememberCoroutineScope()
@@ -37,7 +38,11 @@ fun HomeContent(
             key = { tabInfos[it].value },
         ) { page ->
             rememberSaveableStateHolder().SaveableStateProvider(key = page) {
-                NewsTab(newsTabInfo = tabInfos[page], onNewsItemClick = onNewsItemClick)
+                NewsTab(
+                    newsTabInfo = tabInfos[page],
+                    onNewsItemClick = onNewsItemClick,
+                    onNodeClick = onNodeClick,
+                )
             }
         }
 
@@ -79,5 +84,5 @@ fun HomeContent(
 @Preview(showBackground = true, widthDp = 440, heightDp = 880)
 @Composable
 fun HomeContentPreview() {
-    HomeContent(onNewsItemClick = {})
+    HomeContent(onNewsItemClick = {}, onNodeClick = { id, name -> })
 }

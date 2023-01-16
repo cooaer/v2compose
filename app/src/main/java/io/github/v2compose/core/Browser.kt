@@ -5,17 +5,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
-import androidx.browser.customtabs.CustomTabsService
 import androidx.browser.customtabs.CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION
 
-
-val ALLOWED_CUSTOM_TABS_PACKAGES =
-    arrayOf(
-        "com.android.chrome", // Chrome stable
-        "com.google.android.apps.chrome", // Chrome system
-        "com.chrome.beta",// Chrome beta
-        "com.chrome.dev" // Chrome dev
-    )
 
 fun Context.getDefaultBrowser(): String? {
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.v2ex.com"))

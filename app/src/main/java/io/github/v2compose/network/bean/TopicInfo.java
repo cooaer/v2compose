@@ -545,8 +545,8 @@ public class TopicInfo extends BaseInfo {
             }
         }
 
-        public String getFloor() {
-            return floor + "楼";
+        public int getFloor() {
+            return floor;
         }
 
         public String getReplyId() {

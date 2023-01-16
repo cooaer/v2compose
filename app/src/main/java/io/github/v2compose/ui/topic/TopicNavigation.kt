@@ -9,9 +9,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import io.github.v2compose.core.StringDecoder
 
-const val argTopicId: String = "topicId"
+private const val argTopicId: String = "topicId"
 
-const val topicNavigationRoute = "topic/{$argTopicId}"
+private const val topicNavigationRoute = "/t/{$argTopicId}"
 
 class TopicArgs(val topicId: String) {
     constructor(savedStateHandle: SavedStateHandle, stringDecoder: StringDecoder) : this(
@@ -23,14 +23,24 @@ class TopicArgs(val topicId: String) {
 
 fun NavController.navigateToTopic(topicId: String) {
     val encodedTopicId = Uri.encode(topicId)
-    navigate("topic/$topicId")
+    navigate("/t/$encodedTopicId")
 }
 
-fun NavGraphBuilder.topicScreen(onBackClick: () -> Unit) {
+fun NavGraphBuilder.topicScreen(
+    onBackClick: () -> Unit,
+    onNodeClick: (String, String) -> Unit,
+    onUserAvatarClick: (String, String) -> Unit,
+    openUri:(String) -> Unit,
+) {
     composable(
         topicNavigationRoute,
         arguments = listOf(navArgument(argTopicId) { type = NavType.StringType })
     ) {
-        TopicRoute(onBackClick = onBackClick)
+        TopicRoute(
+            onBackClick = onBackClick,
+            onNodeClick = onNodeClick,
+            onUserAvatarClick = onUserAvatarClick,
+            openUri = openUri,
+        )
     }
 }

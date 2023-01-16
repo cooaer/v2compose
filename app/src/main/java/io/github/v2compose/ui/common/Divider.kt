@@ -23,3 +23,17 @@ fun VerticalDivider(
         color = color
     )
 }
+
+@Composable
+fun ListDivider(
+    modifier: Modifier = Modifier,
+    thickness: Dp = DividerDefaults.Thickness,
+    color: Color = DividerDefaults.color,) {
+
+    Divider(
+        modifier = modifier,
+        thickness = Dp.Hairline,
+        color = color
+    )
+
+}

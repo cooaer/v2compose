@@ -70,6 +70,10 @@ public class NodesNavInfo extends ArrayList<NodesNavInfo.Item> implements IBase 
                         '}';
             }
 
+            public String getId(){
+                return link.substring(4);
+            }
+
             public String getName() {
                 return name;
             }

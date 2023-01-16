@@ -58,7 +58,7 @@ class NewsViewModel @Inject constructor(
             val newsInfo = newsRepository.getHomeNews(tab)
             _newsInfoFlow.emit(NewsUiState.Success(newsInfo))
         } catch (e: Exception) {
-            _newsInfoFlow.emit(NewsUiState.Error(e.cause))
+            _newsInfoFlow.emit(NewsUiState.Error(e))
         }
     }
 

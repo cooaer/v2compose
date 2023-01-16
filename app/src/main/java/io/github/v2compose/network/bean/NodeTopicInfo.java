@@ -2,21 +2,25 @@ package io.github.v2compose.network.bean;
 
 import android.text.TextUtils;
 
+import androidx.compose.runtime.Stable;
+
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
-import me.ghui.fruit.Attrs;
-import me.ghui.fruit.annotations.Pick;
 import io.github.v2compose.network.NetConstants;
 import io.github.v2compose.util.Check;
 import io.github.v2compose.util.UriUtils;
 import io.github.v2compose.util.Utils;
+import me.ghui.fruit.Attrs;
+import me.ghui.fruit.annotations.Pick;
 
 /**
  * Created by ghui on 27/05/2017.
  * https://www.v2ex.com/go/python
  */
 
+@Stable
 @Pick("div#Wrapper")
 public class NodeTopicInfo extends BaseInfo {
 
@@ -36,7 +40,7 @@ public class NodeTopicInfo extends BaseInfo {
     }
 
     public List<Item> getItems() {
-        return items;
+        return items != null ? items : Collections.emptyList();
     }
 
     public String getFavoriteLink() {
@@ -77,6 +81,7 @@ public class NodeTopicInfo extends BaseInfo {
         return Check.notEmpty(items.get(0).userName);
     }
 
+    @Stable
     public static class Item implements Serializable {
         @Pick(value = "img.avatar", attr = Attrs.SRC)
         private String avatar;
@@ -90,6 +95,14 @@ public class NodeTopicInfo extends BaseInfo {
         private int commentNum;
         @Pick(value = "span.item_title a", attr = Attrs.HREF)
         private String topicLink;
+
+        private int clickNum = -1;
+
+        public String getTopicId(){
+            // topicLink example : /t/908177#reply33
+            int end = topicLink.indexOf('#');
+            return topicLink.substring(3, end);
+        }
 
         public String getTopicLink() {
             return topicLink;
@@ -115,9 +128,12 @@ public class NodeTopicInfo extends BaseInfo {
         }
 
         public int getClickNum() {
+            if(clickNum > 0){
+                return clickNum;
+            }
             //  •  719 个字符  •  109 次点击
             if (Check.isEmpty(clickedAndContentLength)) {
-                return 0;
+                clickNum = 0;
             } else {
                 int count;
                 try {
@@ -128,8 +144,9 @@ public class NodeTopicInfo extends BaseInfo {
                     e.printStackTrace();
                     count = 0;
                 }
-                return count;
+                clickNum = count;
             }
+            return clickNum;
         }
 
         public int getContentLength() {

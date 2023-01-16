@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
@@ -41,6 +42,7 @@ import org.jsoup.nodes.TextNode
 
 private const val TAG = "HtmlText"
 
+
 //TODO 待解决问题：1,斜体
 @Composable
 fun HtmlText(
@@ -49,17 +51,27 @@ fun HtmlText(
     selectable: Boolean = false,
     textStyle: TextStyle = TextStyle.Default,
     baseUrl: String? = null,
+    onImageClick: ((Img, List<Img>) -> Unit)? = null,
 ) {
     val document = Jsoup.parse(html)
     val scope =
         HtmlElementsScope(baseUrl = baseUrl, linkColor = MaterialTheme.colorScheme.tertiary)
-    if (selectable) {
-        SelectionContainer(modifier = modifier) {
-            scope.Block(element = document.body(), textStyle = textStyle)
-        }
-    } else {
-        Box(modifier = modifier) {
-            scope.Block(element = document.body(), textStyle = textStyle)
+
+    val allImgs = remember(html) { document.select("img").map { Img(it) } }
+
+    val imageClickHandler: HtmlImageClickHandler? = remember(onImageClick, allImgs) {
+        if (onImageClick == null) null else { img -> onImageClick(img, allImgs) }
+    }
+
+    CompositionLocalProvider(LocalImageClickHandler provides imageClickHandler) {
+        if (selectable) {
+            SelectionContainer(modifier = modifier) {
+                scope.Block(element = document.body(), textStyle = textStyle)
+            }
+        } else {
+            Box(modifier = modifier) {
+                scope.Block(element = document.body(), textStyle = textStyle)
+            }
         }
     }
 }
@@ -74,7 +86,7 @@ private fun HtmlElementsScope.BlockToInlineNodes(
     while (iterator.hasNext()) {
         val node = iterator.next()
         if (node is Element) {
-            if (node.isBlock || node.tagName().lowercase() == "img") {
+            if (node.isBlock || node.onlyContainsImgs()) {
 //            if (node.isBlock) {
                 if (tempNodes.isNotEmpty()) {
                     InlineNodes(tempNodes.toList(), textStyle)
@@ -175,8 +187,7 @@ private fun HtmlElementsScope.Table(element: Element, textStyle: TextStyle) {
     val tbody = element.getElementsByTag("tbody").first()?.getElementsByTag("tr") ?: return
 
     val columnCount = if (thead == null) {
-        val tbodyTrTds =
-            tbody.first()?.getElementsByTag("td") ?: throw RuntimeException("bad table")
+        val tbodyTrTds = tbody.first()?.children() ?: throw RuntimeException("bad table")
         tbodyTrTds.size
     } else {
         thead.size
@@ -288,30 +299,33 @@ private fun HtmlElementsScope.P(element: Element, textStyle: TextStyle) {
 
 @Composable
 private fun HtmlElementsScope.Img(element: Element, textStyle: TextStyle) {
-    val density = LocalDensity.current
-
     BoxWithConstraints {
         var img by remember { mutableStateOf(Img(element)) }
 
-        val (realWidth, realHeight) = remember(img, density) {
-
-            val imgWidthDp = with(density) { img.width?.toDp() }
-            val imgHeightDp = with(density) { img.height?.toDp() }
-
-            if (img.width == null || img.height == null) {
-                Pair(maxWidth, maxWidth / 3f)
-            } else if (imgWidthDp!! > maxWidth) {
-                Pair(maxWidth, maxWidth * img.height!! / img.width!!)
-            } else {
-                Pair(imgWidthDp, imgHeightDp!!)
-            }
-        }
+        val (realWidth, realHeight) = rememberImageSize(img = img, maxWidth = maxWidth)
 
         InlineImage(
             img = img,
             onLoadSuccess = { oldImg, newImg -> img = newImg },
             modifier = Modifier.size(realWidth, realHeight)
         )
+    }
+}
+
+@Composable
+private fun rememberImageSize(img: Img, maxWidth: Dp): Pair<Dp, Dp> {
+    val density = LocalDensity.current
+    return remember(img, density) {
+        val imgWidthDp = img.width?.dp
+        val imgHeightDp = img.height?.dp
+
+        if (img.width == null || img.height == null) {
+            Pair(maxWidth, maxWidth / 3f)
+        } else if (imgWidthDp!! > maxWidth) {
+            Pair(maxWidth, maxWidth * img.height / img.width)
+        } else {
+            Pair(imgWidthDp, imgHeightDp!!)
+        }
     }
 }
 
@@ -325,8 +339,11 @@ private fun HtmlElementsScope.InlineNodes(nodes: List<Node>, textStyle: TextStyl
     BoxWithConstraints() {
         val density = LocalDensity.current
 
-        val allImgs =
-            remember { parseImgs(nodes.filterIsInstance<Element>()).toMutableStateList() }
+        val allImgs = remember(nodes) {
+            nodes.filterIsInstance<Element>()
+                .map { ele -> ele.select("img").map { eles -> Img(eles) } }.flatten()
+                .toMutableStateList()
+        }
 
         val annotatedString by remember {
             derivedStateOf {
@@ -396,8 +413,9 @@ private fun createInlineTextImage(
     scope: HtmlElementsScope,
     onLoadSuccess: (Img, Img) -> Unit,
 ): InlineTextContent {
-    val imgWidthDp = with(density) { img.width?.toDp() }
-    val imgHeightDp = with(density) { img.height?.toDp() }
+
+    val imgWidthDp = img.width?.dp
+    val imgHeightDp = img.height?.dp
 
     val (realWidth, realHeight) = if (img.width == null || img.height == null) {
         Pair(maxWidthDp, maxWidthDp / 3f)
@@ -429,22 +447,34 @@ private fun HtmlElementsScope.InlineImage(
     modifier: Modifier
 ) {
     val context = LocalContext.current
+    var retryTimes by remember { mutableStateOf(0) }
 
     SubcomposeAsyncImage(
         model = ImageRequest.Builder(context).data(img.src.fullUrl(baseUrl)).size(Size.ORIGINAL)
+            .setParameter("retryTimes", retryTimes)
             .build(),
         contentDescription = img.alt,
         modifier = modifier,
+        success = {
+            val imageClickHandler = LocalImageClickHandler.current
+            val imgModifier = Modifier.apply { imageClickHandler?.let { clickable { it(img) } } }
+            Image(
+                painter = rememberAsyncImagePainter(model = it.result.drawable),
+                contentDescription = img.alt,
+                modifier = imgModifier,
+            )
+        },
         loading = {
             Image(
                 painter = rememberAsyncImagePainter(model = R.drawable.image_holder_loading),
-                contentDescription = "loading"
+                contentDescription = "loading image",
             )
         },
         error = {
             Image(
                 painterResource(id = R.drawable.image_holder_failed),
-                contentDescription = "error"
+                contentDescription = "error image",
+                modifier = Modifier.clickable { retryTimes++ }
             )
         },
         onSuccess = {
@@ -554,7 +584,7 @@ private fun AnnotatedString.Builder.childNodesInlineText(
 
 //=========== Inline Elements End ============
 
-data class HtmlElementsScope(val baseUrl: String? = null, val linkColor: Color = Color.Blue)
+private data class HtmlElementsScope(val baseUrl: String? = null, val linkColor: Color = Color.Blue)
 
 private fun Modifier.innermostBlockPadding() = this.padding(PaddingValues(vertical = 5.dp))
 
@@ -562,8 +592,18 @@ private fun Node.isBlock(): Boolean = this is Element && this.isBlock
 
 private fun Node.firstChildNode(): Node? = if (childNodeSize() == 0) null else childNode(0)
 
+private fun Element.onlyContainsImgs(): Boolean {
+    if (tagName().lowercase() == "img") {
+        return true
+    }
+    if (childNodeSize() == 0) {
+        return false
+    }
+    return childNodes().all { it is Element && it.tagName().lowercase() == "img" }
+}
+
 @Stable
-private data class Img(
+data class Img(
     val src: String,
     val alt: String? = null,
     val width: Int? = null,
@@ -577,18 +617,6 @@ private data class Img(
     )
 }
 
-private fun parseImgs(elements: List<Element>): List<Img> {
-    val result = mutableListOf<Img>()
-    for (element in elements) {
-        if (element.tagName().lowercase() == "img") {
-            result.add(Img(element))
-        } else {
-            result.addAll(parseImgs(element.children()))
-        }
-    }
-    return result
-}
-
 private fun String.fullUrl(baseUrl: String? = null): String {
     if (startsWith("//")) {
         return "https:$this"
@@ -599,3 +627,7 @@ private fun String.fullUrl(baseUrl: String? = null): String {
     }
     return this
 }
+
+private typealias HtmlImageClickHandler = (Img) -> Unit
+
+private val LocalImageClickHandler = compositionLocalOf<HtmlImageClickHandler?> { null }

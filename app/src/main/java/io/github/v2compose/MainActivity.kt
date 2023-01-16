@@ -20,9 +20,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             V2composeTheme(androidTheme = true) {
                 val navController = rememberNavController()
-                AppNavGraph(navController = navController) {
-                    navController.popBackStack()
-                }
+                AppNavGraph(
+                    navController = navController,
+                    onBackClick = { navController.popBackStack() })
             }
         }
     }
@@ -33,8 +33,6 @@ class MainActivity : ComponentActivity() {
 fun DefaultPreview() {
     V2composeTheme(androidTheme = true) {
         val navController = rememberNavController()
-        AppNavGraph(navController = navController) {
-            navController.popBackStack()
-        }
+        AppNavGraph(navController = navController, onBackClick = { navController.popBackStack() })
     }
 }

@@ -9,6 +9,8 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.autoSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -27,8 +29,9 @@ import io.github.v2compose.ui.main.notifications.NotificationsContent
 fun MainScreen(
     viewModel: MainViewModel = hiltViewModel(),
     onNewsItemClick: (NewsInfo.Item) -> Unit,
+    onNodeClick: (String, String) -> Unit,
 ) {
-    var navBarSelectedIndex by remember { mutableStateOf(0) }
+    var navBarSelectedIndex by rememberSaveable(stateSaver = autoSaver()) { mutableStateOf(0) }
 
     Scaffold(
         topBar = { MainTopBar(navBarSelectedIndex) },
@@ -42,7 +45,7 @@ fun MainScreen(
             Box(
                 modifier = Modifier.weight(1f, fill = true)
             ) {
-                MainContent(navBarSelectedIndex, onNewsItemClick)
+                MainContent(navBarSelectedIndex, onNewsItemClick, onNodeClick)
             }
             MainBottomNavigation(navBarSelectedIndex) {
                 navBarSelectedIndex = it
@@ -69,12 +72,16 @@ private fun MainTopBar(currentNavBarIndex: Int) {
 }
 
 @Composable
-fun MainContent(navBarSelectedIndex: Int, onNewsItemClick: (NewsInfo.Item) -> Unit) {
+fun MainContent(
+    navBarSelectedIndex: Int,
+    onNewsItemClick: (NewsInfo.Item) -> Unit,
+    onNodeClick: (String, String) -> Unit,
+) {
     val saveableStateHolder = rememberSaveableStateHolder()
     saveableStateHolder.SaveableStateProvider(key = navBarSelectedIndex) {
         when (navBarSelectedIndex) {
-            0 -> HomeContent(onNewsItemClick = onNewsItemClick)
-            1 -> NodesContent()
+            0 -> HomeContent(onNewsItemClick = onNewsItemClick, onNodeClick = onNodeClick)
+            1 -> NodesContent(onNodeClick = onNodeClick)
             2 -> NotificationsContent()
             3 -> MineContent()
         }
@@ -103,5 +110,5 @@ fun MainBottomNavigation(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
 @Preview(showBackground = true, widthDp = 440, heightDp = 880)
 @Composable
 fun MainScreenPreview() {
-    MainScreen(onNewsItemClick = {})
+    MainScreen(onNewsItemClick = {}, onNodeClick = { _, _ -> })
 }

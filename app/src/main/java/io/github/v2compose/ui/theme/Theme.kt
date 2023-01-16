@@ -128,7 +128,8 @@ val LightAndroidColorScheme = lightColorScheme(
     onSurfaceVariant = GreenGray30,
     inverseSurface = DarkGreenGray20,
     inverseOnSurface = DarkGreenGray95,
-    outline = GreenGray50
+    outline = GreenGray50,
+    outlineVariant = GreenGray80
 )
 
 /**
@@ -160,7 +161,8 @@ val DarkAndroidColorScheme = darkColorScheme(
     onSurfaceVariant = GreenGray80,
     inverseSurface = DarkGreenGray90,
     inverseOnSurface = DarkGreenGray10,
-    outline = GreenGray60
+    outline = GreenGray60,
+    outlineVariant = GreenGray30
 )
 
 @Composable

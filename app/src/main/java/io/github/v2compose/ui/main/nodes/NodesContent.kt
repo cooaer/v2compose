@@ -1,7 +1,6 @@
 package io.github.v2compose.ui.main.nodes
 
 import android.annotation.SuppressLint
-import android.webkit.WebView
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.CircularProgressIndicator
@@ -19,16 +18,17 @@ import io.github.v2compose.ui.common.NodeTag
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun NodesContent(viewModel: NodesViewModel = hiltViewModel()) {
+fun NodesContent(
+    onNodeClick: (String, String) -> Unit,
+    viewModel: NodesViewModel = hiltViewModel(),
+) {
     var nodesUiState = viewModel.nodesNavInfo.value
     if (nodesUiState !is NodesUiState.Success) {
         nodesUiState = viewModel.nodesNavInfo.collectAsStateWithLifecycle().value
     }
     when (nodesUiState) {
         is NodesUiState.Success -> {
-            NodesList(
-                (nodesUiState as NodesUiState.Success).nodesNavInfo,
-                onNodeClick = { id, name -> })
+            NodesList(nodesNavInfo = nodesUiState.nodesNavInfo, onNodeClick = onNodeClick)
         }
         is NodesUiState.Loading -> {
             NodesLoading()
@@ -74,7 +74,7 @@ fun NodesFlow(
 ) {
     FlowRow(mainAxisSpacing = 12.dp, crossAxisSpacing = 12.dp) {
         nodes.forEach { node ->
-            NodeTag(nodeName = node.name, nodeId = node.link, onItemClick = onNodeClick)
+            NodeTag(nodeName = node.name, nodeId = node.id, onItemClick = onNodeClick)
         }
     }
 }

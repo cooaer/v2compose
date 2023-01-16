@@ -6,15 +6,18 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import io.github.v2compose.network.bean.NewsInfo
 
-const val mainNavigationRoute = "main"
+const val mainNavigationRoute = "/"
 
 
 fun NavController.navigateToMain(navOptions: NavOptions? = null) {
     this.navigate(mainNavigationRoute, navOptions)
 }
 
-fun NavGraphBuilder.mainScreen(onNewsItemClick: (NewsInfo.Item) -> Unit) {
+fun NavGraphBuilder.mainScreen(
+    onNewsItemClick: (NewsInfo.Item) -> Unit,
+    onNodeClick: (String, String) -> Unit
+) {
     composable(route = mainNavigationRoute) {
-        MainScreen(onNewsItemClick = onNewsItemClick)
+        MainScreen(onNewsItemClick = onNewsItemClick, onNodeClick = onNodeClick)
     }
 }

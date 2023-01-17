@@ -12,7 +12,7 @@ import com.orhanobut.logger.FormatStrategy
 import com.orhanobut.logger.Logger
 import com.orhanobut.logger.PrettyFormatStrategy
 import dagger.hilt.android.HiltAndroidApp
-import io.github.v2compose.network.V2exService
+import io.github.v2compose.network.OkHttpFactory
 
 @HiltAndroidApp
 class App : Application(), ImageLoaderFactory {
@@ -23,7 +23,6 @@ class App : Application(), ImageLoaderFactory {
 
     private fun init() {
         initLogger()
-        V2exService.init()
     }
 
     private fun initLogger() {

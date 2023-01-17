@@ -1,5 +1,6 @@
 package io.github.v2compose.ui.node
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,20 +27,20 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import coil.compose.AsyncImage
-import io.github.cooaer.htmltext.HtmlText
-import io.github.v2compose.Constants
 import io.github.v2compose.R
 import io.github.v2compose.core.extension.castOrNull
 import io.github.v2compose.network.bean.NodeInfo
 import io.github.v2compose.network.bean.NodeTopicInfo
 import io.github.v2compose.ui.common.*
 
+private const val TAG = "NodeScreen"
+
 @Composable
 fun NodeRoute(
     onBackClick: () -> Unit,
     onTopicClick: (NodeTopicInfo.Item) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
-    openUri:(String) -> Unit,
+    openUri: (String) -> Unit,
     viewModel: NodeViewModel = hiltViewModel(),
     nodeScreenState: NodeScreenState = rememberNodeScreenState(),
 ) {
@@ -176,6 +177,7 @@ private fun NodeContent(
     openUri: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+
     when (nodeUiState) {
         is NodeUiState.Success -> {
             TopicList(
@@ -198,7 +200,6 @@ private fun NodeContent(
             Loading(modifier = modifier)
         }
     }
-
 }
 
 @Composable
@@ -210,7 +211,19 @@ private fun TopicList(
     openUri: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(modifier = modifier.fillMaxSize()) {
+    val nodeTopicInfo: NodeTopicInfo? = if (lazyPagingItems.itemCount > 0) {
+        lazyPagingItems.peek(0).castOrNull<NodeTopicInfo>()
+    } else null
+
+    //TODO: 非登录情况下，某些节点无法访问
+    if (nodeTopicInfo != null && !nodeTopicInfo.isValid) {
+        Log.e(TAG, "node topic info is invalid, nodeInfo = $nodeInfo")
+        return
+    }
+
+    Log.d(TAG, "list load state = ${lazyPagingItems.loadState}")
+
+    LazyColumn(modifier = modifier.fillMaxSize(), state = lazyPagingItems.rememberLazyListState()) {
         itemsIndexed(items = lazyPagingItems, key = { index, item -> item }) { index, item ->
             if (item is NodeTopicInfo) {
                 if (nodeInfo.header.isNotEmpty()) {

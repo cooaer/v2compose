@@ -394,6 +394,7 @@ private fun HtmlElementsScope.InlineNodes(nodes: List<Node>, textStyle: TextStyl
                     start = offset,
                     end = offset
                 ).firstOrNull()?.let {
+                    Log.d(TAG, "openUri, uri = ${it.item}")
                     try {
                         uriHandler.openUri(it.item)
                     } catch (e: Exception) {

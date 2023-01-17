@@ -5,8 +5,10 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import io.github.v2compose.datasource.AppSettings
 import io.github.v2compose.datasource.AppSettingsDataSource
+import io.github.v2compose.datasource.SearchPagingSource
 import io.github.v2compose.datasource.TopicPagingSource
 import io.github.v2compose.network.V2exApi
+import io.github.v2compose.network.bean.SoV2EXSearchResultInfo
 import io.github.v2compose.network.bean.TopicInfo
 import io.github.v2compose.repository.TopicRepository
 import kotlinx.coroutines.flow.Flow
@@ -30,5 +32,9 @@ class DefaultTopicRepository @Inject constructor(
 
     override suspend fun toggleRepliesReversed() {
         appSettingsDataSource.toggleTopicRepliesOrder()
+    }
+
+    override fun search(keyword: String): Flow<PagingData<SoV2EXSearchResultInfo.Hit>> {
+        return Pager(PagingConfig(pageSize = 10)) { SearchPagingSource(keyword, api) }.flow
     }
 }

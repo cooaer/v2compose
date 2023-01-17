@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.sp
 import io.github.cooaer.htmltext.HtmlText
 import io.github.v2compose.Constants
 
@@ -19,9 +20,13 @@ fun HtmlContent(
     html: String,
     modifier: Modifier = Modifier,
     selectable: Boolean = false,
-    textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
+    textStyle: TextStyle = MaterialTheme.typography.bodyMedium.copy(
+        fontSize = 15.sp,
+        lineHeight = 22.sp,
+        letterSpacing = 0.3.sp,
+    ),
     baseUrl: String = Constants.baseUrl,
-    onUriClick:((uri: String) -> Unit)? = null,
+    onUriClick: ((uri: String) -> Unit)? = null,
 ) {
     val uriHandler = remember(onUriClick) {
         object : UriHandler {

@@ -1,17 +1,38 @@
 package io.github.v2compose.network
 
-import me.ghui.retrofit.converter.annotations.Json
-import okhttp3.ResponseBody
 import io.github.v2compose.network.bean.*
 import io.github.v2compose.util.RefererUtils
+import me.ghui.fruit.converter.retrofit.FruitConverterFactory
+import me.ghui.retrofit.converter.GlobalConverterFactory
 import me.ghui.retrofit.converter.annotations.Html
+import me.ghui.retrofit.converter.annotations.Json
+import okhttp3.ResponseBody
 import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 
 /**
  * Created by ghui on 05/05/2017.
  */
 interface V2exApi {
+
+    companion object {
+        val instance: V2exApi by lazy { createV2exApi() }
+        private fun createV2exApi(): V2exApi {
+            val retrofit = Retrofit.Builder()
+                .client(OkHttpFactory.httpClient)
+                .addConverterFactory(
+                    GlobalConverterFactory.create()
+                        .add(FruitConverterFactory.create(OkHttpFactory.fruit), Html::class.java)
+                        .add(GsonConverterFactory.create(OkHttpFactory.gson), Json::class.java)
+                )
+                .baseUrl(NetConstants.BASE_URL)
+                .build()
+            return retrofit.create(V2exApi::class.java)
+        }
+    }
+
     @Json
     @GET("/api/topics/hot.json")
     suspend fun dailyHot(): DailyHotInfo
@@ -33,7 +54,7 @@ interface V2exApi {
     suspend fun search(
         @Query("q") keyword: String,
         @Query("from") from: Int,
-        @Query("sort") sortWay: String
+        @Query("size") size: Int,
     ): SoV2EXSearchResultInfo
 
     // Below is html API
@@ -61,7 +82,7 @@ interface V2exApi {
 
     @Html
     @GET("/notifications")
-    @Headers("user-agent: " + V2exService.WEB_USER_AGENT)
+    @Headers("user-agent: " + OkHttpFactory.WEB_USER_AGENT)
     suspend fun notifications(@Query("p") page: Int): NotificationInfo
 
     @Html
@@ -143,7 +164,10 @@ interface V2exApi {
 
     @Html
     @POST("/ignore/reply/{id}")
-    suspend fun ignoreReply(@Path("id") replyId: String, @Query("once") once: String): IgnoreResultInfo
+    suspend fun ignoreReply(
+        @Path("id") replyId: String,
+        @Query("once") once: String
+    ): IgnoreResultInfo
 
     @Html
     @GET("/settings/ignore/node/{id}")
@@ -172,7 +196,10 @@ interface V2exApi {
     @Html
     @FormUrlEncoded
     @POST("/t/{id}")
-    suspend fun replyTopic(@Path("id") id: String, @FieldMap replyMap: Map<String, String>): TopicInfo
+    suspend fun replyTopic(
+        @Path("id") id: String,
+        @FieldMap replyMap: Map<String, String>
+    ): TopicInfo
 
     @Html
     @GET

@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-const val TAG = "AppSettingsDataSource"
+private const val TAG = "AppSettingsDataSource"
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 

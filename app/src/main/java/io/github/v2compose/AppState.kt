@@ -54,15 +54,17 @@ class AppState @Inject constructor(
         when (screenType) {
             "t" -> {
                 navHostController.navigateToTopic(screenId)
+                return true
             }
             "go" -> {
                 navHostController.navigateToNode(screenId)
+                return true
             }
             "member" -> {
 
             }
         }
-        return true
+        return false
     }
 
 }

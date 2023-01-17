@@ -91,7 +91,7 @@ private fun TopicScreen(
 ) {
     val density = LocalDensity.current
 
-    val scrollState = rememberLazyListState()
+    val scrollState = topicItems.rememberLazyListState()
     val topBarShowTopicTitle = remember {
         derivedStateOf {
             scrollState.firstVisibleItemIndex > 0 ||
@@ -482,14 +482,14 @@ private fun TopicReply(
     onUserAvatarClick: (String, String) -> Unit,
     openUri: (String) -> Unit
 ) {
-    Row(modifier = Modifier.padding(start = 16.dp)) {
+    Row(modifier = Modifier.fillMaxWidth().padding(start = 16.dp)) {
         TopicUserAvatar(
             userName = reply.userName,
             avatar = reply.avatar,
             modifier = Modifier.padding(top = 12.dp),
             onUserAvatarClick = { onUserAvatarClick(reply.userName, reply.avatar) })
         Spacer(modifier = Modifier.width(8.dp))
-        Box(modifier = Modifier.weight(1f)) {
+        Box(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(top = 12.dp, end = 16.dp)) {
                 UserName(userName = reply.userName)
 
@@ -498,6 +498,7 @@ private fun TopicReply(
                     selectable = false,
                     textStyle = TextStyle.Default.copy(fontSize = 15.sp),
                     onUriClick = openUri,
+                    modifier = Modifier.fillMaxWidth()
                 )
                 ReplyFloor(
                     floor = reply.floor,

@@ -7,6 +7,8 @@ import io.github.v2compose.ui.main.mainNavigationRoute
 import io.github.v2compose.ui.main.mainScreen
 import io.github.v2compose.ui.node.navigateToNode
 import io.github.v2compose.ui.node.nodeScreen
+import io.github.v2compose.ui.search.navigateToSearch
+import io.github.v2compose.ui.search.searchScreen
 import io.github.v2compose.ui.topic.navigateToTopic
 import io.github.v2compose.ui.topic.topicScreen
 
@@ -19,7 +21,10 @@ fun AppNavGraph(
     NavHost(navController = navController, startDestination = mainNavigationRoute) {
         mainScreen(
             onNewsItemClick = { navController.navigateToTopic(it.id) },
-            onNodeClick = { nodeId, nodeName -> navController.navigateToNode(nodeId, nodeName) })
+            onNodeClick = { nodeId, nodeName -> navController.navigateToNode(nodeId, nodeName) },
+            onSearchClick = { navController.navigateToSearch() },
+            onSettingsClick = {},
+        )
         topicScreen(
             onBackClick = onBackClick,
             onNodeClick = { nodeId, nodeName ->
@@ -36,6 +41,10 @@ fun AppNavGraph(
             onTopicClick = { item -> navController.navigateToTopic(item.topicId) },
             onUserAvatarClick = { userName, avatar -> },
             openUri = appState::openUri
+        )
+        searchScreen(
+            goBack = onBackClick,
+            onTopicClick = { item -> navController.navigateToTopic(item.source.id) },
         )
     }
 }

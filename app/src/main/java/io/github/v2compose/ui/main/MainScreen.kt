@@ -27,14 +27,26 @@ import io.github.v2compose.ui.main.notifications.NotificationsContent
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    viewModel: MainViewModel = hiltViewModel(),
     onNewsItemClick: (NewsInfo.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
+    onSearchClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+    viewModel: MainViewModel = hiltViewModel(),
 ) {
     var navBarSelectedIndex by rememberSaveable(stateSaver = autoSaver()) { mutableStateOf(0) }
 
     Scaffold(
-        topBar = { MainTopBar(navBarSelectedIndex) },
+        topBar = {
+            MainTopBar(
+                currentNavBarIndex = navBarSelectedIndex,
+                onMenuItemClick = {
+                    when (it) {
+                        MenuItem.search -> onSearchClick()
+                        MenuItem.settings -> onSettingsClick()
+                    }
+                },
+            )
+        },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { paddingValues ->
         Column(
@@ -54,17 +66,27 @@ fun MainScreen(
     }
 }
 
+private enum class MenuItem(val imageVector: ImageVector) {
+    search(Icons.Rounded.Search), settings(Icons.Rounded.Settings)
+}
+
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun MainTopBar(currentNavBarIndex: Int) {
+private fun MainTopBar(currentNavBarIndex: Int, onMenuItemClick: (MenuItem) -> Unit) {
     val navBarItemNames = stringArrayResource(R.array.main_navigation_items)
+    val menuItem = remember(currentNavBarIndex) {
+        when (currentNavBarIndex) {
+            3 -> MenuItem.settings
+            else -> MenuItem.search
+        }
+    }
     CenterAlignedTopAppBar(
         title = { Text(navBarItemNames[currentNavBarIndex]) },
         actions = {
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { onMenuItemClick(menuItem) }) {
                 Icon(
-                    Icons.Rounded.Search,
-                    contentDescription = "search",
+                    menuItem.imageVector,
+                    contentDescription = menuItem.name,
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -110,5 +132,5 @@ fun MainBottomNavigation(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
 @Preview(showBackground = true, widthDp = 440, heightDp = 880)
 @Composable
 fun MainScreenPreview() {
-    MainScreen(onNewsItemClick = {}, onNodeClick = { _, _ -> })
+    MainScreen(onNewsItemClick = {}, onNodeClick = { _, _ -> }, onSearchClick = {}, onSettingsClick = {})
 }

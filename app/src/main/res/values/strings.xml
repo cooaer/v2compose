@@ -36,4 +36,14 @@
     <string name="node_topics_and_favorites">%d条主题  %d次收藏</string>
     <string name="node_click_times">%d 次点击</string>
     <!-- Node Screen End -->
+
+    <!-- Search Screen Start -->
+    <string name="search_user_time_replies" formatted="false">%s创建于%s  %d条回复</string>
+
+    <string name="n_days_ago">%d天前</string>
+    <string name="n_hours_ago">%d小时前</string>
+    <string name="n_minutes_ago">%d分钟前</string>
+    <string name="just_now">刚刚</string>
+
+    <!-- Search Screen End -->
 </resources>

@@ -55,7 +55,10 @@ fun NodesList(
 fun NodesGroup(
     category: NodesNavInfo.Item, onNodeClick: (String, String) -> Unit,
 ) {
-    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp, vertical = 8.dp)) {
         NodesGroupTitle(title = category.category)
         Spacer(modifier = Modifier.height(8.dp))
         NodesFlow(nodes = category.nodes, onNodeClick = onNodeClick)
@@ -64,7 +67,7 @@ fun NodesGroup(
 
 @Composable
 fun NodesGroupTitle(title: String) {
-    Text(title, style = MaterialTheme.typography.titleMedium)
+    Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxSize())
 }
 
 @Composable
@@ -72,7 +75,7 @@ fun NodesFlow(
     nodes: List<NodesNavInfo.Item.NodeItem>,
     onNodeClick: (String, String) -> Unit,
 ) {
-    FlowRow(mainAxisSpacing = 12.dp, crossAxisSpacing = 12.dp) {
+    FlowRow(mainAxisSpacing = 12.dp, crossAxisSpacing = 12.dp, modifier = Modifier.fillMaxWidth()) {
         nodes.forEach { node ->
             NodeTag(nodeName = node.name, nodeId = node.id, onItemClick = onNodeClick)
         }

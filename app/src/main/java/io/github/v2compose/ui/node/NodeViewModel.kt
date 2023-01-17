@@ -1,5 +1,6 @@
 package io.github.v2compose.ui.node
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,6 +13,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val TAG = "NodeViewModel"
 
 @HiltViewModel
 class NodeViewModel @Inject constructor(
@@ -45,6 +48,7 @@ class NodeViewModel @Inject constructor(
             _nodeInfoFlow.emit(NodeUiState.Loading)
             try {
                 val nodeInfo = nodeRepository.getNodeInfo(nodeArgs.nodeId)
+                Log.d(TAG, "loadNodeInternal, result, nodeInfo = $nodeInfo")
                 _nodeInfoFlow.emit(NodeUiState.Success(nodeInfo))
             } catch (e: Exception) {
                 e.printStackTrace()

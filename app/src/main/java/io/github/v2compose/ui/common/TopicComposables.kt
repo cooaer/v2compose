@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Divider
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,10 +31,17 @@ fun SimpleTopic(
     onUserAvatarClick: (() -> Unit)? = null,
     onNodeClick: (() -> Unit)? = null,
 ) {
-    Box(modifier = Modifier.clickable(enabled = onItemClick != null) { onItemClick?.invoke() }) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = onItemClick != null) { onItemClick?.invoke() }) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                TopicUserAvatar(userName = userName, avatar = avatar, onUserAvatarClick = onUserAvatarClick)
+                TopicUserAvatar(
+                    userName = userName,
+                    avatar = avatar,
+                    onUserAvatarClick = onUserAvatarClick
+                )
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(Modifier.weight(1f)) {
                     Text(
@@ -51,13 +58,13 @@ fun SimpleTopic(
                         Text(
                             time,
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = ContentAlpha.medium)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             stringResource(R.string.n_comment, replyNum),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = ContentAlpha.medium)
                         )
                     }
                 }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ContentAlpha
@@ -12,8 +13,13 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -35,6 +41,7 @@ import io.github.v2compose.core.extension.toTimeText
 import io.github.v2compose.network.bean.SoV2EXSearchResultInfo
 import io.github.v2compose.ui.common.PagingAppendMore
 import io.github.v2compose.ui.common.rememberLazyListState
+import kotlinx.coroutines.delay
 
 @Composable
 fun SearchScreenRoute(
@@ -95,24 +102,33 @@ private fun SearchScreen(
 
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun SearchBar(keyword: String?, onCloseClick: () -> Unit, onSearchClick: (String) -> Unit) {
-    var initialKeyword by rememberSaveable(keyword) { mutableStateOf(keyword ?: "") }
+    var initialKeyword by remember(keyword) { mutableStateOf(keyword ?: "") }
+    var autoShowKeyboard by rememberSaveable { mutableStateOf(true) }
+    val focusRequester = remember { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
 
-    OutlinedTextField(value = initialKeyword,
+    OutlinedTextField(
+        value = initialKeyword,
         onValueChange = { initialKeyword = it },
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
             .background(
                 color = MaterialTheme.colorScheme.background,
-                shape = TextFieldDefaults.outlinedShape
-            ),
+                shape = RoundedCornerShape(12.dp),
+            )
+            .focusRequester(focusRequester)
+            .onFocusChanged { },
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Text, imeAction = ImeAction.Search
         ),
-        keyboardActions = KeyboardActions(onSearch = { onSearchClick(initialKeyword) }),
+        keyboardActions = KeyboardActions(onSearch = {
+            onSearchClick(initialKeyword)
+            keyboard?.hide()
+        }),
         singleLine = true,
         placeholder = {
             Icon(
@@ -125,7 +141,18 @@ private fun SearchBar(keyword: String?, onCloseClick: () -> Unit, onSearchClick:
             Icon(imageVector = Icons.Rounded.Close,
                 contentDescription = "close",
                 modifier = Modifier.clickable { onCloseClick() })
-        })
+        },
+        shape = RoundedCornerShape(12.dp),
+    )
+
+    LaunchedEffect(focusRequester) {
+        if (autoShowKeyboard) {
+            focusRequester.requestFocus()
+            delay(100)
+            keyboard?.show()
+            autoShowKeyboard = false
+        }
+    }
 }
 
 @Composable

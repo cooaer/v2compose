@@ -221,7 +221,7 @@ private fun TopicList(
         return
     }
 
-    Log.d(TAG, "list load state = ${lazyPagingItems.loadState}")
+//    Log.d(TAG, "list load state = ${lazyPagingItems.loadState}")
 
     LazyColumn(modifier = modifier.fillMaxSize(), state = lazyPagingItems.rememberLazyListState()) {
         itemsIndexed(items = lazyPagingItems, key = { index, item -> item }) { index, item ->

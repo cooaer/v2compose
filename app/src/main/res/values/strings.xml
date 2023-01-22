@@ -46,4 +46,11 @@
     <string name="just_now">刚刚</string>
 
     <!-- Search Screen End -->
+
+    <!-- User Screen Start -->
+    <string name="user_topic">主题</string>
+    <string name="user_reply">回复</string>
+    <string name="user_online">Online</string>
+    <string name="user_offline">Offline</string>
+    <!-- User Screen End -->
 </resources>

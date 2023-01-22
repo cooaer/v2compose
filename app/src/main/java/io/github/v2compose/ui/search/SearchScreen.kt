@@ -39,7 +39,8 @@ import androidx.paging.compose.itemsIndexed
 import io.github.v2compose.R
 import io.github.v2compose.core.extension.toTimeText
 import io.github.v2compose.network.bean.SoV2EXSearchResultInfo
-import io.github.v2compose.ui.common.PagingAppendMore
+import io.github.v2compose.ui.common.pagingAppendMoreItem
+import io.github.v2compose.ui.common.pagingRefreshItem
 import io.github.v2compose.ui.common.rememberLazyListState
 import kotlinx.coroutines.delay
 
@@ -167,6 +168,9 @@ private fun SearchResult(
         contentPadding = PaddingValues(top = 72.dp),
         state = lazyPagingItems.rememberLazyListState(),
     ) {
+        if(!keyword.isNullOrEmpty()){
+            pagingRefreshItem(lazyPagingItems)
+        }
         itemsIndexed(items = lazyPagingItems,
             key = { index, item -> item.source.id }) { index, item ->
             item?.let {
@@ -174,16 +178,7 @@ private fun SearchResult(
             }
         }
         if (!keyword.isNullOrEmpty()) {
-            if (!lazyPagingItems.loadState.append.endOfPaginationReached) {
-                item(
-                    key = "appendMore#${lazyPagingItems.itemCount}",
-                    contentType = "appendMore"
-                ) {
-                    PagingAppendMore(lazyPagingItems = lazyPagingItems) {
-                        lazyPagingItems.retry()
-                    }
-                }
-            }
+            pagingAppendMoreItem(lazyPagingItems)
         }
     }
 }

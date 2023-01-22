@@ -20,9 +20,10 @@ private val tabRowHeight = 32.dp
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeContent(
-    viewModel: HomeViewModel = hiltViewModel(),
     onNewsItemClick: (NewsInfo.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
+    onUserAvatarClick: (String, String) -> Unit,
+    viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val pagerState = rememberPagerState(0)
     val coroutineScope = rememberCoroutineScope()
@@ -42,6 +43,7 @@ fun HomeContent(
                     newsTabInfo = tabInfos[page],
                     onNewsItemClick = onNewsItemClick,
                     onNodeClick = onNodeClick,
+                    onUserAvatarClick = onUserAvatarClick,
                 )
             }
         }
@@ -60,15 +62,10 @@ fun HomeContent(
                             pagerState.animateScrollToPage(index)
                         }
                     },
-                    modifier = Modifier.sizeIn(
-                        minWidth = 64.dp,
-                        minHeight = 32.dp,
-                        maxHeight = 32.dp
-                    ),
+                    modifier = Modifier.height(32.dp),
                 ) {
                     Text(
                         tabInfo.name,
-                        modifier = Modifier.padding(horizontal = 8.dp),
                         color = if (selected) {
                             MaterialTheme.colorScheme.primary
                         } else {
@@ -84,5 +81,8 @@ fun HomeContent(
 @Preview(showBackground = true, widthDp = 440, heightDp = 880)
 @Composable
 fun HomeContentPreview() {
-    HomeContent(onNewsItemClick = {}, onNodeClick = { id, name -> })
+    HomeContent(
+        onNewsItemClick = {},
+        onNodeClick = { id, name -> },
+        onUserAvatarClick = { _, _ -> })
 }

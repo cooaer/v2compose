@@ -221,9 +221,8 @@ private fun TopicList(
         return
     }
 
-//    Log.d(TAG, "list load state = ${lazyPagingItems.loadState}")
-
     LazyColumn(modifier = modifier.fillMaxSize(), state = lazyPagingItems.rememberLazyListState()) {
+        pagingRefreshItem(lazyPagingItems = lazyPagingItems)
         itemsIndexed(items = lazyPagingItems, key = { index, item -> item }) { index, item ->
             if (item is NodeTopicInfo) {
                 if (nodeInfo.header.isNotEmpty()) {
@@ -237,13 +236,7 @@ private fun TopicList(
                 )
             }
         }
-        if (!lazyPagingItems.loadState.append.endOfPaginationReached) {
-            item(key = "appendMore${lazyPagingItems.itemCount}", contentType = "appendMore") {
-                PagingAppendMore(lazyPagingItems = lazyPagingItems) {
-                    lazyPagingItems.retry()
-                }
-            }
-        }
+        pagingAppendMoreItem(lazyPagingItems = lazyPagingItems)
     }
 }
 
@@ -275,7 +268,7 @@ private fun NodeTopic(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 TopicUserAvatar(
                     userName = item.userName,
-                    avatar = item.avatar,
+                    userAvatar = item.avatar,
                     onUserAvatarClick = { onUserAvatarClick(item.userName, item.avatar) }
                 )
                 Spacer(modifier = Modifier.width(8.dp))

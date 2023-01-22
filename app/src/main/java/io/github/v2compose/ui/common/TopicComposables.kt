@@ -21,7 +21,7 @@ import io.github.v2compose.R
 @Composable
 fun SimpleTopic(
     userName: String,
-    avatar: String,
+    userAvatar: String,
     time: String,
     replyNum: String,
     nodeId: String,
@@ -39,7 +39,7 @@ fun SimpleTopic(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 TopicUserAvatar(
                     userName = userName,
-                    avatar = avatar,
+                    userAvatar = userAvatar,
                     onUserAvatarClick = onUserAvatarClick
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -87,12 +87,12 @@ fun SimpleTopic(
 @Composable
 fun TopicUserAvatar(
     userName: String,
-    avatar: String,
+    userAvatar: String,
     modifier: Modifier = Modifier,
     onUserAvatarClick: (() -> Unit)? = null,
 ) {
     AsyncImage(
-        model = avatar,
+        model = userAvatar,
         contentDescription = "$userName's avatar",
         modifier = modifier
             .size(36.dp)

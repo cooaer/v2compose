@@ -9,6 +9,7 @@ import androidx.navigation.NavHostController
 import io.github.v2compose.core.extension.fullUrl
 import io.github.v2compose.core.extension.tryParse
 import io.github.v2compose.core.openInBrowser
+import io.github.v2compose.ui.main.user.navigateToUser
 import io.github.v2compose.ui.node.navigateToNode
 import io.github.v2compose.ui.topic.navigateToTopic
 import javax.inject.Inject
@@ -16,21 +17,26 @@ import javax.inject.Inject
 private const val TAG = "AppState"
 
 @Composable
-fun rememberAppState(
+fun rememberV2AppState(
     navHostController: NavHostController,
     context: Context = LocalContext.current,
-): AppState {
+): V2AppState {
     return remember(navHostController, context) {
-        AppState(context, navHostController)
+        V2AppState(context, navHostController)
     }
 }
 
-class AppState @Inject constructor(
+class V2AppState @Inject constructor(
     private val context: Context,
     private val navHostController: NavHostController,
 ) {
 
+    fun back(){
+        navHostController.popBackStack()
+    }
+
     fun openUri(uri: String) {
+        Log.d(TAG, "openUri, uri = $uri")
         if (!innerOpenUri(uri)) {
             context.openInBrowser(uri)
         }
@@ -39,7 +45,7 @@ class AppState @Inject constructor(
     private fun innerOpenUri(uri: String): Boolean {
         var path: String? = ""
         if (uri.startsWith("/")) {
-            path = uri
+            path = uri.tryParse()?.path ?: uri
         } else if (uri.startsWith("//") || uri.startsWith("http://") || uri.startsWith("https://")) {
             val uriObj = uri.fullUrl(baseUrl = Constants.baseUrl).tryParse() ?: return false
             path = uriObj.path
@@ -61,7 +67,8 @@ class AppState @Inject constructor(
                 return true
             }
             "member" -> {
-
+                navHostController.navigateToUser(userName = screenId)
+                return true
             }
         }
         return false

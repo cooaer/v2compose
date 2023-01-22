@@ -5,6 +5,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import io.github.v2compose.ui.main.mainNavigationRoute
 import io.github.v2compose.ui.main.mainScreen
+import io.github.v2compose.ui.main.user.navigateToUser
+import io.github.v2compose.ui.main.user.userScreen
 import io.github.v2compose.ui.node.navigateToNode
 import io.github.v2compose.ui.node.nodeScreen
 import io.github.v2compose.ui.search.navigateToSearch
@@ -13,38 +15,39 @@ import io.github.v2compose.ui.topic.navigateToTopic
 import io.github.v2compose.ui.topic.topicScreen
 
 @Composable
-fun AppNavGraph(
+fun V2AppNavGraph(
     navController: NavHostController,
-    onBackClick: () -> Unit,
-    appState: AppState = rememberAppState(navHostController = navController)
+    appState: V2AppState,
 ) {
     NavHost(navController = navController, startDestination = mainNavigationRoute) {
         mainScreen(
             onNewsItemClick = { navController.navigateToTopic(it.id) },
-            onNodeClick = { nodeId, nodeName -> navController.navigateToNode(nodeId, nodeName) },
-            onSearchClick = { navController.navigateToSearch() },
+            onNodeClick = navController::navigateToNode,
+            onUserAvatarClick = navController::navigateToUser,
+            onSearchClick = navController::navigateToSearch,
             onSettingsClick = {},
         )
         topicScreen(
-            onBackClick = onBackClick,
-            onNodeClick = { nodeId, nodeName ->
-                navController.navigateToNode(
-                    nodeId = nodeId,
-                    nodeName = nodeName
-                )
-            },
-            onUserAvatarClick = { userName, avatar -> },
+            onBackClick = appState::back,
+            onNodeClick = navController::navigateToNode,
+            onUserAvatarClick = navController::navigateToUser,
             openUri = appState::openUri
         )
         nodeScreen(
-            onBackClick = onBackClick,
+            onBackClick = appState::back,
             onTopicClick = { item -> navController.navigateToTopic(item.topicId) },
-            onUserAvatarClick = { userName, avatar -> },
+            onUserAvatarClick = navController::navigateToUser,
             openUri = appState::openUri
         )
         searchScreen(
-            goBack = onBackClick,
+            goBack = appState::back,
             onTopicClick = { item -> navController.navigateToTopic(item.source.id) },
+        )
+        userScreen(
+            onBackClick = appState::back,
+            onTopicClick = appState::openUri,
+            onNodeClick = { nodePath, nodeName -> appState.openUri(nodePath) },
+            openUri = appState::openUri
         )
     }
 }

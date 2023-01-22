@@ -18,7 +18,7 @@ fun NodeTag(
     Text(
         nodeName,
         modifier = Modifier
-            .clickable {
+            .clickable(enabled = onItemClick != null) {
                 onItemClick?.invoke(nodeId, nodeName)
             }
             .background(MaterialTheme.colorScheme.surfaceVariant)

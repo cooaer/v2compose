@@ -42,7 +42,10 @@ fun NavGraphBuilder.nodeScreen(
         route = nodeNavigationRoute,
         arguments = listOf(
             navArgument(ArgsNodeId) { type = NavType.StringType },
-            navArgument(ArgsNodeName) { type = NavType.StringType })
+            navArgument(ArgsNodeName) {
+                type = NavType.StringType
+                nullable = true
+            })
     ) {
         NodeRoute(
             onBackClick = onBackClick,

@@ -16,6 +16,7 @@ fun NavController.navigateToMain(navOptions: NavOptions? = null) {
 fun NavGraphBuilder.mainScreen(
     onNewsItemClick: (NewsInfo.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
+    onUserAvatarClick:(String, String) -> Unit,
     onSearchClick: () -> Unit,
     onSettingsClick: () -> Unit,
 ) {
@@ -23,6 +24,7 @@ fun NavGraphBuilder.mainScreen(
         MainScreen(
             onNewsItemClick = onNewsItemClick,
             onNodeClick = onNodeClick,
+            onUserAvatarClick = onUserAvatarClick,
             onSearchClick = onSearchClick,
             onSettingsClick = onSettingsClick,
         )

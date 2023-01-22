@@ -36,6 +36,7 @@ fun NewsTab(
     newsTabInfo: NewsTabInfo,
     onNewsItemClick: (NewsInfo.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
+    onUserAvatarClick: (String, String) -> Unit,
 ) {
     val viewModel: NewsViewModel = newsViewModel(newsTabInfo.value)
 
@@ -49,6 +50,7 @@ fun NewsTab(
         onRefreshList = { viewModel.refresh() },
         onRetryClick = { viewModel.retry() },
         onNodeClick = onNodeClick,
+        onUserAvatarClick = onUserAvatarClick,
     )
 }
 
@@ -95,7 +97,8 @@ fun NewsContent(
     onNewsItemClick: ((NewsInfo.Item) -> Unit),
     onNodeClick: (String, String) -> Unit,
     onRetryClick: () -> Unit,
-    onRefreshList: () -> Unit
+    onRefreshList: () -> Unit,
+    onUserAvatarClick: (String, String) -> Unit,
 ) {
     when (newsUiState) {
         is NewsUiState.Success -> {
@@ -105,6 +108,7 @@ fun NewsContent(
                 onRefresh = onRefreshList,
                 onNewsItemClick = onNewsItemClick,
                 onNodeClick = onNodeClick,
+                onUserAvatarClick = onUserAvatarClick,
             )
         }
         else -> {
@@ -125,6 +129,7 @@ private fun NewsList(
     onRefresh: () -> Unit,
     onNewsItemClick: (NewsInfo.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
+    onUserAvatarClick: (String, String) -> Unit,
 ) {
     PullToRefresh(refreshing = refreshing, onRefresh = onRefresh) {
         val lazyListState = rememberLazyListState()
@@ -133,13 +138,14 @@ private fun NewsList(
                 SimpleTopic(
                     title = item.title,
                     userName = item.userName,
-                    avatar = item.avatar,
+                    userAvatar = item.avatar,
                     time = item.time,
                     replyNum = item.replies.toString(),
                     nodeId = item.tagId,
                     nodeName = item.tagName,
                     onItemClick = { onNewsItemClick(item) },
                     onNodeClick = { onNodeClick(item.tagId, item.tagName) },
+                    onUserAvatarClick = { onUserAvatarClick(item.userName, item.avatar) }
                 )
             }
         }

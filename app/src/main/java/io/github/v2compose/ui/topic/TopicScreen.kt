@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Report
 import androidx.compose.material.icons.rounded.*
@@ -167,6 +166,7 @@ private fun TopicList(
     }
 
     LazyColumn(state = lazyListState, modifier = modifier) {
+        pagingRefreshItem(topicItems)
         if (topicInfo != null) {
             if (!topicInfo.isValid) {
                 //TODO 非登录状态，触发某些关键字（如 fg ），重定向到首页，导致解析失败
@@ -247,13 +247,7 @@ private fun TopicList(
                 )
             }
         }
-        if (!topicItems.loadState.append.endOfPaginationReached) {
-            item(key = "appendMore#${topicItems.itemCount}", contentType = "appendMore") {
-                PagingAppendMore(lazyPagingItems = topicItems) {
-                    topicItems.retry()
-                }
-            }
-        }
+        pagingAppendMoreItem(lazyPagingItems = topicItems)
     }
 }
 
@@ -299,7 +293,7 @@ private fun UserRepliesDialog(
                     with(userReplies.first()) {
                         TopicUserAvatar(
                             userName = userName,
-                            avatar = avatar,
+                            userAvatar = avatar,
                             onUserAvatarClick = { onUserAvatarClick(userName, avatar) }
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -370,7 +364,7 @@ private fun TopicTitle(
     if (topicInfo == null) return
     SimpleTopic(
         userName = topicInfo.headerInfo.userName,
-        avatar = topicInfo.headerInfo.avatar,
+        userAvatar = topicInfo.headerInfo.avatar,
         time = topicInfo.headerInfo.time,
         replyNum = topicInfo.headerInfo.commentNum,
         nodeId = topicInfo.headerInfo.tagId,
@@ -485,7 +479,7 @@ private fun TopicReply(
     Row(modifier = Modifier.fillMaxWidth().padding(start = 16.dp)) {
         TopicUserAvatar(
             userName = reply.userName,
-            avatar = reply.avatar,
+            userAvatar = reply.avatar,
             modifier = Modifier.padding(top = 12.dp),
             onUserAvatarClick = { onUserAvatarClick(reply.userName, reply.avatar) })
         Spacer(modifier = Modifier.width(8.dp))

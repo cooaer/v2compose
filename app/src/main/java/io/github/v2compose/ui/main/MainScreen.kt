@@ -29,6 +29,7 @@ import io.github.v2compose.ui.main.notifications.NotificationsContent
 fun MainScreen(
     onNewsItemClick: (NewsInfo.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
+    onUserAvatarClick: (String, String) -> Unit,
     onSearchClick: () -> Unit,
     onSettingsClick: () -> Unit,
     viewModel: MainViewModel = hiltViewModel(),
@@ -57,7 +58,12 @@ fun MainScreen(
             Box(
                 modifier = Modifier.weight(1f, fill = true)
             ) {
-                MainContent(navBarSelectedIndex, onNewsItemClick, onNodeClick)
+                MainContent(
+                    navBarSelectedIndex = navBarSelectedIndex,
+                    onNewsItemClick = onNewsItemClick,
+                    onNodeClick = onNodeClick,
+                    onUserAvatarClick = onUserAvatarClick,
+                )
             }
             MainBottomNavigation(navBarSelectedIndex) {
                 navBarSelectedIndex = it
@@ -98,11 +104,16 @@ fun MainContent(
     navBarSelectedIndex: Int,
     onNewsItemClick: (NewsInfo.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
+    onUserAvatarClick: (String, String) -> Unit,
 ) {
     val saveableStateHolder = rememberSaveableStateHolder()
     saveableStateHolder.SaveableStateProvider(key = navBarSelectedIndex) {
         when (navBarSelectedIndex) {
-            0 -> HomeContent(onNewsItemClick = onNewsItemClick, onNodeClick = onNodeClick)
+            0 -> HomeContent(
+                onNewsItemClick = onNewsItemClick,
+                onNodeClick = onNodeClick,
+                onUserAvatarClick = onUserAvatarClick,
+            )
             1 -> NodesContent(onNodeClick = onNodeClick)
             2 -> NotificationsContent()
             3 -> MineContent()
@@ -132,5 +143,10 @@ fun MainBottomNavigation(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
 @Preview(showBackground = true, widthDp = 440, heightDp = 880)
 @Composable
 fun MainScreenPreview() {
-    MainScreen(onNewsItemClick = {}, onNodeClick = { _, _ -> }, onSearchClick = {}, onSettingsClick = {})
+    MainScreen(
+        onNewsItemClick = {},
+        onNodeClick = { _, _ -> },
+        onUserAvatarClick = {_,_ ->},
+        onSearchClick = {},
+        onSettingsClick = {},)
 }

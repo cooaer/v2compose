@@ -1,6 +1,8 @@
 package io.github.v2compose.ui.common
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
@@ -13,19 +15,46 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import io.github.v2compose.R
 
-@Composable
-fun <T : Any> PagingAppendMore(
+fun <T : Any> LazyListScope.pagingRefreshItem(
     lazyPagingItems: LazyPagingItems<T>,
     modifier: Modifier = Modifier,
-    onRetryClick: () -> Unit,
 ) {
-    with(lazyPagingItems.loadState.append) {
-        LoadMore(
-            hasError = this is LoadState.Error,
-            error = if (this is LoadState.Error) error else null,
-            modifier = modifier,
-            onRetryClick = onRetryClick
-        )
+    if (!lazyPagingItems.loadState.refresh.endOfPaginationReached) {
+        item(key = "refresh${lazyPagingItems.itemCount}", contentType = "refresh") {
+            PagingLoadState(
+                state = lazyPagingItems.loadState.refresh,
+                onRetryClick = { lazyPagingItems.retry() }, modifier = modifier,
+            )
+        }
+    }
+}
+
+fun <T : Any> LazyListScope.pagingAppendMoreItem(
+    lazyPagingItems: LazyPagingItems<T>,
+    modifier: Modifier = Modifier,
+) {
+    if (!lazyPagingItems.loadState.append.endOfPaginationReached) {
+        item(key = "appendMore${lazyPagingItems.itemCount}", contentType = "appendMore") {
+            PagingLoadState(
+                state = lazyPagingItems.loadState.append,
+                onRetryClick = { lazyPagingItems.retry() },
+                modifier = modifier,
+            )
+        }
+    }
+}
+
+@Composable
+fun PagingLoadState(
+    state: LoadState,
+    onRetryClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (state is LoadState.NotLoading) return
+    if (state is LoadState.Loading) {
+        Loading(modifier = modifier)
+    } else if (state is LoadState.Error) {
+        LoadError(error = state.error, onRetryClick = onRetryClick, modifier = modifier)
     }
 }
 
@@ -57,6 +86,7 @@ fun LoadError(error: Throwable?, onRetryClick: () -> Unit, modifier: Modifier = 
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier.then(LoadModifier),
     ) {
+        Log.d("LoadMore", "error message = ${error?.message}")
         Text(error?.message ?: stringResource(R.string.load_failed))
         Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = onRetryClick) {

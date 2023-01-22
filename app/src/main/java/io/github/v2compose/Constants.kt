@@ -7,4 +7,6 @@ object Constants {
 
     fun topicUrl(topicId: String) = "${baseUrl}t/$topicId"
 
+    fun userUrl(userName: String) = "${baseUrl}member/$userName"
+
 }

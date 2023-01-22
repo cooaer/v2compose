@@ -20,7 +20,7 @@ data class SearchArgs(val keyword: String?) {
 }
 
 fun NavController.navigateToSearch(keyword: String? = null) {
-    val encodedKeyword = Uri.encode(keyword ?: "")
+    val encodedKeyword = Uri.encode(keyword) ?: ""
     navigate("/search?keyword=$encodedKeyword")
 }
 
@@ -30,7 +30,10 @@ fun NavGraphBuilder.searchScreen(
 ) {
     composable(
         route = searchScreenRoute,
-        arguments = listOf(navArgument(argsKeyword) { type = NavType.StringType })
+        arguments = listOf(navArgument(argsKeyword) {
+            type = NavType.StringType
+            nullable = true
+        })
     ) {
         SearchScreenRoute(goBack = goBack, onTopicClick = onTopicClick)
     }

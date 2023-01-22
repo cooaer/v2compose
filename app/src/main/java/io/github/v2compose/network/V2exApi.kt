@@ -110,6 +110,14 @@ interface V2exApi {
     suspend fun userPageInfo(@Path("user") username: String): UserPageInfo
 
     @Html
+    @GET("/member/{user}/topics")
+    suspend fun userTopics(@Path("user") username: String): UserTopics
+
+    @Html
+    @GET("/member/{user}/replies")
+    suspend fun userReplies(@Path("user") username: String): UserReplies
+
+    @Html
     @GET
     suspend fun bingSearch(@Url url: String): BingSearchResultInfo
 

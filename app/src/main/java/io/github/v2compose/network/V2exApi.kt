@@ -111,11 +111,11 @@ interface V2exApi {
 
     @Html
     @GET("/member/{user}/topics")
-    suspend fun userTopics(@Path("user") username: String): UserTopics
+    suspend fun userTopics(@Path("user") username: String, @Query("p") page: Int): UserTopics
 
     @Html
     @GET("/member/{user}/replies")
-    suspend fun userReplies(@Path("user") username: String): UserReplies
+    suspend fun userReplies(@Path("user") username: String, @Query("p") page: Int): UserReplies
 
     @Html
     @GET

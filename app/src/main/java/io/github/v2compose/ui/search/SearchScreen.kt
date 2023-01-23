@@ -56,13 +56,7 @@ fun SearchScreenRoute(
     SearchScreen(
         keyword = keyword,
         lazyPagingItems = lazyPagingItems,
-        onCloseClick = {
-            if (!keyword.isNullOrEmpty()) {
-                viewModel.updateKeyword("")
-            } else {
-                goBack()
-            }
-        },
+        onCloseClick = goBack,
         onTopicClick = onTopicClick,
         onSearchClick = { viewModel.updateKeyword(it) },
     )
@@ -141,7 +135,13 @@ private fun SearchBar(keyword: String?, onCloseClick: () -> Unit, onSearchClick:
         trailingIcon = {
             Icon(imageVector = Icons.Rounded.Close,
                 contentDescription = "close",
-                modifier = Modifier.clickable { onCloseClick() })
+                modifier = Modifier.clickable {
+                    if (initialKeyword.isNotEmpty()) {
+                        initialKeyword = ""
+                    } else {
+                        onCloseClick()
+                    }
+                })
         },
         shape = RoundedCornerShape(12.dp),
     )
@@ -162,13 +162,12 @@ private fun SearchResult(
     lazyPagingItems: LazyPagingItems<SoV2EXSearchResultInfo.Hit>,
     onTopicClick: (SoV2EXSearchResultInfo.Hit) -> Unit,
 ) {
-
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(top = 72.dp),
         state = lazyPagingItems.rememberLazyListState(),
     ) {
-        if(!keyword.isNullOrEmpty()){
+        if (!keyword.isNullOrEmpty()) {
             pagingRefreshItem(lazyPagingItems)
         }
         itemsIndexed(items = lazyPagingItems,

@@ -337,18 +337,14 @@ private fun UserTopicsList(
     onNodeClick: (String, String) -> Unit
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        item(key = "refresh", contentType = "loadState") {
-            PagingLoadState(state = items.loadState.refresh, onRetryClick = { items.retry() })
-        }
+        pagingRefreshItem(lazyPagingItems = items)
 
         itemsIndexed(items = items, key = { index, item -> item.link }) { index, item ->
             if (item == null) return@itemsIndexed
             UserTopicItem(topic = item, onTopicClick = onTopicClick, onNodeClick = onNodeClick)
         }
 
-        item(key = "append", contentType = "loadState") {
-            PagingLoadState(state = items.loadState.append, onRetryClick = { items.retry() })
-        }
+        pagingAppendMoreItem(lazyPagingItems = items)
     }
 }
 
@@ -421,7 +417,7 @@ fun UserReplyItem(
 ) {
     val contentColor = LocalContentColor.current
     Box(modifier = Modifier.clickable { onTopicClick(reply.dock.link) }) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)) {
             Row {
                 Text(
                     reply.dock.title,

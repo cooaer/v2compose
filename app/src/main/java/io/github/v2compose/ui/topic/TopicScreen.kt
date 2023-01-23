@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Report
 import androidx.compose.material.icons.rounded.*
@@ -36,7 +37,6 @@ import io.github.v2compose.network.bean.TopicInfo
 import io.github.v2compose.network.bean.TopicInfo.ContentInfo.Supplement
 import io.github.v2compose.network.bean.TopicInfo.Reply
 import io.github.v2compose.ui.common.*
-import io.github.v2compose.util.isUserPath
 import kotlinx.coroutines.launch
 
 private const val TAG = "TopicScreen"
@@ -59,8 +59,6 @@ fun TopicRoute(
             if (it is TopicInfo) it else null
         }
     } else null
-
-
 
     TopicScreen(
         topicInfo = topicInfo,
@@ -91,7 +89,7 @@ private fun TopicScreen(
     val density = LocalDensity.current
 
     val scrollState = topicItems.rememberLazyListState()
-    val topBarShowTopicTitle = remember {
+    val topBarShowTopicTitle by remember(density, scrollState) {
         derivedStateOf {
             scrollState.firstVisibleItemIndex > 0 ||
                     scrollState.firstVisibleItemScrollOffset < with(density) { -64.dp.toPx() }
@@ -103,7 +101,7 @@ private fun TopicScreen(
         topBar = {
             TopicTopBar(
                 topicInfo = topicInfo,
-                showTopicTitle = topBarShowTopicTitle.value,
+                showTopicTitle = topBarShowTopicTitle,
                 onBackClick = onBackClick,
                 onMenuClick = onMenuClick,
                 scrollBehavior = topAppBarScrollBehavior
@@ -151,17 +149,27 @@ private fun TopicList(
     openUri: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var clickedReplyUser by remember { mutableStateOf<Pair<Int, String>?>(null) }
+    val clickedUserReplies = remember { mutableStateListOf<List<Reply>>() }
     var repliesBarIndex by remember { mutableStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
 
-    clickedReplyUser?.let {
+    val clickUriHandler: Function2<String, Reply, Unit> = { uri, reply ->
+        val userName = uri.removePrefix("/member/")
+        val userReplies =
+            topicItems.itemSnapshotList.filter { it is TopicInfo.Reply && it.floor < reply.floor && it.userName == userName } as List<TopicInfo.Reply>
+        if (userReplies.isEmpty()) {
+            openUri(uri)
+        } else {
+            clickedUserReplies.add(userReplies)
+        }
+    }
+
+    clickedUserReplies.forEachIndexed { index, item ->
         UserRepliesDialog(
-            topicItems = topicItems,
-            clickedReplyUser = it,
-            onDismissRequest = { clickedReplyUser = null },
+            userReplies = item,
+            onDismissRequest = { clickedUserReplies.removeAt(index) },
             onUserAvatarClick = onUserAvatarClick,
-            openUri = openUri,
+            onUriClick = clickUriHandler,
         )
     }
 
@@ -237,13 +245,7 @@ private fun TopicList(
                     index = index,
                     reply = item,
                     onUserAvatarClick = onUserAvatarClick,
-                    openUri = { uri ->
-                        if (uri.isUserPath()) {
-                            clickedReplyUser = Pair(item.floor, uri)
-                        } else {
-                            openUri(uri)
-                        }
-                    }
+                    onUriClick = clickUriHandler
                 )
             }
         }
@@ -253,22 +255,11 @@ private fun TopicList(
 
 @Composable
 private fun UserRepliesDialog(
-    topicItems: LazyPagingItems<Any>,
-    clickedReplyUser: Pair<Int, String>,
+    userReplies: List<Reply>,
     onDismissRequest: () -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
-    openUri: (String) -> Unit,
+    onUriClick: (String, Reply) -> Unit,
 ) {
-    val floor = clickedReplyUser.first
-    val userName = clickedReplyUser.second.removePrefix("/member/")
-    val userReplies =
-        topicItems.itemSnapshotList.filter { it is Reply && it.floor < floor && it.userName == userName } as List<Reply>
-
-    if (userReplies.isEmpty()) {
-        onDismissRequest()
-        return
-    }
-
     Dialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true)
@@ -305,30 +296,12 @@ private fun UserRepliesDialog(
                     }
                 }
 
-                var innerClickedReplyUser by remember { mutableStateOf<Pair<Int, String>?>(null) }
-
-                innerClickedReplyUser?.let {
-                    UserRepliesDialog(
-                        topicItems = topicItems,
-                        clickedReplyUser = it,
-                        onDismissRequest = { innerClickedReplyUser = null },
-                        onUserAvatarClick = onUserAvatarClick,
-                        openUri = openUri
-                    )
-                }
-
                 LazyColumn(
                     contentPadding = PaddingValues(bottom = 8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     itemsIndexed(items = userReplies, key = { _, item -> item }) { index, item ->
-                        UserReply(index, reply = item, openUri = {
-                            if (it.isUserPath()) {
-                                innerClickedReplyUser = Pair(item.floor, it)
-                            } else {
-                                openUri(it)
-                            }
-                        })
+                        UserReply(index, reply = item, onUriClick = onUriClick)
                     }
                 }
             }
@@ -338,13 +311,13 @@ private fun UserRepliesDialog(
 
 
 @Composable
-private fun UserReply(index: Int, reply: Reply, openUri: (String) -> Unit) {
+private fun UserReply(index: Int, reply: Reply, onUriClick: (String, Reply) -> Unit) {
     Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp)) {
         if (index != 0) {
-            Divider()
+            ListDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = ContentAlpha.disabled))
         }
         Spacer(Modifier.height(8.dp))
-        HtmlContent(html = reply.replyContent, onUriClick = openUri)
+        HtmlContent(html = reply.replyContent, onUriClick = { onUriClick(it, reply) })
         Row {
             ReplyFloor(floor = reply.floor)
             Spacer(modifier = Modifier.width(8.dp))
@@ -474,9 +447,13 @@ private fun TopicReply(
     index: Int,
     reply: Reply,
     onUserAvatarClick: (String, String) -> Unit,
-    openUri: (String) -> Unit
+    onUriClick: (String, Reply) -> Unit
 ) {
-    Row(modifier = Modifier.fillMaxWidth().padding(start = 16.dp)) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp)
+    ) {
         TopicUserAvatar(
             userName = reply.userName,
             userAvatar = reply.avatar,
@@ -491,7 +468,7 @@ private fun TopicReply(
                     html = reply.replyContent,
                     selectable = false,
                     textStyle = TextStyle.Default.copy(fontSize = 15.sp),
-                    onUriClick = openUri,
+                    onUriClick = { onUriClick(it, reply) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 ReplyFloor(

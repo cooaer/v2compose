@@ -23,7 +23,7 @@ class UserTopicsDataSource(private val userName: String, private val v2exApi: V2
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, UserTopics.Item> {
         return try {
             val page = params.key ?: FIRST_PAGE
-            val userTopics = v2exApi.userTopics(userName)
+            val userTopics = v2exApi.userTopics(userName, page)
             val prevKey = if (page == FIRST_PAGE) null else page - 1
             val nextKey = if (page < userTopics.pageCount) page + 1 else null
             if (userTopics.visibility.isNotEmpty()) {

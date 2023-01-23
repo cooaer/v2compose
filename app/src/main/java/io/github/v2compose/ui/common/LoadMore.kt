@@ -20,6 +20,8 @@ fun <T : Any> LazyListScope.pagingRefreshItem(
     modifier: Modifier = Modifier,
 ) {
     if (!lazyPagingItems.loadState.refresh.endOfPaginationReached) {
+        if (lazyPagingItems.loadState.refresh is LoadState.NotLoading) return
+
         item(key = "refresh${lazyPagingItems.itemCount}", contentType = "refresh") {
             PagingLoadState(
                 state = lazyPagingItems.loadState.refresh,
@@ -34,6 +36,8 @@ fun <T : Any> LazyListScope.pagingAppendMoreItem(
     modifier: Modifier = Modifier,
 ) {
     if (!lazyPagingItems.loadState.append.endOfPaginationReached) {
+        if (lazyPagingItems.loadState.append is LoadState.NotLoading) return
+
         item(key = "appendMore${lazyPagingItems.itemCount}", contentType = "appendMore") {
             PagingLoadState(
                 state = lazyPagingItems.loadState.append,

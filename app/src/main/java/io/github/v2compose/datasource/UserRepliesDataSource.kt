@@ -22,7 +22,7 @@ class UserRepliesDataSource(private val userName: String, private val v2exApi: V
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, UserReplies.Item> {
         return try {
             val page = params.key ?: FIRST_PAGE
-            val userReplies = v2exApi.userReplies(userName)
+            val userReplies = v2exApi.userReplies(userName, page)
             val prevKey = if (page == FIRST_PAGE) null else page - 1
             val nextKey = if (page < userReplies.pageCount) page + 1 else null
             LoadResult.Page(userReplies.items, prevKey, nextKey)

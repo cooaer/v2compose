@@ -9,8 +9,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.v2compose.core.StringDecoder
 import io.github.v2compose.network.bean.NodeInfo
 import io.github.v2compose.repository.NodeRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import io.github.v2compose.repository.TopicRepository
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,6 +21,7 @@ class NodeViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     stringDecoder: StringDecoder,
     private val nodeRepository: NodeRepository,
+    private val topicRepository: TopicRepository,
 ) : ViewModel() {
 
     val nodeArgs = NodeArgs(savedStateHandle, stringDecoder)
@@ -30,6 +31,12 @@ class NodeViewModel @Inject constructor(
 
     val nodeTopicInfoFlow =
         nodeRepository.getNodeTopicInfoFlow(nodeArgs.nodeId).cachedIn(viewModelScope)
+
+    val topicTitleOverview: StateFlow<Boolean> = topicRepository.topicTitleOverview.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(),
+        initialValue = true,
+    )
 
     init {
         loadNodeInternal()

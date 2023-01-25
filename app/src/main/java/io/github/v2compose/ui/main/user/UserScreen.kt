@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -54,6 +55,7 @@ fun UserScreenRoute(
     val context = LocalContext.current
 
     val userArgs = viewModel.userArgs
+    val topicTitleOverview by viewModel.topicTitleOverview.collectAsStateWithLifecycle()
     val userUiState by viewModel.userPageInfo.collectAsStateWithLifecycle()
     val userTopics = viewModel.userTopics.collectAsLazyPagingItems()
     val userReplies = viewModel.userReplies.collectAsLazyPagingItems()
@@ -62,6 +64,7 @@ fun UserScreenRoute(
         userUiState = userUiState,
         userTopics = userTopics,
         userReplies = userReplies,
+        topicTitleOverview = topicTitleOverview,
         onBackClick = onBackClick,
         onShareClick = {
             context.share(userArgs.userName, Constants.userUrl(userArgs.userName))
@@ -79,6 +82,7 @@ private fun UserScreen(
     userUiState: UserUiState,
     userTopics: LazyPagingItems<UserTopics.Item>,
     userReplies: LazyPagingItems<UserReplies.Item>,
+    topicTitleOverview: Boolean,
     onBackClick: () -> Unit,
     onShareClick: () -> Unit,
     onRetryClick: () -> Unit,
@@ -102,6 +106,7 @@ private fun UserScreen(
                 userUiState = userUiState,
                 userTopics = userTopics,
                 userReplies = userReplies,
+                topicTitleOverview = topicTitleOverview,
                 onRetryClick = onRetryClick,
                 onTopicClick = onTopicClick,
                 onNodeClick = onNodeClick,
@@ -185,6 +190,7 @@ private fun UserContent(
     userUiState: UserUiState,
     userTopics: LazyPagingItems<UserTopics.Item>,
     userReplies: LazyPagingItems<UserReplies.Item>,
+    topicTitleOverview: Boolean,
     onRetryClick: () -> Unit,
     onTopicClick: (String) -> Unit,
     onNodeClick: (String, String) -> Unit,
@@ -199,6 +205,7 @@ private fun UserContent(
                 UserPager(
                     userTopics = userTopics,
                     userReplies = userReplies,
+                    topicTitleOverview = topicTitleOverview,
                     onTopicClick = onTopicClick,
                     onNodeClick = onNodeClick,
                     openUri = openUri,
@@ -279,6 +286,7 @@ private fun UserDescription(userPageInfo: UserPageInfo) {
 fun UserPager(
     userTopics: LazyPagingItems<UserTopics.Item>,
     userReplies: LazyPagingItems<UserReplies.Item>,
+    topicTitleOverview: Boolean,
     onTopicClick: (String) -> Unit,
     onNodeClick: (String, String) -> Unit,
     openUri: (String) -> Unit,
@@ -318,6 +326,7 @@ fun UserPager(
         when (it) {
             0 -> UserTopicsList(
                 items = userTopics,
+                topicTitleOverview = topicTitleOverview,
                 onTopicClick = onTopicClick,
                 onNodeClick = onNodeClick
             )
@@ -333,6 +342,7 @@ fun UserPager(
 @Composable
 private fun UserTopicsList(
     items: LazyPagingItems<UserTopics.Item>,
+    topicTitleOverview: Boolean,
     onTopicClick: (String) -> Unit,
     onNodeClick: (String, String) -> Unit
 ) {
@@ -341,7 +351,12 @@ private fun UserTopicsList(
 
         itemsIndexed(items = items, key = { index, item -> item.link }) { index, item ->
             if (item == null) return@itemsIndexed
-            UserTopicItem(topic = item, onTopicClick = onTopicClick, onNodeClick = onNodeClick)
+            UserTopicItem(
+                topic = item,
+                topicTitleOverview = topicTitleOverview,
+                onTopicClick = onTopicClick,
+                onNodeClick = onNodeClick
+            )
         }
 
         pagingAppendMoreItem(lazyPagingItems = items)
@@ -351,6 +366,7 @@ private fun UserTopicsList(
 @Composable
 fun UserTopicItem(
     topic: UserTopics.Item,
+    topicTitleOverview: Boolean,
     onTopicClick: (String) -> Unit,
     onNodeClick: (String, String) -> Unit,
 ) {
@@ -363,7 +379,9 @@ fun UserTopicItem(
                 Text(
                     topic.title,
                     style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    maxLines = if (topicTitleOverview) Constants.topicTitleOverviewMaxLines else Integer.MAX_VALUE,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 NodeTag(
@@ -376,7 +394,7 @@ fun UserTopicItem(
             Text(
                 topic.lastReply,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = ContentAlpha.medium)
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = ContentAlpha.medium),
             )
         }
         ListDivider(

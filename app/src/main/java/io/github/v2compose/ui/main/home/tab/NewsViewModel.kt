@@ -7,8 +7,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.v2compose.network.bean.NewsInfo
 import io.github.v2compose.repository.NewsRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import io.github.v2compose.repository.TopicRepository
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -16,6 +16,7 @@ import javax.inject.Inject
 class NewsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val newsRepository: NewsRepository,
+    private val topicRepository: TopicRepository,
 ) : ViewModel() {
 
     companion object {
@@ -29,6 +30,12 @@ class NewsViewModel @Inject constructor(
 
     private val _newsInfoFlow = MutableStateFlow<NewsUiState>(NewsUiState.Loading)
     val newsInfoFlow = _newsInfoFlow.asStateFlow()
+
+    val topicTitleOverview: StateFlow<Boolean> = topicRepository.topicTitleOverview.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(),
+        initialValue = true,
+    )
 
     init {
         load()

@@ -1,11 +1,12 @@
 package io.github.v2compose.ui.topic
 
 import android.net.Uri
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
-import androidx.navigation.compose.composable
+import com.google.accompanist.navigation.animation.composable
 import androidx.navigation.navArgument
 import io.github.v2compose.core.StringDecoder
 
@@ -26,6 +27,7 @@ fun NavController.navigateToTopic(topicId: String) {
     navigate("/t/$encodedTopicId")
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.topicScreen(
     onBackClick: () -> Unit,
     onNodeClick: (String, String) -> Unit,
@@ -36,7 +38,7 @@ fun NavGraphBuilder.topicScreen(
         topicNavigationRoute,
         arguments = listOf(navArgument(argTopicId) { type = NavType.StringType })
     ) {
-        TopicRoute(
+        TopicScreenRoute(
             onBackClick = onBackClick,
             onNodeClick = onNodeClick,
             onUserAvatarClick = onUserAvatarClick,

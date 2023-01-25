@@ -3,7 +3,6 @@ package io.github.v2compose.repository.def
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import io.github.v2compose.datasource.AppSettings
 import io.github.v2compose.datasource.AppSettingsDataSource
 import io.github.v2compose.datasource.SearchPagingSource
 import io.github.v2compose.datasource.TopicPagingSource
@@ -12,6 +11,7 @@ import io.github.v2compose.network.bean.SoV2EXSearchResultInfo
 import io.github.v2compose.network.bean.TopicInfo
 import io.github.v2compose.repository.TopicRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class DefaultTopicRepository @Inject constructor(
@@ -27,8 +27,8 @@ class DefaultTopicRepository @Inject constructor(
         return Pager(PagingConfig(pageSize = 10)) { TopicPagingSource(api, topicId, reversed) }.flow
     }
 
-    override val appSettings: Flow<AppSettings>
-        get() = appSettingsDataSource.appSettings
+    override val repliesOrderReversed: Flow<Boolean>
+        get() = appSettingsDataSource.appSettings.map { it.topicRepliesReversed }
 
     override suspend fun toggleRepliesReversed() {
         appSettingsDataSource.toggleTopicRepliesOrder()
@@ -37,4 +37,8 @@ class DefaultTopicRepository @Inject constructor(
     override fun search(keyword: String): Flow<PagingData<SoV2EXSearchResultInfo.Hit>> {
         return Pager(PagingConfig(pageSize = 10)) { SearchPagingSource(keyword, api) }.flow
     }
+
+    override val topicTitleOverview: Flow<Boolean>
+        get() = appSettingsDataSource.appSettings.map { it.topicTitleOverview }
+
 }

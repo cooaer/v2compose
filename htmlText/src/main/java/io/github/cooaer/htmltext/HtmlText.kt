@@ -117,12 +117,12 @@ private fun HtmlElementsScope.Block(
 ) {
     when (element.tagName().lowercase()) {
         "body" -> Body(element, textStyle)
-        "h1" -> Hx(element, textStyle.copy(fontSize = 32.sp))
-        "h2" -> Hx(element, textStyle.copy(fontSize = 26.sp))
-        "h3" -> Hx(element, textStyle.copy(fontSize = 22.sp))
-        "h4" -> Hx(element, textStyle.copy(fontSize = 20.sp))
-        "h5" -> Hx(element, textStyle.copy(fontSize = 16.sp))
-        "h6" -> Hx(element, textStyle.copy(fontSize = 14.sp))
+        "h1" -> Hx(element, textStyle.copy(fontSize = 22.sp))
+        "h2" -> Hx(element, textStyle.copy(fontSize = 18.sp))
+        "h3" -> Hx(element, textStyle.copy(fontSize = 16.sp))
+        "h4" -> Hx(element, textStyle.copy(fontSize = 14.sp))
+        "h5" -> Hx(element, textStyle.copy(fontSize = 12.sp))
+        "h6" -> Hx(element, textStyle.copy(fontSize = 10.sp))
         "p" -> P(element, textStyle)
         "div" -> Div(element, textStyle)
         "ol" -> OlUl(element, true, textStyle)
@@ -177,7 +177,7 @@ private fun HtmlElementsScope.Blockquote(element: Element, textStyle: TextStyle)
 
 @Composable
 private fun HtmlElementsScope.Hx(element: Element, textStyle: TextStyle) {
-    BlockToInlineNodes(element, textStyle.copy(fontWeight = FontWeight.SemiBold))
+    BlockToInlineNodes(element, textStyle.copy(fontWeight = FontWeight.Medium))
 }
 
 @Composable
@@ -484,7 +484,7 @@ private fun HtmlElementsScope.InlineImage(
             }
         },
         onError = {
-            Log.d(TAG, "load image error, error = ${it.result.throwable}")
+            Log.d(TAG, "load image error, url = ${img.src}, error = ${it.result.throwable}")
         }
     )
 }

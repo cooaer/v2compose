@@ -104,6 +104,12 @@ private fun SearchBar(keyword: String?, onCloseClick: () -> Unit, onSearchClick:
     var autoShowKeyboard by rememberSaveable { mutableStateOf(true) }
     val focusRequester = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
+    val onSearchAction = remember(onSearchClick, keyboard) {
+        {
+            onSearchClick(initialKeyword)
+            keyboard?.hide()
+        }
+    }
 
     OutlinedTextField(
         value = initialKeyword,
@@ -120,10 +126,7 @@ private fun SearchBar(keyword: String?, onCloseClick: () -> Unit, onSearchClick:
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Text, imeAction = ImeAction.Search
         ),
-        keyboardActions = KeyboardActions(onSearch = {
-            onSearchClick(initialKeyword)
-            keyboard?.hide()
-        }),
+        keyboardActions = KeyboardActions(onSearch = { onSearchAction() }),
         singleLine = true,
         placeholder = {
             Icon(

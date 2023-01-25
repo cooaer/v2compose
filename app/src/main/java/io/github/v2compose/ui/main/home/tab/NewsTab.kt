@@ -39,6 +39,7 @@ fun NewsTab(
     onUserAvatarClick: (String, String) -> Unit,
 ) {
     val viewModel: NewsViewModel = newsViewModel(newsTabInfo.value)
+    val topicTitleOverview by viewModel.topicTitleOverview.collectAsStateWithLifecycle()
 
     val newsUiState by viewModel.newsInfoFlow.collectAsStateWithLifecycle()
     val refreshing by viewModel.refreshingFlow.collectAsStateWithLifecycle()
@@ -46,6 +47,7 @@ fun NewsTab(
     NewsContent(
         refreshing = refreshing,
         newsUiState = newsUiState,
+        topicTitleOverview = topicTitleOverview,
         onNewsItemClick = onNewsItemClick,
         onRefreshList = { viewModel.refresh() },
         onRetryClick = { viewModel.retry() },
@@ -94,6 +96,7 @@ private fun rememberCreationExtras(tabValue: String): CreationExtras {
 fun NewsContent(
     refreshing: Boolean,
     newsUiState: NewsUiState,
+    topicTitleOverview: Boolean,
     onNewsItemClick: ((NewsInfo.Item) -> Unit),
     onNodeClick: (String, String) -> Unit,
     onRetryClick: () -> Unit,
@@ -105,6 +108,7 @@ fun NewsContent(
             NewsList(
                 refreshing = refreshing,
                 newsInfo = newsUiState.newsInfo,
+                topicTitleOverview = topicTitleOverview,
                 onRefresh = onRefreshList,
                 onNewsItemClick = onNewsItemClick,
                 onNodeClick = onNodeClick,
@@ -126,6 +130,7 @@ fun NewsContent(
 private fun NewsList(
     refreshing: Boolean,
     newsInfo: NewsInfo,
+    topicTitleOverview: Boolean,
     onRefresh: () -> Unit,
     onNewsItemClick: (NewsInfo.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
@@ -143,6 +148,7 @@ private fun NewsList(
                     replyNum = item.replies.toString(),
                     nodeId = item.tagId,
                     nodeName = item.tagName,
+                    titleOverview = topicTitleOverview,
                     onItemClick = { onNewsItemClick(item) },
                     onNodeClick = { onNodeClick(item.tagId, item.tagName) },
                     onUserAvatarClick = { onUserAvatarClick(item.userName, item.avatar) }

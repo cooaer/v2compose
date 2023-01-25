@@ -10,6 +10,9 @@
     <string name="n_comment">评论%s</string>
     <string name="n_floor">%d楼</string>
 
+    <string name="ok">确定</string>
+    <string name="cancel">取消</string>
+
 
     <!-- Topic Screen Start -->
     <string name="topic">主题</string>
@@ -53,4 +56,31 @@
     <string name="user_online">Online</string>
     <string name="user_offline">Offline</string>
     <!-- User Screen End -->
+
+    <!-- Settings Screen Start -->
+    <string name="settings">设置</string>
+    <string name="settings_common">常规设置</string>
+    <string name="settings_appearance">显示设置</string>
+    <string name="settings_other">其他</string>
+
+    <string name="settings_clear_cache">清除缓存</string>
+    <string name="settings_clear_cache_summary">包括图片及其他缓存数据，共%dMB</string>
+
+    <string name="settings_open_in_browser">打开主题、回复等携带的链接</string>
+    <string name="settings_internal_browser">内置浏览器</string>
+    <string name="settings_external_browser">外置浏览器</string>
+
+    <string name="settings_dark_mode">深色模式</string>
+    <string name="settings_dark_mode_on">开启</string>
+    <string name="settings_dark_mode_off">关闭</string>
+    <string name="settings_dark_mode_follow_system">跟随系统</string>
+
+    <string name="settings_topic_title_overview">话题标题概览</string>
+    <string name="settings_topic_title_overview_summary">列表中话题的标题最多显示两行</string>
+
+    <string name="settings_open_source">源码</string>
+
+    <string name="settings_version">版本</string>
+
+    <!-- Settings Screen End -->
 </resources>

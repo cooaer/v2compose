@@ -22,8 +22,7 @@ class TopicViewModel @Inject constructor(
     val topicArgs = TopicArgs(savedStateHandle, stringDecoder)
 
 
-    val repliesReversed: SharedFlow<Boolean> = topicRepository.appSettings
-        .map { it.topicRepliesReversed }
+    val repliesReversed: SharedFlow<Boolean> = topicRepository.repliesOrderReversed
         .shareIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
@@ -34,6 +33,7 @@ class TopicViewModel @Inject constructor(
     val topicItemFlow: Flow<PagingData<Any>> =
         repliesReversed.flatMapLatest { topicRepository.getTopic(topicArgs.topicId, it) }
             .cachedIn(viewModelScope)
+
 
     fun toggleRepliesReversed() {
         viewModelScope.launch {

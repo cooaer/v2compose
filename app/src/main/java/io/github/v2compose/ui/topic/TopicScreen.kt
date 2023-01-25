@@ -42,7 +42,7 @@ import kotlinx.coroutines.launch
 private const val TAG = "TopicScreen"
 
 @Composable
-fun TopicRoute(
+fun TopicScreenRoute(
     onBackClick: () -> Unit,
     onNodeClick: (String, String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
@@ -149,14 +149,14 @@ private fun TopicList(
     openUri: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val clickedUserReplies = remember { mutableStateListOf<List<Reply>>() }
+    val clickedUserReplies = rememberMutableStateListOf<List<Reply>>()
     var repliesBarIndex by remember { mutableStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
 
     val clickUriHandler: Function2<String, Reply, Unit> = { uri, reply ->
         val userName = uri.removePrefix("/member/")
         val userReplies =
-            topicItems.itemSnapshotList.filter { it is TopicInfo.Reply && it.floor < reply.floor && it.userName == userName } as List<TopicInfo.Reply>
+            topicItems.itemSnapshotList.filter { it is Reply && it.floor < reply.floor && it.userName == userName } as List<Reply>
         if (userReplies.isEmpty()) {
             openUri(uri)
         } else {

@@ -7,9 +7,9 @@ import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.v2compose.core.StringDecoder
 import io.github.v2compose.network.bean.UserPageInfo
+import io.github.v2compose.repository.TopicRepository
 import io.github.v2compose.repository.UserRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,6 +18,7 @@ class UserViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     stringDecoder: StringDecoder,
     private val userRepository: UserRepository,
+    private val topicRepository: TopicRepository,
 ) : ViewModel() {
 
     val userArgs = UserArgs(savedStateHandle, stringDecoder)
@@ -28,6 +29,12 @@ class UserViewModel @Inject constructor(
     val userTopics = userRepository.getUserTopics(userArgs.userName).cachedIn(viewModelScope)
 
     val userReplies = userRepository.getUserReplies(userArgs.userName).cachedIn(viewModelScope)
+
+    val topicTitleOverview: StateFlow<Boolean> = topicRepository.topicTitleOverview.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(),
+        initialValue = true,
+    )
 
     init {
         loadUserPageInfo()

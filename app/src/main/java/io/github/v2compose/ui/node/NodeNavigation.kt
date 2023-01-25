@@ -1,11 +1,12 @@
 package io.github.v2compose.ui.node
 
 import android.net.Uri
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
-import androidx.navigation.compose.composable
+import com.google.accompanist.navigation.animation.composable
 import androidx.navigation.navArgument
 import io.github.v2compose.core.StringDecoder
 import io.github.v2compose.network.bean.NodeTopicInfo
@@ -32,6 +33,7 @@ fun NavController.navigateToNode(nodeId: String, nodeName: String? = null) {
     navigate("/go/$encodedNodeId?nodeName=${encodedNodeName ?: ""}")
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.nodeScreen(
     onBackClick: () -> Unit,
     onTopicClick: (NodeTopicInfo.Item) -> Unit,

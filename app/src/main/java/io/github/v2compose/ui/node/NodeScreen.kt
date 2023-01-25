@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -27,6 +28,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import coil.compose.AsyncImage
+import io.github.v2compose.Constants
 import io.github.v2compose.R
 import io.github.v2compose.core.extension.castOrNull
 import io.github.v2compose.network.bean.NodeInfo
@@ -47,11 +49,13 @@ fun NodeRoute(
     val nodeArgs = viewModel.nodeArgs
     val nodeUiState by viewModel.nodeInfoFlow.collectAsStateWithLifecycle()
     val lazyPagingItems = viewModel.nodeTopicInfoFlow.collectAsLazyPagingItems()
+    val topicTitleOverview by viewModel.topicTitleOverview.collectAsStateWithLifecycle()
 
     NodeScreen(
         nodeArgs = nodeArgs,
         nodeUiState = nodeUiState,
         lazyPagingItems = lazyPagingItems,
+        topicTitleOverview = topicTitleOverview,
         onBackClick = onBackClick,
         onRetryNodeClick = { viewModel.retryNode() },
         onTopicClick = onTopicClick,
@@ -67,6 +71,7 @@ private fun NodeScreen(
     nodeArgs: NodeArgs,
     nodeUiState: NodeUiState,
     lazyPagingItems: LazyPagingItems<Any>,
+    topicTitleOverview: Boolean,
     onBackClick: () -> Unit,
     onRetryNodeClick: () -> Unit,
     onTopicClick: (NodeTopicInfo.Item) -> Unit,
@@ -95,6 +100,7 @@ private fun NodeScreen(
         NodeContent(
             nodeUiState = nodeUiState,
             lazyPagingItems = lazyPagingItems,
+            topicTitleOverview = topicTitleOverview,
             modifier = Modifier
                 .padding(it)
                 .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
@@ -171,6 +177,7 @@ private fun NodeTitle(nodeArgs: NodeArgs, nodeUiState: NodeUiState, nodeTopicInf
 private fun NodeContent(
     nodeUiState: NodeUiState,
     lazyPagingItems: LazyPagingItems<Any>,
+    topicTitleOverview: Boolean,
     onRetryNodeClick: () -> Unit,
     onTopicClick: (NodeTopicInfo.Item) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
@@ -183,6 +190,7 @@ private fun NodeContent(
             TopicList(
                 nodeInfo = nodeUiState.nodeInfo,
                 lazyPagingItems = lazyPagingItems,
+                topicTitleOverview = topicTitleOverview,
                 onTopicClick = onTopicClick,
                 onUserAvatarClick = onUserAvatarClick,
                 openUri = openUri,
@@ -206,6 +214,7 @@ private fun NodeContent(
 private fun TopicList(
     nodeInfo: NodeInfo,
     lazyPagingItems: LazyPagingItems<Any>,
+    topicTitleOverview: Boolean,
     onTopicClick: (NodeTopicInfo.Item) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
     openUri: (String) -> Unit,
@@ -231,6 +240,7 @@ private fun TopicList(
             } else if (item is NodeTopicInfo.Item) {
                 NodeTopic(
                     item = item,
+                    titleOverview = topicTitleOverview,
                     onTopicClick = onTopicClick,
                     onUserAvatarClick = onUserAvatarClick
                 )
@@ -260,6 +270,7 @@ private fun NodeDescription(desc: String, openUri: (String) -> Unit) {
 @Composable
 private fun NodeTopic(
     item: NodeTopicInfo.Item,
+    titleOverview: Boolean,
     onTopicClick: (NodeTopicInfo.Item) -> Unit,
     onUserAvatarClick: (String, String) -> Unit
 ) {
@@ -299,7 +310,12 @@ private fun NodeTopic(
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Text(item.title, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                item.title,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = if (titleOverview) Constants.topicTitleOverviewMaxLines else Integer.MAX_VALUE,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
         ListDivider(
             modifier = Modifier.align(Alignment.BottomCenter)

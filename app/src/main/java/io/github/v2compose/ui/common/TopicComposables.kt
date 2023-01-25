@@ -14,8 +14,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import io.github.v2compose.Constants
 import io.github.v2compose.R
 
 @Composable
@@ -27,6 +29,7 @@ fun SimpleTopic(
     nodeId: String,
     nodeName: String,
     title: String,
+    titleOverview: Boolean = false,
     onItemClick: (() -> Unit)? = null,
     onUserAvatarClick: (() -> Unit)? = null,
     onNodeClick: (() -> Unit)? = null,
@@ -75,7 +78,12 @@ fun SimpleTopic(
                     onItemClick = { _, _ -> onNodeClick?.invoke() })
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Text(title, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                title,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = if (titleOverview) Constants.topicTitleOverviewMaxLines else Integer.MAX_VALUE,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
         ListDivider(
             modifier = Modifier.align(Alignment.BottomCenter)

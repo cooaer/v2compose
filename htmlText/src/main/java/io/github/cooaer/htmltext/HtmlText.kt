@@ -23,7 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -299,7 +298,7 @@ private fun HtmlElementsScope.P(element: Element, textStyle: TextStyle) {
 
 @Composable
 private fun HtmlElementsScope.Img(element: Element, textStyle: TextStyle) {
-    BoxWithConstraints {
+    BoxWithConstraints(modifier = Modifier.padding(vertical = 4.dp)) {
         var img by remember { mutableStateOf(Img(element)) }
 
         val (realWidth, realHeight) = rememberImageSize(img = img, maxWidth = maxWidth)
@@ -466,16 +465,14 @@ private fun HtmlElementsScope.InlineImage(
             )
         },
         loading = {
-            Image(
-                painter = rememberAsyncImagePainter(model = R.drawable.image_holder_loading),
-                contentDescription = "loading image",
-            )
+            LoadingImage(modifier = Modifier.fillMaxSize())
         },
         error = {
-            Image(
-                painterResource(id = R.drawable.image_holder_failed),
-                contentDescription = "error image",
-                modifier = Modifier.clickable { retryTimes++ }
+            ErrorImage(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable { retryTimes++ },
+                error = it.result.throwable
             )
         },
         onSuccess = {

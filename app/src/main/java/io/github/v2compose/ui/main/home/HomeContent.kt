@@ -1,5 +1,6 @@
 package io.github.v2compose.ui.main.home
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -17,6 +18,8 @@ import kotlinx.coroutines.launch
 
 private val tabRowHeight = 32.dp
 
+private const val TAG = "HomeContent"
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeContent(
@@ -26,6 +29,7 @@ fun HomeContent(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val pagerState = rememberPagerState(0)
+    val currentPageIndex = remember(pagerState) { pagerState.currentPage }
     val coroutineScope = rememberCoroutineScope()
     val tabInfos = viewModel.newsTabInfos
 
@@ -48,6 +52,8 @@ fun HomeContent(
             }
         }
 
+        Log.d(TAG, "composition, currentPage = ${pagerState.currentPage}, pagerState = $pagerState")
+
         ScrollableTabRow(
             selectedTabIndex = pagerState.currentPage,
             contentColor = MaterialTheme.colorScheme.primary,
@@ -60,9 +66,10 @@ fun HomeContent(
                     onClick = {
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(index)
+                            Log.d(TAG, "animateScrollToPage, index = $index")
                         }
                     },
-                    modifier = Modifier.height(32.dp),
+                    modifier = Modifier.height(32.dp)
                 ) {
                     Text(
                         tabInfo.name,
@@ -70,7 +77,8 @@ fun HomeContent(
                             MaterialTheme.colorScheme.primary
                         } else {
                             MaterialTheme.colorScheme.onBackground
-                        }
+                        },
+                        modifier = Modifier.padding(horizontal = 8.dp)
                     )
                 }
             }

@@ -12,13 +12,24 @@ import com.orhanobut.logger.FormatStrategy
 import com.orhanobut.logger.Logger
 import com.orhanobut.logger.PrettyFormatStrategy
 import dagger.hilt.android.HiltAndroidApp
-import io.github.v2compose.network.OkHttpFactory
+import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 
 @HiltAndroidApp
 class App : Application(), ImageLoaderFactory {
+
+    companion object {
+        const val TAG = "APP"
+    }
+
     override fun onCreate() {
+        beforeOnCreate()
         super.onCreate()
         init()
+    }
+
+    private fun beforeOnCreate() {
+        resetScrollableTabRowMinimumTabWidth()
     }
 
     private fun init() {
@@ -48,5 +59,19 @@ class App : Application(), ImageLoaderFactory {
             }
             add(SvgDecoder.Factory())
         }.build()
+    }
+
+    private fun resetScrollableTabRowMinimumTabWidth() {
+        try {
+            val cls = Class.forName("androidx.compose.material3.TabRowKt")
+            val field = cls.getDeclaredField("ScrollableTabRowMinimumTabWidth")
+            field.isAccessible = true
+            val modifiersField = Field::class.java.getDeclaredField("accessFlags")
+            modifiersField.isAccessible = true
+            modifiersField.setInt(field, field.modifiers and Modifier.FINAL.inv())
+            field.set(null, 0)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }

@@ -85,7 +85,7 @@ private fun HtmlElementsScope.BlockToInlineNodes(
     while (iterator.hasNext()) {
         val node = iterator.next()
         if (node is Element) {
-            if (node.isBlock || node.onlyContainsImgs()) {
+            if (node.isBlock || node.onlyContainsImgs() || node.isIframe()) {
 //            if (node.isBlock) {
                 if (tempNodes.isNotEmpty()) {
                     InlineNodes(tempNodes.toList(), textStyle)
@@ -130,6 +130,7 @@ private fun HtmlElementsScope.Block(
         "blockquote" -> Blockquote(element, textStyle)
         "hr" -> Hr(element, textStyle)
         "pre" -> Pre(element, textStyle)
+        "iframe" -> Iframe(element)
         "img" -> Img(element, textStyle)
         else -> BlockToInlineNodes(element, textStyle)
     }
@@ -246,7 +247,6 @@ private fun HtmlElementsScope.Pre(element: Element, textStyle: TextStyle) {
     }
 }
 
-
 @Composable
 private fun HtmlElementsScope.OlUl(element: Element, isOrdered: Boolean, textStyle: TextStyle) {
     val children = element.children()
@@ -327,6 +327,21 @@ private fun rememberImageSize(img: Img, maxWidth: Dp): Pair<Dp, Dp> {
         }
     }
 }
+
+@Composable
+private fun HtmlElementsScope.Iframe(element: Element) {
+    Log.d(TAG, "iframe, attrs = ${element.attributes()}")
+    if (element.hasClass("embedded_video")) {
+        when (element.id()) {
+            "ytplayer" -> {
+                element.attr("src").parseYouTubeVideoId()?.let {
+                    YouTubePlayer(it)
+                }
+            }
+        }
+    }
+}
+
 
 //=========== Block Elements End ============
 
@@ -598,6 +613,10 @@ private fun Element.onlyContainsImgs(): Boolean {
         return false
     }
     return childNodes().all { it is Element && it.tagName().lowercase() == "img" }
+}
+
+private fun Element.isIframe(): Boolean {
+    return tagName().lowercase() == "iframe"
 }
 
 @Stable

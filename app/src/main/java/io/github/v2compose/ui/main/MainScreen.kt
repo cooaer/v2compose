@@ -56,7 +56,7 @@ fun MainScreen(
                 .padding(paddingValues)
         ) {
             Box(
-                modifier = Modifier.weight(1f, fill = true)
+                modifier = Modifier.weight(1f)
             ) {
                 MainContent(
                     navBarSelectedIndex = navBarSelectedIndex,
@@ -106,8 +106,7 @@ fun MainContent(
     onNodeClick: (String, String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
 ) {
-    val saveableStateHolder = rememberSaveableStateHolder()
-    saveableStateHolder.SaveableStateProvider(key = navBarSelectedIndex) {
+    rememberSaveableStateHolder().SaveableStateProvider(key = navBarSelectedIndex) {
         when (navBarSelectedIndex) {
             0 -> HomeContent(
                 onNewsItemClick = onNewsItemClick,
@@ -146,7 +145,8 @@ fun MainScreenPreview() {
     MainScreen(
         onNewsItemClick = {},
         onNodeClick = { _, _ -> },
-        onUserAvatarClick = {_,_ ->},
+        onUserAvatarClick = { _, _ -> },
         onSearchClick = {},
-        onSettingsClick = {},)
+        onSettingsClick = {},
+    )
 }

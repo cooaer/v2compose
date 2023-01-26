@@ -16,7 +16,7 @@ import io.github.v2compose.network.bean.NewsInfo
 import io.github.v2compose.ui.main.home.tab.NewsTab
 import kotlinx.coroutines.launch
 
-private val tabRowHeight = 32.dp
+private val TabRowHeight = 32.dp
 
 private const val TAG = "HomeContent"
 
@@ -28,8 +28,12 @@ fun HomeContent(
     onUserAvatarClick: (String, String) -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
-    val pagerState = rememberPagerState(0)
-    val currentPageIndex = remember(pagerState) { pagerState.currentPage }
+    val pagerState = rememberPagerState()
+    //修复从其他屏幕返回主屏幕时，当前选中的Tab不在屏幕中间的问题
+    val currentPage = with(pagerState) {
+        if (currentPageOffsetFraction.isNaN()) initialPage else currentPage
+    }
+
     val coroutineScope = rememberCoroutineScope()
     val tabInfos = viewModel.newsTabInfos
 
@@ -37,7 +41,7 @@ fun HomeContent(
         HorizontalPager(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = tabRowHeight),
+                .padding(top = TabRowHeight),
             pageCount = tabInfos.size,
             state = pagerState,
             key = { tabInfos[it].value },
@@ -52,24 +56,35 @@ fun HomeContent(
             }
         }
 
-        Log.d(TAG, "composition, currentPage = ${pagerState.currentPage}, pagerState = $pagerState")
+        Log.d(
+            TAG,
+            """
+                pagerState, initialPage = ${pagerState.initialPage}, 
+                initialPageOffsetFraction = ${pagerState.initialPageOffsetFraction}, 
+                currentPage = ${pagerState.currentPage}, 
+                settledPage = ${pagerState.settledPage}, 
+                targerPage = ${pagerState.targetPage}, 
+                currentPageOffsetFraction = ${pagerState.currentPageOffsetFraction}, 
+                isScrollInProgress = ${pagerState.isScrollInProgress}, 
+                pagerState = $pagerState
+                """
+        )
 
         ScrollableTabRow(
-            selectedTabIndex = pagerState.currentPage,
-            contentColor = MaterialTheme.colorScheme.primary,
-            edgePadding = 0.dp,
+            selectedTabIndex = currentPage,
+            edgePadding = 12.dp,
         ) {
             tabInfos.forEachIndexed { index, tabInfo ->
-                val selected = index == pagerState.currentPage
+                val selected = index == currentPage
                 Tab(
                     selected = selected,
                     onClick = {
                         coroutineScope.launch {
-                            pagerState.animateScrollToPage(index)
+                            pagerState.scrollToPage(index)
                             Log.d(TAG, "animateScrollToPage, index = $index")
                         }
                     },
-                    modifier = Modifier.height(32.dp)
+                    modifier = Modifier.height(TabRowHeight)
                 ) {
                     Text(
                         tabInfo.name,
@@ -78,7 +93,7 @@ fun HomeContent(
                         } else {
                             MaterialTheme.colorScheme.onBackground
                         },
-                        modifier = Modifier.padding(horizontal = 8.dp)
+                        modifier = Modifier.padding(horizontal = 12.dp)
                     )
                 }
             }

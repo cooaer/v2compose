@@ -44,7 +44,7 @@ fun NodesContent(
 fun NodesList(
     nodesNavInfo: NodesNavInfo, onNodeClick: (String, String) -> Unit,
 ) {
-    LazyColumn() {
+    LazyColumn {
         items(count = nodesNavInfo.size, key = { nodesNavInfo[it].category }) { index ->
             NodesGroup(nodesNavInfo[index], onNodeClick = onNodeClick)
         }
@@ -58,7 +58,8 @@ fun NodesGroup(
     Column(
         Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 8.dp)) {
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
         NodesGroupTitle(title = category.category)
         Spacer(modifier = Modifier.height(8.dp))
         NodesFlow(nodes = category.nodes, onNodeClick = onNodeClick)

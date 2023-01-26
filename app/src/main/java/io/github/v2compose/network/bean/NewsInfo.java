@@ -8,10 +8,10 @@ import androidx.compose.runtime.Stable;
 import java.io.Serializable;
 import java.util.List;
 
-import me.ghui.fruit.annotations.Pick;
 import io.github.v2compose.util.AvatarUtils;
 import io.github.v2compose.util.Check;
 import io.github.v2compose.util.UriUtils;
+import me.ghui.fruit.annotations.Pick;
 
 
 /**

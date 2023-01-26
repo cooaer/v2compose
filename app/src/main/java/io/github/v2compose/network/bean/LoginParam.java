@@ -3,9 +3,9 @@ package io.github.v2compose.network.bean;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.github.v2compose.util.Check;
 import me.ghui.fruit.Attrs;
 import me.ghui.fruit.annotations.Pick;
-import io.github.v2compose.util.Check;
 
 
 /**

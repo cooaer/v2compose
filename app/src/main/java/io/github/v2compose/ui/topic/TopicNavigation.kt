@@ -6,8 +6,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
-import com.google.accompanist.navigation.animation.composable
 import androidx.navigation.navArgument
+import com.google.accompanist.navigation.animation.composable
 import io.github.v2compose.core.StringDecoder
 
 private const val argTopicId: String = "topicId"
@@ -32,7 +32,7 @@ fun NavGraphBuilder.topicScreen(
     onBackClick: () -> Unit,
     onNodeClick: (String, String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
-    openUri:(String) -> Unit,
+    openUri: (String) -> Unit,
 ) {
     composable(
         topicNavigationRoute,

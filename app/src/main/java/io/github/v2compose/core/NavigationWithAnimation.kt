@@ -26,7 +26,7 @@ fun NavController.navigateWithAnimation(
 }
 
 @OptIn(ExperimentalAnimationApi::class)
-public fun NavGraphBuilder.composableWithAnimation(
+fun NavGraphBuilder.composableWithAnimation(
     route: String,
     arguments: List<NamedNavArgument> = emptyList(),
     deepLinks: List<NavDeepLink> = emptyList(),

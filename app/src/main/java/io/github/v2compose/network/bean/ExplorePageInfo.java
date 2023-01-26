@@ -7,6 +7,10 @@ import java.util.List;
 public class ExplorePageInfo extends BaseInfo {
 
     private final List<Serializable> items = new ArrayList<>();
+    public DailyHotInfo dailyHotInfo;
+    public String dailyHotInfoTitle;
+    public NodesNavInfo nodesNavInfo;
+    private String nodesNavInfoTitle;
 
     public List<Serializable> getItems() {
         if (items.size() > 0) {
@@ -23,9 +27,6 @@ public class ExplorePageInfo extends BaseInfo {
         return items;
     }
 
-    public DailyHotInfo dailyHotInfo;
-    public String dailyHotInfoTitle;
-
     public void setDailyHotInfo(DailyHotInfo dailyHotInfo, String title) {
         this.dailyHotInfo = dailyHotInfo;
         this.dailyHotInfoTitle = title;
@@ -34,9 +35,6 @@ public class ExplorePageInfo extends BaseInfo {
     public void setDailyHotInfoTitle(String dailyHotInfoTitle) {
         this.dailyHotInfoTitle = dailyHotInfoTitle;
     }
-
-    public NodesNavInfo nodesNavInfo;
-    private String nodesNavInfoTitle;
 
     public void setNodesNavInfo(NodesNavInfo nodesNavInfo, String title) {
         this.nodesNavInfo = nodesNavInfo;

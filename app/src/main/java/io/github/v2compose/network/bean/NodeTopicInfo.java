@@ -31,16 +31,16 @@ public class NodeTopicInfo extends BaseInfo {
     @Pick("div.box div.cell:has(table)")
     private List<Item> items;
 
-    public void setItems(List<Item> items) {
-        this.items = items;
-    }
-
     public int getTotal() {
         return total;
     }
 
     public List<Item> getItems() {
         return items != null ? items : Collections.emptyList();
+    }
+
+    public void setItems(List<Item> items) {
+        this.items = items;
     }
 
     public String getFavoriteLink() {
@@ -98,7 +98,7 @@ public class NodeTopicInfo extends BaseInfo {
 
         private int clickNum = -1;
 
-        public String getTopicId(){
+        public String getTopicId() {
             // topicLink example : /t/908177#reply33
             int end = topicLink.indexOf('#');
             return topicLink.substring(3, end);
@@ -128,7 +128,7 @@ public class NodeTopicInfo extends BaseInfo {
         }
 
         public int getClickNum() {
-            if(clickNum > 0){
+            if (clickNum > 0) {
                 return clickNum;
             }
             //  •  719 个字符  •  109 次点击

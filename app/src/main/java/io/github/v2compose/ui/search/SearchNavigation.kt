@@ -6,8 +6,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
-import com.google.accompanist.navigation.animation.composable
 import androidx.navigation.navArgument
+import com.google.accompanist.navigation.animation.composable
 import io.github.v2compose.core.StringDecoder
 import io.github.v2compose.network.bean.SoV2EXSearchResultInfo
 

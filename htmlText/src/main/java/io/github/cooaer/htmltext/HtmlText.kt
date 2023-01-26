@@ -150,7 +150,7 @@ private fun HtmlElementsScope.Hr(element: Element, textStyle: TextStyle) {
 
 @Composable
 private fun HtmlElementsScope.Body(element: Element, textStyle: TextStyle) {
-    Column() {
+    Column {
         BlockToInlineNodes(element, textStyle)
     }
 }
@@ -199,14 +199,14 @@ private fun HtmlElementsScope.Table(element: Element, textStyle: TextStyle) {
     ) {
         thead?.let {
             items(values = it) {
-                Column() {
+                Column {
                     BlockToInlineNodes(it, textStyle.copy(fontWeight = FontWeight.SemiBold))
                 }
             }
         }
         for (row in tbody) {
             items(values = row.children()) {
-                Column() {
+                Column {
                     BlockToInlineNodes(it, textStyle)
                 }
             }
@@ -350,7 +350,7 @@ private fun HtmlElementsScope.Iframe(element: Element) {
 
 @Composable
 private fun HtmlElementsScope.InlineNodes(nodes: List<Node>, textStyle: TextStyle) {
-    BoxWithConstraints() {
+    BoxWithConstraints {
         val density = LocalDensity.current
 
         val allImgs = remember(nodes) {

@@ -7,9 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.github.v2compose.util.Check;
 import me.ghui.fruit.Attrs;
 import me.ghui.fruit.annotations.Pick;
-import io.github.v2compose.util.Check;
 
 @Pick("div#Wrapper")
 public class AppendTopicPageInfo extends BaseInfo {
@@ -37,6 +37,19 @@ public class AppendTopicPageInfo extends BaseInfo {
         map.put("once", once);
         map.put("content", content);
         return map;
+    }
+
+    @Override
+    public boolean isValid() {
+        return !TextUtils.isEmpty(once) && tips != null && tips.size() > 1;
+    }
+
+    @Override
+    public String toString() {
+        return "AppendTopicPageInfo{" +
+                "once='" + once + '\'' +
+                ", tips=" + tips +
+                '}';
     }
 
     public static class Tip implements Serializable {
@@ -76,18 +89,5 @@ public class AppendTopicPageInfo extends BaseInfo {
                     ", tips=" + tips +
                     '}';
         }
-    }
-
-    @Override
-    public boolean isValid() {
-        return !TextUtils.isEmpty(once) && tips != null && tips.size() > 1;
-    }
-
-    @Override
-    public String toString() {
-        return "AppendTopicPageInfo{" +
-                "once='" + once + '\'' +
-                ", tips=" + tips +
-                '}';
     }
 }

@@ -6,9 +6,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
+import io.github.v2compose.util.Check;
 import me.ghui.fruit.Attrs;
 import me.ghui.fruit.annotations.Pick;
-import io.github.v2compose.util.Check;
 
 /**
  * Created by ghui on 05/06/2017.
@@ -22,6 +22,7 @@ public class CreateTopicPageInfo extends BaseInfo {
     private List<HotTitle> hotNodesText;
     @Pick("div.problem")
     private Problem problem;
+    private LinkedHashSet<String> hotIds;
 
     public Problem getProblem() {
         return problem;
@@ -48,8 +49,6 @@ public class CreateTopicPageInfo extends BaseInfo {
     public boolean isValid() {
         return Check.notEmpty(once);
     }
-
-    private LinkedHashSet<String> hotIds;
 
     public LinkedHashSet<String> getHotNodeIds() {
         if (hotIds != null) return hotIds;

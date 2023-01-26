@@ -9,12 +9,12 @@ import io.github.v2compose.util.Check;
  */
 
 public class TopicBasicInfo extends BaseInfo implements Serializable {
-    private String avatar;
-    private String author;
-    private String tag;
-    private String tagLink;
-    private String title;
-    private int commentNum;
+    private final String avatar;
+    private final String author;
+    private final String tag;
+    private final String tagLink;
+    private final String title;
+    private final int commentNum;
 
     private TopicBasicInfo(Builder builder) {
         this.title = builder.title;
@@ -55,8 +55,8 @@ public class TopicBasicInfo extends BaseInfo implements Serializable {
     }
 
     public static class Builder {
-        private String title;
-        private String avatar;
+        private final String title;
+        private final String avatar;
         private String author;
         private String tag;
         private String tagLink;

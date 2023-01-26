@@ -5,7 +5,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.github.v2compose.network.V2exApi
-import io.github.v2compose.network.OkHttpFactory
 import javax.inject.Singleton
 
 @Module

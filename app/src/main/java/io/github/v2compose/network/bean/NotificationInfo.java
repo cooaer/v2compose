@@ -3,12 +3,12 @@ package io.github.v2compose.network.bean;
 import java.io.Serializable;
 import java.util.List;
 
-import me.ghui.fruit.Attrs;
-import me.ghui.fruit.annotations.Pick;
 import io.github.v2compose.network.NetConstants;
 import io.github.v2compose.util.AvatarUtils;
 import io.github.v2compose.util.Check;
 import io.github.v2compose.util.Utils;
+import me.ghui.fruit.Attrs;
+import me.ghui.fruit.annotations.Pick;
 
 /**
  * Created by ghui on 10/05/2017.

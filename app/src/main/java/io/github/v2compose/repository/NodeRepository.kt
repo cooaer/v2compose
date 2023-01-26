@@ -12,5 +12,5 @@ interface NodeRepository {
     suspend fun getNodesNavInfo(): NodesNavInfo
 
     suspend fun getNodeInfo(nodeId: String): NodeInfo
-    fun getNodeTopicInfoFlow(nodeId:String): Flow<PagingData<Any>>
+    fun getNodeTopicInfoFlow(nodeId: String): Flow<PagingData<Any>>
 }

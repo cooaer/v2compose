@@ -20,8 +20,4 @@ fun rememberSettingsScreenState(
 class SettingsScreenState @Inject constructor(
     private val context: Context,
     private val navHostController: NavHostController,
-) {
-
-    
-
-}
+)

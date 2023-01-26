@@ -192,6 +192,18 @@ public class TopicInfo extends BaseInfo {
         return headerInfo.isValid();
     }
 
+    public interface Item extends Serializable {
+        boolean isHeaderItem();
+
+        boolean isContentItem();
+
+        boolean isSelf();
+
+        String getUserName();
+
+        String getAvatar();
+    }
+
     public static class Problem implements Serializable {
         @Pick(attr = Attrs.OWN_TEXT)
         private String title;
@@ -217,18 +229,6 @@ public class TopicInfo extends BaseInfo {
                     ", tips=" + tips +
                     '}';
         }
-    }
-
-    public interface Item extends Serializable {
-        boolean isHeaderItem();
-
-        boolean isContentItem();
-
-        boolean isSelf();
-
-        String getUserName();
-
-        String getAvatar();
     }
 
     public static class ContentInfo extends BaseInfo implements Item {
@@ -413,10 +413,7 @@ public class TopicInfo extends BaseInfo {
         }
 
         public boolean hadStared() {
-            if (Check.isEmpty(favoriteLink) || !favoriteLink.contains("unfavorite/")) {
-                return false;
-            }
-            return true;
+            return !Check.isEmpty(favoriteLink) && favoriteLink.contains("unfavorite/");
         }
 
         public String getCommentNum() {
@@ -432,7 +429,7 @@ public class TopicInfo extends BaseInfo {
             return tag;
         }
 
-        public String getTagId(){
+        public String getTagId() {
             return tagLink.replace("/go/", "");
         }
 
@@ -538,11 +535,7 @@ public class TopicInfo extends BaseInfo {
         }
 
         public void setOwner(String owner) {
-            if (Check.notEmpty(userName) && Check.notEmpty(owner) && owner.equals(userName)) {
-                isOwner = true;
-            } else {
-                isOwner = false;
-            }
+            isOwner = Check.notEmpty(userName) && Check.notEmpty(owner) && owner.equals(userName);
         }
 
         public int getFloor() {

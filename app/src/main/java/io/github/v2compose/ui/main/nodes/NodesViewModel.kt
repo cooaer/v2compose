@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.v2compose.core.result.Result
 import io.github.v2compose.core.result.asResult
-import io.github.v2compose.repository.NodeRepository
 import io.github.v2compose.network.bean.NodesNavInfo
+import io.github.v2compose.repository.NodeRepository
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 

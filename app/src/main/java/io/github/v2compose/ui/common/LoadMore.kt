@@ -81,7 +81,7 @@ fun LoadMore(
 private val LoadModifier = Modifier
     .fillMaxWidth()
     .padding(16.dp)
-    .sizeIn(minHeight = 96.dp);
+    .sizeIn(minHeight = 96.dp)
 
 @Composable
 fun LoadError(error: Throwable?, onRetryClick: () -> Unit, modifier: Modifier = Modifier) {

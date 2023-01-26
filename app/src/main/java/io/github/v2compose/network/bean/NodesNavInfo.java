@@ -4,9 +4,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.github.v2compose.util.Check;
 import me.ghui.fruit.Attrs;
 import me.ghui.fruit.annotations.Pick;
-import io.github.v2compose.util.Check;
 
 /**
  * Created by ghui on 21/05/2017.
@@ -56,7 +56,7 @@ public class NodesNavInfo extends ArrayList<NodesNavInfo.Item> implements IBase 
             return nodes;
         }
 
-        public static class NodeItem implements Serializable{
+        public static class NodeItem implements Serializable {
             @Pick
             private String name;
             @Pick(attr = Attrs.HREF)
@@ -70,7 +70,7 @@ public class NodesNavInfo extends ArrayList<NodesNavInfo.Item> implements IBase 
                         '}';
             }
 
-            public String getId(){
+            public String getId() {
                 return link.substring(4);
             }
 

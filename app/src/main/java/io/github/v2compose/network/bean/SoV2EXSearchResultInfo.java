@@ -22,6 +22,19 @@ public class SoV2EXSearchResultInfo extends BaseInfo {
         return hits != null ? hits : Collections.emptyList();
     }
 
+    @Override
+    public String toString() {
+        return "SoV2EXSearchResultInfo{" +
+                "total=" + total +
+                ", hits=" + hits +
+                '}';
+    }
+
+    @Override
+    public boolean isValid() {
+        return true;
+    }
+
     @Stable
     public static class Hit {
         @SerializedName("_source")
@@ -29,6 +42,22 @@ public class SoV2EXSearchResultInfo extends BaseInfo {
 
         @SerializedName("highlight")
         private Highlight highlight;
+
+        public Source getSource() {
+            return source;
+        }
+
+        public Highlight getHighlight() {
+            return highlight;
+        }
+
+        @Override
+        public String toString() {
+            return "Hit{" +
+                    "source=" + source +
+                    ", highlight=" + highlight +
+                    '}';
+        }
 
         @Stable
         public static class Source {
@@ -89,10 +118,6 @@ public class SoV2EXSearchResultInfo extends BaseInfo {
             }
         }
 
-        public Source getSource() {
-            return source;
-        }
-
         @Stable
         public static class Highlight {
             @SerializedName("title")
@@ -130,30 +155,5 @@ public class SoV2EXSearchResultInfo extends BaseInfo {
                         '}';
             }
         }
-
-        public Highlight getHighlight() {
-            return highlight;
-        }
-
-        @Override
-        public String toString() {
-            return "Hit{" +
-                    "source=" + source +
-                    ", highlight=" + highlight +
-                    '}';
-        }
-    }
-
-    @Override
-    public String toString() {
-        return "SoV2EXSearchResultInfo{" +
-                "total=" + total +
-                ", hits=" + hits +
-                '}';
-    }
-
-    @Override
-    public boolean isValid() {
-        return true;
     }
 }

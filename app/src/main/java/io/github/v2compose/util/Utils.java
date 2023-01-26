@@ -15,7 +15,7 @@ public class Utils {
 
     public static String extractDigits(String src) {
         if (TextUtils.isEmpty(src)) return "";
-        return src.replaceAll("\\D+","");
+        return src.replaceAll("\\D+", "");
     }
 
 }

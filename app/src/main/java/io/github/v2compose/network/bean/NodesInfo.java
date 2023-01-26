@@ -32,18 +32,6 @@ public class NodesInfo extends ArrayList<NodesInfo.Node> implements IBase, Seria
     }
 
     public static class Node implements Serializable, Parcelable, Comparable<Node> {
-        public String text;
-        public int topics;
-        public String id;
-        public boolean isHot;
-
-        protected Node(Parcel in) {
-            text = in.readString();
-            topics = in.readInt();
-            id = in.readString();
-            isHot = in.readByte() != 0;
-        }
-
         public static final Creator<Node> CREATOR = new Creator<Node>() {
             @Override
             public Node createFromParcel(Parcel in) {
@@ -55,6 +43,17 @@ public class NodesInfo extends ArrayList<NodesInfo.Node> implements IBase, Seria
                 return new Node[size];
             }
         };
+        public String text;
+        public int topics;
+        public String id;
+        public boolean isHot;
+
+        protected Node(Parcel in) {
+            text = in.readString();
+            topics = in.readInt();
+            id = in.readString();
+            isHot = in.readByte() != 0;
+        }
 
         @Override
         public String toString() {

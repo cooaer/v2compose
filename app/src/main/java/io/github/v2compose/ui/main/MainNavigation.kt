@@ -18,7 +18,7 @@ fun NavController.navigateToMain(navOptions: NavOptions? = null) {
 fun NavGraphBuilder.mainScreen(
     onNewsItemClick: (NewsInfo.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
-    onUserAvatarClick:(String, String) -> Unit,
+    onUserAvatarClick: (String, String) -> Unit,
     onSearchClick: () -> Unit,
     onSettingsClick: () -> Unit,
 ) {

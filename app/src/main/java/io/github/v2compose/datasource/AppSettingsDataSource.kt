@@ -60,7 +60,7 @@ class AppSettingsDataSource @Inject constructor(@ApplicationContext private val 
         }
     }
 
-    suspend fun darkMode(value:DarkMode){
+    suspend fun darkMode(value: DarkMode) {
         context.dataStore.edit {
             it[KeyDarkMode] = value.name
         }

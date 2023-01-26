@@ -25,7 +25,7 @@ class NewsViewModel @Inject constructor(
 
     val tab: String = savedStateHandle[KEY_TAB] ?: ""
 
-    private val _refreshingFlow = MutableStateFlow(false);
+    private val _refreshingFlow = MutableStateFlow(false)
     val refreshingFlow = _refreshingFlow.asStateFlow()
 
     private val _newsInfoFlow = MutableStateFlow<NewsUiState>(NewsUiState.Loading)
@@ -69,10 +69,6 @@ class NewsViewModel @Inject constructor(
         }
     }
 
-    //TODO: 当销毁时，缓存数据到硬盘
-    override fun onCleared() {
-        super.onCleared()
-    }
 }
 
 @Stable

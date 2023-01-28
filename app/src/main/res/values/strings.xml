@@ -75,8 +75,8 @@
     <string name="settings_dark_mode_off">关闭</string>
     <string name="settings_dark_mode_follow_system">跟随系统</string>
 
-    <string name="settings_topic_title_overview">话题标题概览</string>
-    <string name="settings_topic_title_overview_summary">列表中话题的标题最多显示两行</string>
+    <string name="settings_topic_title_overview">主题标题概览</string>
+    <string name="settings_topic_title_overview_summary">主表中话题的标题最多显示两行</string>
 
     <string name="settings_open_source">源码</string>
 

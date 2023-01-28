@@ -20,11 +20,13 @@ class App : Application(), ImageLoaderFactory {
 
     companion object {
         const val TAG = "APP"
+        lateinit var instance: App
     }
 
     override fun onCreate() {
         beforeOnCreate()
         super.onCreate()
+        instance = this
         init()
     }
 

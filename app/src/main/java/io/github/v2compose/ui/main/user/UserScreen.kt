@@ -409,7 +409,7 @@ private fun UserRepliesList(
     onTopicClick: (String) -> Unit,
     openUri: (String) -> Unit,
 ) {
-    LazyColumn {
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
         item(key = "refresh", contentType = "loadState") {
             PagingLoadState(state = items.loadState.refresh, onRetryClick = { items.retry() })
         }
@@ -434,7 +434,7 @@ fun UserReplyItem(
     openUri: (String) -> Unit
 ) {
     val contentColor = LocalContentColor.current
-    Box(modifier = Modifier.clickable { onTopicClick(reply.dock.link) }) {
+    Box(modifier = Modifier.fillMaxSize().clickable { onTopicClick(reply.dock.link) }) {
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)) {
             Row {
                 Text(

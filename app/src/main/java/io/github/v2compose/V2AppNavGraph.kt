@@ -2,9 +2,6 @@ package io.github.v2compose
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import io.github.v2compose.datasource.AppSettings
@@ -29,8 +26,7 @@ fun V2AppNavGraph(
     appSettings: AppSettings,
     viewModel: V2AppViewModel,
 ) {
-    val openInInternalBrowser: Boolean by remember { derivedStateOf { appSettings.openInInternalBrowser } }
-    val openUri: Function1<String, Unit> = { appState.openUri(it, openInInternalBrowser) }
+    val openUri = fun(uri: String) { appState.openUri(uri, appSettings.openInInternalBrowser) }
 
     AnimatedNavHost(navController = navController, startDestination = mainNavigationRoute) {
         mainScreen(

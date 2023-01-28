@@ -81,16 +81,17 @@ private fun HtmlElementsScope.BlockToInlineNodes(
     textStyle: TextStyle
 ) {
     val iterator = element.childNodes().iterator()
+    var prevNode: Node? = null
     val tempNodes = mutableListOf<Node>()
     while (iterator.hasNext()) {
         val node = iterator.next()
         if (node is Element) {
             if (node.isBlock || node.onlyContainsImgs() || node.isIframe()) {
-//            if (node.isBlock) {
                 if (tempNodes.isNotEmpty()) {
-                    InlineNodes(tempNodes.toList(), textStyle)
+                    InlineNodes(tempNodes.toList(), prevNode, node, textStyle)
                     tempNodes.clear()
                 }
+                prevNode = node
                 Block(node, textStyle)
             } else {
                 tempNodes.add(node)
@@ -102,10 +103,9 @@ private fun HtmlElementsScope.BlockToInlineNodes(
         }
     }
     if (tempNodes.isNotEmpty()) {
-        InlineNodes(tempNodes, textStyle)
+        InlineNodes(tempNodes, prevNode, null, textStyle)
     }
 }
-
 
 //=========== Block Elements Start ============
 
@@ -131,6 +131,7 @@ private fun HtmlElementsScope.Block(
         "hr" -> Hr(element, textStyle)
         "pre" -> Pre(element, textStyle)
         "iframe" -> Iframe(element)
+        //将img作为block渲染，解决img嵌入Text时无法调整大小的问题
         "img" -> Img(element, textStyle)
         else -> BlockToInlineNodes(element, textStyle)
     }
@@ -228,20 +229,22 @@ private fun HtmlElementsScope.Pre(element: Element, textStyle: TextStyle) {
     val children = element.children()
     if (children.size == 1 && children.first()!!.tagName().lowercase() == "code") {
         val onlyChild = children.first()!!
-        Text(
-            onlyChild.text(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f),
-                    shape = RoundedCornerShape(4.dp)
-                )
-                .clip(RoundedCornerShape(4.dp))
-                .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f))
-                .padding(8.dp),
-            style = textStyle.copy(fontFamily = FontFamily.Monospace)
-        )
+        Box(modifier = Modifier.padding(vertical = 4.dp)) {
+            Text(
+                onlyChild.text(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(4.dp)
+                    )
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f))
+                    .padding(8.dp),
+                style = textStyle.copy(fontFamily = FontFamily.Monospace)
+            )
+        }
     } else {
         BlockToInlineNodes(element, textStyle)
     }
@@ -349,12 +352,34 @@ private fun HtmlElementsScope.Iframe(element: Element) {
 //=========== Inline Elements Start ============
 
 @Composable
-private fun HtmlElementsScope.InlineNodes(nodes: List<Node>, textStyle: TextStyle) {
+private fun HtmlElementsScope.InlineNodes(
+    nodes: List<Node>,
+    prevNode: Node?,
+    nextNode: Node?,
+    textStyle: TextStyle
+) {
+    //消除将非block元素渲染为block元素后，产生的多余的换行
+    val inlineNodes = nodes.toMutableList()
+    if(prevNode != null && !prevNode.isBlock()){
+        nodes.firstOrNull()?.let {
+            if(it.nodeName().lowercase() == "br"){
+                inlineNodes.removeFirst()
+            }
+        }
+    }
+    if(nextNode != null && !nextNode.isBlock()){
+        nodes.lastOrNull()?.let {
+            if(it.nodeName().lowercase() == "br"){
+                inlineNodes.removeLast()
+            }
+        }
+    }
+
     BoxWithConstraints {
         val density = LocalDensity.current
 
-        val allImgs = remember(nodes) {
-            nodes.filterIsInstance<Element>()
+        val allImgs = remember(inlineNodes) {
+            inlineNodes.filterIsInstance<Element>()
                 .map { ele -> ele.select("img").map { eles -> Img(eles) } }.flatten()
                 .toMutableStateList()
         }
@@ -363,7 +388,7 @@ private fun HtmlElementsScope.InlineNodes(nodes: List<Node>, textStyle: TextStyl
             derivedStateOf {
                 buildAnnotatedString {
                     withStyle(style = ParagraphStyle()) {
-                        for (node in nodes) {
+                        inlineNodes.forEach { node ->
                             inlineText(node, this@InlineNodes)
                         }
                     }

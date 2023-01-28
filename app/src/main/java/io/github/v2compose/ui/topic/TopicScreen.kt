@@ -233,7 +233,7 @@ private fun TopicList(
                     onRepliedOrderClick = {
                         onRepliedOrderClick(it)
                         coroutineScope.launch {
-                            lazyListState.animateScrollToItem(repliesBarIndex + 1)
+                            lazyListState.animateScrollToItem(repliesBarIndex)
                         }
                     },
                 )

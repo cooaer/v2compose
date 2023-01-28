@@ -470,21 +470,26 @@ public class TopicInfo extends BaseInfo {
         }
 
         public int getTotalPage() {
-            return Math.max(page, currentPage);
+            return Math.max(Math.max(page, currentPage), 1);
         }
-
 
         @Override
         public String toString() {
             return "HeaderInfo{" +
-                    "tId='" + getT() + '\'' +
                     "avatar='" + avatar + '\'' +
                     ", userName='" + userName + '\'' +
-                    ", time='" + getTime() + '\'' +
+                    ", time='" + time + '\'' +
                     ", tag='" + tag + '\'' +
+                    ", tagLink='" + tagLink + '\'' +
                     ", comment='" + comment + '\'' +
                     ", page=" + page +
+                    ", currentPage=" + currentPage +
                     ", title='" + title + '\'' +
+                    ", favoriteLink='" + favoriteLink + '\'' +
+                    ", thankedText='" + thankedText + '\'' +
+                    ", canSendThanksText='" + canSendThanksText + '\'' +
+                    ", computedTime='" + computedTime + '\'' +
+                    ", appendTxt='" + appendTxt + '\'' +
                     '}';
         }
 

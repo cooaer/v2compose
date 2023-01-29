@@ -8,7 +8,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import io.github.v2compose.core.extension.tryParse
 import io.github.v2compose.core.openInBrowser
-import io.github.v2compose.ui.main.user.navigateToUser
+import io.github.v2compose.ui.user.navigateToUser
 import io.github.v2compose.ui.node.navigateToNode
 import io.github.v2compose.ui.topic.navigateToTopic
 import javax.inject.Inject

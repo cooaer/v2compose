@@ -7,8 +7,8 @@ import com.google.accompanist.navigation.animation.AnimatedNavHost
 import io.github.v2compose.datasource.AppSettings
 import io.github.v2compose.ui.main.mainNavigationRoute
 import io.github.v2compose.ui.main.mainScreen
-import io.github.v2compose.ui.main.user.navigateToUser
-import io.github.v2compose.ui.main.user.userScreen
+import io.github.v2compose.ui.user.navigateToUser
+import io.github.v2compose.ui.user.userScreen
 import io.github.v2compose.ui.node.navigateToNode
 import io.github.v2compose.ui.node.nodeScreen
 import io.github.v2compose.ui.search.navigateToSearch

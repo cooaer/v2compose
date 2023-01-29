@@ -21,6 +21,7 @@ fun NavGraphBuilder.mainScreen(
     onUserAvatarClick: (String, String) -> Unit,
     onSearchClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    openUri:(String) -> Unit,
 ) {
     composable(route = mainNavigationRoute) {
         MainScreen(
@@ -29,6 +30,7 @@ fun NavGraphBuilder.mainScreen(
             onUserAvatarClick = onUserAvatarClick,
             onSearchClick = onSearchClick,
             onSettingsClick = onSettingsClick,
+            openUri = openUri,
         )
     }
 }

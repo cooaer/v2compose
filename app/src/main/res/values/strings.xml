@@ -78,9 +78,22 @@
     <string name="settings_topic_title_overview">主题标题概览</string>
     <string name="settings_topic_title_overview_summary">主表中话题的标题最多显示两行</string>
 
+    <string name="settings_topic_replies_order">主题回复的排序方式</string>
+    <string name="settings_topic_replies_positive">正序</string>
+    <string name="settings_topic_replies_order_negative">倒序</string>
+
     <string name="settings_open_source">源码</string>
 
     <string name="settings_version">版本</string>
+    
+    <string name="settings_check_for_updates">检查更新</string>
+    <string name="settings_check_for_updates_summary">检查是否有新版本</string>
+    <string name="checking_for_updates">检查更新中…</string>
+    <string name="no_updates">没有新版本</string>
+    <string name="has_new_updates">发现新版本</string>
+    <string name="goto_update">去更新</string>
+    <string name="ignore_this_release">忽略该版本</string>
 
     <!-- Settings Screen End -->
+    
 </resources>

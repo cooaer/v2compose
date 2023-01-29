@@ -17,8 +17,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.v2compose.R
 import io.github.v2compose.network.bean.NewsInfo
+import io.github.v2compose.ui.common.NewReleaseDialog
 import io.github.v2compose.ui.main.home.HomeContent
 import io.github.v2compose.ui.main.mine.MineContent
 import io.github.v2compose.ui.main.nodes.NodesContent
@@ -32,9 +34,26 @@ fun MainScreen(
     onUserAvatarClick: (String, String) -> Unit,
     onSearchClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    openUri: (String) -> Unit,
     viewModel: MainViewModel = hiltViewModel(),
 ) {
     var navBarSelectedIndex by rememberSaveable(stateSaver = autoSaver()) { mutableStateOf(0) }
+
+    val newRelease by viewModel.newRelease.collectAsStateWithLifecycle()
+    if (newRelease.isValid()) {
+        NewReleaseDialog(
+            release = newRelease,
+            onIgnoreClick = {
+                viewModel.ignoreRelease(newRelease)
+                viewModel.resetNewRelease()
+            },
+            onCancelClick = viewModel::resetNewRelease,
+            onOkClick = {
+                openUri(newRelease.htmlUrl)
+                viewModel.resetNewRelease()
+            },
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -148,5 +167,6 @@ fun MainScreenPreview() {
         onUserAvatarClick = { _, _ -> },
         onSearchClick = {},
         onSettingsClick = {},
+        openUri = {}
     )
 }

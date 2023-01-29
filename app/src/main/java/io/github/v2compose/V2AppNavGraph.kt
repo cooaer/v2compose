@@ -35,6 +35,7 @@ fun V2AppNavGraph(
             onUserAvatarClick = navController::navigateToUser,
             onSearchClick = navController::navigateToSearch,
             onSettingsClick = navController::navigateToSettings,
+            openUri = openUri,
         )
         topicScreen(
             onBackClick = appState::back,

@@ -6,10 +6,12 @@ import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.autoSaver
+import androidx.compose.runtime.saveable.mapSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -19,9 +21,13 @@ import io.github.v2compose.Constants
 import io.github.v2compose.R
 import io.github.v2compose.bean.DarkMode
 import io.github.v2compose.datasource.AppSettings
+import io.github.v2compose.network.bean.Release
 import io.github.v2compose.ui.common.BackIcon
 import io.github.v2compose.ui.common.ListDivider
+import io.github.v2compose.ui.common.NewReleaseDialog
 import io.github.v2compose.ui.common.SingleChoiceListDialog
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreenRoute(
@@ -29,20 +35,70 @@ fun SettingsScreenRoute(
     openUri: (String) -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    var newRelease by rememberSaveable(
+        saver = mapSaver(
+            save = { it.value.toMap() },
+            restore = { mutableStateOf(Release.fromMap(it)) },
+        )
+    ) { mutableStateOf(Release.Empty) }
 
     val cacheSize by viewModel.cacheSize.collectAsStateWithLifecycle()
     val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
 
+    if (newRelease.isValid()) {
+        NewReleaseDialog(
+            release = newRelease,
+            onIgnoreClick = {
+                viewModel.ignoreRelease(newRelease)
+                newRelease = Release.Empty
+            },
+            onCancelClick = { newRelease = Release.Empty },
+            onOkClick = {
+                openUri(newRelease.htmlUrl)
+                newRelease = Release.Empty
+            }
+        )
+    }
+
     SettingsScreen(
         cacheSize = cacheSize,
         appSettings = appSettings,
+        snackbarHostState = snackbarHostState,
         onBackClick = onBackClick,
         onClearCacheClick = viewModel::clearCache,
         onOpenInBrowserChanged = viewModel::setOpenInInternalBrowser,
         onDarkModeChanged = viewModel::setDarkMode,
         onTopicTitleTwoLineMaxChanged = viewModel::setTopicTitleTwoLineMax,
         onSourceClick = openUri,
-        onVersionClick = {})
+        onVersionClick = {},
+        onCheckForUpdatesClick = {
+            coroutineScope.launch {
+                val show =
+                    async {
+                        snackbarHostState.showSnackbar(
+                            context.getString(R.string.checking_for_updates),
+                            duration = SnackbarDuration.Short,
+                        )
+                    }
+                val check = async { viewModel.checkForUpdates() }
+                val release = check.await()
+                show.cancel()
+                if (release.isValid()) {
+                    newRelease = release
+                } else {
+                    snackbarHostState.showSnackbar(
+                        context.getString(R.string.no_updates),
+                        duration = SnackbarDuration.Short,
+                    )
+                }
+            }
+        },
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,6 +106,7 @@ fun SettingsScreenRoute(
 private fun SettingsScreen(
     cacheSize: Long,
     appSettings: AppSettings,
+    snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
     onClearCacheClick: () -> Unit,
     onOpenInBrowserChanged: (Boolean) -> Unit,
@@ -57,9 +114,11 @@ private fun SettingsScreen(
     onTopicTitleTwoLineMaxChanged: (Boolean) -> Unit,
     onSourceClick: (String) -> Unit,
     onVersionClick: () -> Unit,
+    onCheckForUpdatesClick: () -> Unit,
 ) {
     Scaffold(
         topBar = { SettingsTopBar(onBackClick = onBackClick) },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) {
         Column(
             modifier = Modifier
@@ -108,6 +167,11 @@ private fun SettingsScreen(
                 title = stringResource(id = R.string.settings_version),
                 summary = BuildConfig.VERSION_NAME,
                 onPreferenceClick = onVersionClick
+            )
+            ClickablePreference(
+                title = stringResource(id = R.string.settings_check_for_updates),
+                summary = stringResource(id = R.string.settings_check_for_updates_summary),
+                onPreferenceClick = onCheckForUpdatesClick,
             )
         }
     }

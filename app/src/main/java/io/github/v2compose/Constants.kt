@@ -5,7 +5,9 @@ object Constants {
     const val baseUrl = "https://www.v2ex.com/"
     const val userPath = "/member/"
 
-    const val source = "https://github.com/cooaer/V2Compose"
+    const val source = "https://github.com/cooaer/v2compose"
+    const val owner = "cooaer"
+    const val repo = "v2compose"
 
     const val topicTitleOverviewMaxLines = 2
 

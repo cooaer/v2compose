@@ -23,11 +23,13 @@ data class AppSettings(
     val openInInternalBrowser: Boolean = true,
     val darkMode: DarkMode = DarkMode.FollowSystem,
     val topicTitleOverview: Boolean = true,
+    val ignoredReleaseName: String? = null,
 ) {
     companion object {
         val Default = AppSettings()
     }
 }
+
 
 class AppSettingsDataSource @Inject constructor(@ApplicationContext private val context: Context) {
 
@@ -36,6 +38,8 @@ class AppSettingsDataSource @Inject constructor(@ApplicationContext private val 
         private val KeyOpenInInternalBrowser = booleanPreferencesKey("open_in_internal_browser")
         private val KeyDarkMode = stringPreferencesKey("dark_mode")
         private val KeyTopicTitleOverview = booleanPreferencesKey("topic_title_overview")
+
+        private val KeyIgnoredReleaseName = stringPreferencesKey("ignored_release_name")
     }
 
     val appSettings: Flow<AppSettings> = context.dataStore.data.map {
@@ -45,6 +49,7 @@ class AppSettingsDataSource @Inject constructor(@ApplicationContext private val 
             darkMode = it[KeyDarkMode]?.let { value -> DarkMode.valueOf(value) }
                 ?: DarkMode.FollowSystem,
             topicTitleOverview = it[KeyTopicTitleOverview] ?: true,
+            ignoredReleaseName = it[KeyIgnoredReleaseName],
         )
     }
 
@@ -69,6 +74,12 @@ class AppSettingsDataSource @Inject constructor(@ApplicationContext private val 
     suspend fun topicTitleOverview(value: Boolean) {
         context.dataStore.edit {
             it[KeyTopicTitleOverview] = value
+        }
+    }
+
+    suspend fun ignoredReleaseName(value: String) {
+        context.dataStore.edit {
+            it[KeyIgnoredReleaseName] = value
         }
     }
 

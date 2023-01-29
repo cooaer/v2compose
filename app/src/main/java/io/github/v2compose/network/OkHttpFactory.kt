@@ -44,9 +44,8 @@ object OkHttpFactory {
                 .addInterceptor(ConfigInterceptor())
         if (BuildConfig.DEBUG) {
             builder.addInterceptor(
-                HttpLoggingInterceptor { msg: String? -> L.v(msg) }.setLevel(
-                    HttpLoggingInterceptor.Level.HEADERS
-                )
+                HttpLoggingInterceptor { msg: String? -> L.v(msg) }
+                    .setLevel(HttpLoggingInterceptor.Level.HEADERS)
             )
         }
         return builder.build()

@@ -11,6 +11,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.v2compose.bean.DarkMode
 import io.github.v2compose.datasource.AppSettings
 import io.github.v2compose.datasource.AppSettingsDataSource
+import io.github.v2compose.network.bean.Release
+import io.github.v2compose.usecase.CheckForUpdatesUseCase
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,6 +21,7 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val appSettingsDataSource: AppSettingsDataSource,
+    val checkForUpdates: CheckForUpdatesUseCase,
 ) : ViewModel() {
 
     private val imageDiskCache: DiskCache? = Coil.imageLoader(context).diskCache
@@ -30,7 +33,7 @@ class SettingsViewModel @Inject constructor(
             initialValue = AppSettings.Default,
         )
 
-    private val _cacheSize: MutableStateFlow<Long> = MutableStateFlow(0L)
+    private val _cacheSize = MutableStateFlow(0L)
     val cacheSize = _cacheSize.asStateFlow()
 
     init {
@@ -68,6 +71,12 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             imageDiskCache?.clear()
             _cacheSize.emit(0L)
+        }
+    }
+
+    fun ignoreRelease(release: Release) {
+        viewModelScope.launch {
+            appSettingsDataSource.ignoredReleaseName(release.tagName)
         }
     }
 

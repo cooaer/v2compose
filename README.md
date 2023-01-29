@@ -12,10 +12,10 @@
 
 ## 一些页面预览
 
-| ![news](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/news.jpg?raw=true | ![nodes](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/nodes.jpg?raw=true | ![settings](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/settings.jpg?raw=true |
+| ![news](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/news.jpg?raw=true) | ![nodes](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/nodes.jpg?raw=true) | ![settings](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/settings.jpg?raw=true) |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| ![topic](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/topic.jpg?raw=true | ![node](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/node.jpg?raw=true | ![user](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/user.jpg?raw=true |
-| ![search](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/search.jpg?raw=true |                                                              |                                                              |
+| ![topic](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/topic.jpg?raw=true) | ![node](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/node.jpg?raw=true) | ![user](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/user.jpg?raw=true) |
+| ![search](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/search.jpg?raw=true) |                                                              |                                                              |
 
 ## 已完成功能
 

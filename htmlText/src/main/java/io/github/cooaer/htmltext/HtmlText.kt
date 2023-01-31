@@ -361,14 +361,14 @@ private fun HtmlElementsScope.InlineNodes(
     //消除将非block元素渲染为block元素后，产生的多余的换行
     val inlineNodes = nodes.toMutableList()
     if(prevNode != null && !prevNode.isBlock()){
-        nodes.firstOrNull()?.let {
+        inlineNodes.firstOrNull()?.let {
             if(it.nodeName().lowercase() == "br"){
                 inlineNodes.removeFirst()
             }
         }
     }
     if(nextNode != null && !nextNode.isBlock()){
-        nodes.lastOrNull()?.let {
+        inlineNodes.lastOrNull()?.let {
             if(it.nodeName().lowercase() == "br"){
                 inlineNodes.removeLast()
             }

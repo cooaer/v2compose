@@ -9,9 +9,10 @@ import coil.disk.DiskCache
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.v2compose.bean.DarkMode
+import io.github.v2compose.datasource.AppPreferences
 import io.github.v2compose.datasource.AppSettings
-import io.github.v2compose.datasource.AppSettingsDataSource
 import io.github.v2compose.network.bean.Release
+import io.github.v2compose.repository.AccountRepository
 import io.github.v2compose.usecase.CheckForUpdatesUseCase
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -20,13 +21,14 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     @ApplicationContext context: Context,
-    private val appSettingsDataSource: AppSettingsDataSource,
+    private val appPreferences: AppPreferences,
     val checkForUpdates: CheckForUpdatesUseCase,
+    private val accountRepository: AccountRepository,
 ) : ViewModel() {
 
     private val imageDiskCache: DiskCache? = Coil.imageLoader(context).diskCache
 
-    val appSettings: StateFlow<AppSettings> = appSettingsDataSource.appSettings
+    val appSettings: StateFlow<AppSettings> = appPreferences.appSettings
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
@@ -35,6 +37,12 @@ class SettingsViewModel @Inject constructor(
 
     private val _cacheSize = MutableStateFlow(0L)
     val cacheSize = _cacheSize.asStateFlow()
+
+    val isLoggedIn: StateFlow<Boolean> = accountRepository.isLoggedIn.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(),
+        false,
+    )
 
     init {
         initCacheSize()
@@ -50,19 +58,19 @@ class SettingsViewModel @Inject constructor(
 
     fun setOpenInInternalBrowser(value: Boolean) {
         viewModelScope.launch {
-            appSettingsDataSource.openInInternalBrowser(value)
+            appPreferences.openInInternalBrowser(value)
         }
     }
 
     fun setDarkMode(value: DarkMode) {
         viewModelScope.launch {
-            appSettingsDataSource.darkMode(value)
+            appPreferences.darkMode(value)
         }
     }
 
     fun setTopicTitleTwoLineMax(value: Boolean) {
         viewModelScope.launch {
-            appSettingsDataSource.topicTitleOverview(value)
+            appPreferences.topicTitleOverview(value)
         }
     }
 
@@ -76,7 +84,13 @@ class SettingsViewModel @Inject constructor(
 
     fun ignoreRelease(release: Release) {
         viewModelScope.launch {
-            appSettingsDataSource.ignoredReleaseName(release.tagName)
+            appPreferences.ignoredReleaseName(release.tagName)
+        }
+    }
+
+    fun logout(){
+        viewModelScope.launch {
+            accountRepository.logout()
         }
     }
 

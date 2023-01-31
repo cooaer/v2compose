@@ -12,12 +12,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
 import io.github.cooaer.htmltext.HtmlText
 import io.github.v2compose.Constants
+import org.jsoup.Jsoup
 
 private const val TAG = "HtmlComposables"
 
 @Composable
 fun HtmlContent(
-    html: String,
+    content: String,
     modifier: Modifier = Modifier,
     selectable: Boolean = false,
     textStyle: TextStyle = MaterialTheme.typography.bodyMedium.copy(
@@ -27,7 +28,11 @@ fun HtmlContent(
     ),
     baseUrl: String = Constants.baseUrl,
     onUriClick: ((uri: String) -> Unit)? = null,
+    onContentChanged: ((String) -> Unit)? = null,
 ) {
+    val document = remember(content) { Jsoup.parse(content) }
+    val imgElements = remember(content) { document.select("img") }
+
     val uriHandler = remember(onUriClick) {
         object : UriHandler {
             override fun openUri(uri: String) {
@@ -35,13 +40,30 @@ fun HtmlContent(
             }
         }
     }
+
     CompositionLocalProvider(LocalUriHandler provides uriHandler) {
         HtmlText(
-            html = html,
+            html = content,
             modifier = modifier,
             selectable = selectable,
             textStyle = textStyle,
             baseUrl = baseUrl,
-            onImageClick = { img, allImgs -> Log.d(TAG, "onHtmlImageClick, img = $img") })
+            onImageClick = { img, allImgs -> Log.d(TAG, "onHtmlImageClick, img = $img") },
+            onImageLoaded = { img ->
+                onContentChanged?.let {
+                    document.select("img[src=\"${img.src}\"]").forEach { ele ->
+                        ele.attr("width", img.width.toString())
+                        ele.attr("height", img.height.toString())
+
+                        Log.d(TAG, "onContentChanged, newImg = $ele")
+                    }
+                    val newHtml = document.outerHtml()
+                    if (newHtml != content) {
+                        Log.d(TAG, "onContentChanged, callback, outerHtml = $newHtml")
+                        it(newHtml)
+                    }
+                }
+            },
+        )
     }
 }

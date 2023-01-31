@@ -7,6 +7,7 @@ import me.ghui.fruit.annotations.Pick;
  * Created by ghui on 16/08/2017.
  */
 
+@Pick("header#site-header")
 public class LoginResultInfo extends BaseInfo {
     @Pick(value = "[href^=/member]", attr = "href")
     private String userLink;

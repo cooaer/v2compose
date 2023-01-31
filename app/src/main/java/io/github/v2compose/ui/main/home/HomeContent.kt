@@ -56,19 +56,19 @@ fun HomeContent(
             }
         }
 
-        Log.d(
-            TAG,
-            """
-                pagerState, initialPage = ${pagerState.initialPage}, 
-                initialPageOffsetFraction = ${pagerState.initialPageOffsetFraction}, 
-                currentPage = ${pagerState.currentPage}, 
-                settledPage = ${pagerState.settledPage}, 
-                targerPage = ${pagerState.targetPage}, 
-                currentPageOffsetFraction = ${pagerState.currentPageOffsetFraction}, 
-                isScrollInProgress = ${pagerState.isScrollInProgress}, 
-                pagerState = $pagerState
-                """
-        )
+//        Log.d(
+//            TAG,
+//            """
+//                pagerState, initialPage = ${pagerState.initialPage},
+//                initialPageOffsetFraction = ${pagerState.initialPageOffsetFraction},
+//                currentPage = ${pagerState.currentPage},
+//                settledPage = ${pagerState.settledPage},
+//                targerPage = ${pagerState.targetPage},
+//                currentPageOffsetFraction = ${pagerState.currentPageOffsetFraction},
+//                isScrollInProgress = ${pagerState.isScrollInProgress},
+//                pagerState = $pagerState
+//                """
+//        )
 
         ScrollableTabRow(
             selectedTabIndex = currentPage,

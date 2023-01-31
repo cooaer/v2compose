@@ -2,6 +2,8 @@ package io.github.v2compose.ui.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -49,6 +51,7 @@ fun SettingsScreenRoute(
 
     val cacheSize by viewModel.cacheSize.collectAsStateWithLifecycle()
     val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
+    val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
 
     if (newRelease.isValid()) {
         NewReleaseDialog(
@@ -66,6 +69,7 @@ fun SettingsScreenRoute(
     }
 
     SettingsScreen(
+        isLoggedIn = isLoggedIn,
         cacheSize = cacheSize,
         appSettings = appSettings,
         snackbarHostState = snackbarHostState,
@@ -78,7 +82,7 @@ fun SettingsScreenRoute(
         onVersionClick = {},
         onCheckForUpdatesClick = {
             coroutineScope.launch {
-                val show =
+                val showSnackbar =
                     async {
                         snackbarHostState.showSnackbar(
                             context.getString(R.string.checking_for_updates),
@@ -87,7 +91,7 @@ fun SettingsScreenRoute(
                     }
                 val check = async { viewModel.checkForUpdates() }
                 val release = check.await()
-                show.cancel()
+                showSnackbar.cancel()
                 if (release.isValid()) {
                     newRelease = release
                 } else {
@@ -98,12 +102,14 @@ fun SettingsScreenRoute(
                 }
             }
         },
+        onLogout = viewModel::logout
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsScreen(
+    isLoggedIn: Boolean,
     cacheSize: Long,
     appSettings: AppSettings,
     snackbarHostState: SnackbarHostState,
@@ -115,6 +121,7 @@ private fun SettingsScreen(
     onSourceClick: (String) -> Unit,
     onVersionClick: () -> Unit,
     onCheckForUpdatesClick: () -> Unit,
+    onLogout: () -> Unit,
 ) {
     Scaffold(
         topBar = { SettingsTopBar(onBackClick = onBackClick) },
@@ -124,6 +131,7 @@ private fun SettingsScreen(
             modifier = Modifier
                 .padding(it)
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
         ) {
             PreferenceGroupTitle(title = stringResource(id = R.string.settings_common))
             ClickablePreference(
@@ -173,6 +181,10 @@ private fun SettingsScreen(
                 summary = stringResource(id = R.string.settings_check_for_updates_summary),
                 onPreferenceClick = onCheckForUpdatesClick,
             )
+            if (isLoggedIn) {
+                Logout(onLogout = onLogout)
+            }
+            Spacer(Modifier.height(108.dp))
         }
     }
 }
@@ -189,6 +201,42 @@ private fun SettingsTopBar(onBackClick: () -> Unit) {
             )
         },
     )
+}
+
+@Composable
+private fun Logout(onLogout: () -> Unit) {
+    var showLogoutDialog by remember { mutableStateOf(false) }
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text(stringResource(id = R.string.logout)) },
+            text = { Text(stringResource(id = R.string.logout_tips)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showLogoutDialog = false
+                    onLogout()
+                }) {
+                    Text(stringResource(id = R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text(stringResource(id = R.string.cancel))
+                }
+            })
+    }
+
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .height(72.dp)
+        .clickable { showLogoutDialog = true }) {
+        Text(
+            stringResource(id = R.string.logout),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.align(Alignment.Center)
+        )
+    }
 }
 
 @Composable

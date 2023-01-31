@@ -55,6 +55,12 @@ public class UserInfo extends BaseInfo {
     private String bio;
     @SerializedName("avatar_large")
     private String avatar;
+    @SerializedName("avatar_xlarge")
+    private String avatarX;
+    @SerializedName("avatar_xxlarge")
+    private String avatarXx;
+    @SerializedName("avatar_xxxlarge")
+    private String avatarXxx;
     @SerializedName("created")
     private String created;
 
@@ -167,6 +173,19 @@ public class UserInfo extends BaseInfo {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
+    }
+
+    public String getLargestAvatar() {
+        if (avatarXxx != null && !avatarXxx.isEmpty()) {
+            return avatarXxx;
+        }
+        if (avatarXx != null && !avatarXx.isEmpty()) {
+            return avatarXx;
+        }
+        if (avatarX != null && !avatarX.isEmpty()) {
+            return avatarX;
+        }
+        return getAvatar();
     }
 
     public String getCreated() {

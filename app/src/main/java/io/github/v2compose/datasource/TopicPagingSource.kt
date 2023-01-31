@@ -50,11 +50,7 @@ class TopicPagingSource constructor(
                 }
                 addAll(if (reversed) topicInfo.replies.reversed() else topicInfo.replies)
             }
-            LoadResult.Page(
-                data,
-                prevPage,
-                nextPage
-            )
+            LoadResult.Page(data, prevPage, nextPage)
         } catch (e: Exception) {
             e.printStackTrace()
             LoadResult.Error(e)

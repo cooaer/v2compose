@@ -19,13 +19,13 @@ public class DailyInfo extends BaseInfo {
     @Pick("div.cell:contains(已连续)")
     private String continuousLoginDayStr;
     @Pick(value = "div.cell input[type=button]", attr = "onclick")
-    private String checkinUrl; //location.href = '/mission/daily/redeem?once=84830';
+    private String checkInUrl; //location.href = '/mission/daily/redeem?once=84830';
 
     public boolean hadCheckedIn() {
-        return Check.notEmpty(checkinUrl) && checkinUrl.equals("location.href = '/balance';");
+        return Check.notEmpty(checkInUrl) && checkInUrl.equals("location.href = '/balance';");
     }
 
-    public String getCheckinDays() {
+    public String getContinuousLoginDays() {
         return Utils.extractDigits(continuousLoginDayStr);
     }
 
@@ -43,7 +43,7 @@ public class DailyInfo extends BaseInfo {
     }
 
     public String once() {
-        String result = UriUtils.getParamValue(checkinUrl, "once");
+        String result = UriUtils.getParamValue(checkInUrl, "once");
         if (Check.notEmpty(result)) {
             result = result.replace("';", "");
         }
@@ -52,15 +52,15 @@ public class DailyInfo extends BaseInfo {
 
     @Override
     public boolean isValid() {
-        return Check.notEmpty(checkinUrl);
+        return Check.notEmpty(checkInUrl);
     }
 
     @Override
     public String toString() {
         return "DailyInfo{" +
                 "title='" + title + '\'' +
-                ", continuousLoginDay='" + getCheckinDays() + '\'' +
-                ", checkinUrl='" + checkinUrl + '\'' +
+                ", continuousLoginDay='" + getContinuousLoginDays() + '\'' +
+                ", checkinUrl='" + checkInUrl + '\'' +
                 ", once='" + once() + '\'' +
                 '}';
     }

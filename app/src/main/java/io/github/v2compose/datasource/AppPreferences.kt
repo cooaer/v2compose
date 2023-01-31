@@ -9,7 +9,9 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.v2compose.bean.DarkMode
+import io.github.v2compose.network.OkHttpFactory
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -30,8 +32,33 @@ data class AppSettings(
     }
 }
 
+data class Account(
+    val userName: String = "",
+    val userAvatar: String = "",
+    val description: String = "",
+    val nodes: Int = 0,
+    val topics: Int = 0,
+    val following: Int = 0,
+) {
+    companion object {
+        val Empty = Account()
 
-class AppSettingsDataSource @Inject constructor(@ApplicationContext private val context: Context) {
+        fun fromJson(json: String): Account {
+            return OkHttpFactory.gson.fromJson(json, Account::class.java)
+        }
+    }
+
+    fun toJson(): String {
+        return OkHttpFactory.gson.toJson(this)
+    }
+
+    fun isValid(): Boolean {
+        return userName.isNotEmpty()
+    }
+}
+
+
+class AppPreferences @Inject constructor(@ApplicationContext private val context: Context) {
 
     companion object {
         private val KeyTopicRepliesReversed = booleanPreferencesKey("topic_replies_reversed")
@@ -40,6 +67,8 @@ class AppSettingsDataSource @Inject constructor(@ApplicationContext private val 
         private val KeyTopicTitleOverview = booleanPreferencesKey("topic_title_overview")
 
         private val KeyIgnoredReleaseName = stringPreferencesKey("ignored_release_name")
+
+        private val KeyAccount = stringPreferencesKey("account")
     }
 
     val appSettings: Flow<AppSettings> = context.dataStore.data.map {
@@ -51,7 +80,13 @@ class AppSettingsDataSource @Inject constructor(@ApplicationContext private val 
             topicTitleOverview = it[KeyTopicTitleOverview] ?: true,
             ignoredReleaseName = it[KeyIgnoredReleaseName],
         )
-    }
+    }.distinctUntilChanged()
+
+    val account: Flow<Account> = context.dataStore.data.map { preferences ->
+        with(preferences[KeyAccount]) {
+            if (isNullOrEmpty()) Account.Empty else Account.fromJson(this)
+        }
+    }.distinctUntilChanged()
 
     suspend fun toggleTopicRepliesOrder() {
         context.dataStore.edit {
@@ -80,6 +115,12 @@ class AppSettingsDataSource @Inject constructor(@ApplicationContext private val 
     suspend fun ignoredReleaseName(value: String) {
         context.dataStore.edit {
             it[KeyIgnoredReleaseName] = value
+        }
+    }
+
+    suspend fun account(value: Account) {
+        context.dataStore.edit {
+            it[KeyAccount] = value.toJson()
         }
     }
 

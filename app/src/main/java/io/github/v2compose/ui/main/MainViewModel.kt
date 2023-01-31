@@ -3,7 +3,7 @@ package io.github.v2compose.ui.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.v2compose.datasource.AppSettingsDataSource
+import io.github.v2compose.datasource.AppPreferences
 import io.github.v2compose.network.bean.Release
 import io.github.v2compose.usecase.CheckForUpdatesUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +14,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val checkForUpdates: CheckForUpdatesUseCase,
-    private val appSettingsDataSource: AppSettingsDataSource,
+    private val appPreferences: AppPreferences,
 ) :
     ViewModel() {
 
@@ -40,7 +40,7 @@ class MainViewModel @Inject constructor(
 
     fun ignoreRelease(release: Release) {
         viewModelScope.launch {
-            appSettingsDataSource.ignoredReleaseName(release.tagName)
+            appPreferences.ignoredReleaseName(release.tagName)
         }
     }
 

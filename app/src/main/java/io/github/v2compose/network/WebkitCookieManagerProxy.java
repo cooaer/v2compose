@@ -1,5 +1,7 @@
 package io.github.v2compose.network;
 
+import androidx.annotation.NonNull;
+
 import java.io.IOException;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -39,10 +41,8 @@ public class WebkitCookieManagerProxy extends CookieManager implements CookieJar
         // make sure our args are valid
         if ((uri == null) || (responseHeaders == null))
             return;
-
         // save our url once
         String url = uri.toString();
-
         // go over the headers
         for (String headerKey : responseHeaders.keySet()) {
             // ignore headers which aren't cookie related
@@ -50,7 +50,6 @@ public class WebkitCookieManagerProxy extends CookieManager implements CookieJar
                     || !(headerKey.equalsIgnoreCase("Set-Cookie2") || headerKey
                     .equalsIgnoreCase("Set-Cookie")))
                 continue;
-
             // process each of the headers
             for (String headerValue : responseHeaders.get(headerKey)) {
                 webkitCookieManager.setCookie(url, headerValue);
@@ -64,21 +63,16 @@ public class WebkitCookieManagerProxy extends CookieManager implements CookieJar
         // make sure our args are valid
         if ((uri == null) || (requestHeaders == null))
             throw new IllegalArgumentException("Argument is null");
-
         // save our url once
         String url = uri.toString();
-
         // prepare our response
         Map<String, List<String>> res = new HashMap<String, List<String>>();
-
         // get the cookie
         String cookie = webkitCookieManager.getCookie(url);
-
         // return it
         if (cookie != null) {
             res.put("Cookie", Arrays.asList(cookie));
         }
-
         return res;
     }
 
@@ -105,6 +99,7 @@ public class WebkitCookieManagerProxy extends CookieManager implements CookieJar
         }
     }
 
+    @NonNull
     @Override
     public List<Cookie> loadForRequest(HttpUrl url) {
         ArrayList<Cookie> cookieArrayList = new ArrayList<>();
@@ -126,7 +121,7 @@ public class WebkitCookieManagerProxy extends CookieManager implements CookieJar
         return cookieArrayList;
     }
 
-    public void clearCookie() {
+    public void clearCookies() {
         webkitCookieManager.removeAllCookies(null);
     }
 }

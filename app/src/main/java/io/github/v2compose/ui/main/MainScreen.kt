@@ -33,6 +33,12 @@ fun MainScreen(
     onNodeClick: (String, String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
     onSearchClick: () -> Unit,
+    onLoginClick:() -> Unit,
+    onMyHomePageClick:() -> Unit,
+    onCreateTopicClick: () -> Unit,
+    onMyNodesClick: () -> Unit,
+    onMyTopicsClick: () -> Unit,
+    onMyFollowingClick: () -> Unit,
     onSettingsClick: () -> Unit,
     openUri: (String) -> Unit,
     viewModel: MainViewModel = hiltViewModel(),
@@ -82,6 +88,13 @@ fun MainScreen(
                     onNewsItemClick = onNewsItemClick,
                     onNodeClick = onNodeClick,
                     onUserAvatarClick = onUserAvatarClick,
+                    onLoginClick = onLoginClick,
+                    onMyHomePageClick = onMyHomePageClick,
+                    onCreateTopicClick = onCreateTopicClick,
+                    onMyNodesClick = onMyNodesClick,
+                    onMyTopicsClick = onMyTopicsClick,
+                    onMyFollowingClick = onMyFollowingClick,
+                    onSettingsClick = onSettingsClick,
                 )
             }
             MainBottomNavigation(navBarSelectedIndex) {
@@ -124,6 +137,13 @@ fun MainContent(
     onNewsItemClick: (NewsInfo.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
+    onLoginClick:() -> Unit,
+    onMyHomePageClick:() -> Unit,
+    onCreateTopicClick: () -> Unit,
+    onMyNodesClick: () -> Unit,
+    onMyTopicsClick: () -> Unit,
+    onMyFollowingClick: () -> Unit,
+    onSettingsClick: () -> Unit,
 ) {
     rememberSaveableStateHolder().SaveableStateProvider(key = navBarSelectedIndex) {
         when (navBarSelectedIndex) {
@@ -134,7 +154,15 @@ fun MainContent(
             )
             1 -> NodesContent(onNodeClick = onNodeClick)
             2 -> NotificationsContent()
-            3 -> MineContent()
+            3 -> MineContent(
+                onLoginClick = onLoginClick,
+                onMyHomePageClick = onMyHomePageClick,
+                onCreateTopicClick = onCreateTopicClick,
+                onMyNodesClick = onMyNodesClick,
+                onMyTopicsClick = onMyTopicsClick,
+                onMyFollowingClick = onMyFollowingClick,
+                onSettingsClick = onSettingsClick,
+            )
         }
     }
 }
@@ -167,6 +195,12 @@ fun MainScreenPreview() {
         onUserAvatarClick = { _, _ -> },
         onSearchClick = {},
         onSettingsClick = {},
-        openUri = {}
+        openUri = {},
+        onLoginClick = {},
+        onMyHomePageClick = {},
+        onMyNodesClick = {},
+        onMyTopicsClick = {},
+        onMyFollowingClick = {},
+        onCreateTopicClick = {},
     )
 }

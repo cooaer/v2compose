@@ -52,10 +52,9 @@ fun HtmlText(
     textStyle: TextStyle = TextStyle.Default,
     baseUrl: String? = null,
     onImageClick: ((Img, List<Img>) -> Unit)? = null,
-    onImageLoaded: ((img: Img) -> Unit)? = null,
 ) {
     val document = remember(html) { Jsoup.parse(html) }
-    HtmlText(document, modifier, selectable, textStyle, baseUrl, onImageClick, onImageLoaded)
+    HtmlText(document, modifier, selectable, textStyle, baseUrl, onImageClick)
 }
 
 @Composable
@@ -66,7 +65,6 @@ fun HtmlText(
     textStyle: TextStyle = TextStyle.Default,
     baseUrl: String? = null,
     onImageClick: ((Img, List<Img>) -> Unit)? = null,
-    onImageLoaded: ((img: Img) -> Unit)? = null,
 ) {
     val scope =
         HtmlElementsScope(baseUrl = baseUrl, linkColor = MaterialTheme.colorScheme.tertiary)
@@ -76,10 +74,7 @@ fun HtmlText(
         if (onImageClick == null) null else { img -> onImageClick(img, allImgs) }
     }
 
-    CompositionLocalProvider(
-        LocalImageClickHandler provides imageClickHandler,
-        LocalLoadImageCallback provides onImageLoaded
-    ) {
+    CompositionLocalProvider(LocalImageClickHandler provides imageClickHandler) {
         if (selectable) {
             SelectionContainer(modifier = modifier) {
                 scope.Block(element = document.body(), textStyle = textStyle)
@@ -317,7 +312,9 @@ private fun HtmlElementsScope.P(element: Element, textStyle: TextStyle) {
 
 @Composable
 private fun HtmlElementsScope.Img(element: Element, textStyle: TextStyle) {
-    val loadImageCallback = LocalLoadImageCallback.current
+    val loadImageCallback = LocalHtmlImageLoadedCallback.current
+
+    Log.d(TAG, "Img = $element")
 
     BoxWithConstraints(modifier = Modifier.padding(vertical = 4.dp)) {
         val img by remember(element) { mutableStateOf(Img(element)) }
@@ -325,7 +322,7 @@ private fun HtmlElementsScope.Img(element: Element, textStyle: TextStyle) {
 
         InlineImage(
             img = img,
-            onLoadSuccess = { oldImg, newImg ->
+            onLoadSuccess = { newImg ->
                 loadImageCallback?.invoke(newImg)
             },
             modifier = Modifier.size(realWidth, realHeight)
@@ -397,7 +394,7 @@ private fun HtmlElementsScope.InlineNodes(
 
     BoxWithConstraints {
         val density = LocalDensity.current
-        val loadImageCallback = LocalLoadImageCallback.current
+        val loadImageCallback = LocalHtmlImageLoadedCallback.current
 
         val allImgs = remember(inlineNodes) {
             inlineNodes.filterIsInstance<Element>()
@@ -425,7 +422,7 @@ private fun HtmlElementsScope.InlineNodes(
                         maxWidthDp = maxWidth,
                         density = density,
                         scope = this@InlineNodes,
-                        onLoadSuccess = { oldImg, newImg ->
+                        onLoadSuccess = { newImg ->
                             loadImageCallback?.invoke(newImg)
                         })
                 })
@@ -471,7 +468,7 @@ private fun createInlineTextImage(
     maxWidthDp: Dp,
     density: Density,
     scope: HtmlElementsScope,
-    onLoadSuccess: (Img, Img) -> Unit,
+    onLoadSuccess: (Img) -> Unit,
 ): InlineTextContent {
 
     val imgWidthDp = img.width?.dp
@@ -503,7 +500,7 @@ private fun createInlineTextImage(
 @Composable
 private fun HtmlElementsScope.InlineImage(
     img: Img,
-    onLoadSuccess: (Img, Img) -> Unit,
+    onLoadSuccess: (Img) -> Unit,
     modifier: Modifier
 ) {
     val context = LocalContext.current
@@ -538,7 +535,11 @@ private fun HtmlElementsScope.InlineImage(
         },
         onSuccess = {
             with(it.result.drawable) {
-                onLoadSuccess(img, img.copy(width = intrinsicWidth, height = intrinsicHeight))
+                Log.d(
+                    TAG,
+                    "load image success, url = ${img.src}, width = ${intrinsicWidth}, height = $intrinsicHeight"
+                )
+                onLoadSuccess(img.copy(width = intrinsicWidth, height = intrinsicHeight))
             }
         },
         onError = {
@@ -698,6 +699,6 @@ private typealias HtmlImageClickHandler = (Img) -> Unit
 
 private val LocalImageClickHandler = compositionLocalOf<HtmlImageClickHandler?> { null }
 
-private typealias LoadImageCallback = (Img) -> Unit
+private typealias HtmlImageLoadedCallback = (Img) -> Unit
 
-private val LocalLoadImageCallback = compositionLocalOf<LoadImageCallback?> { null }
+val LocalHtmlImageLoadedCallback = compositionLocalOf<HtmlImageLoadedCallback?> { null }

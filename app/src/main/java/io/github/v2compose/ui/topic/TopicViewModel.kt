@@ -1,5 +1,6 @@
 package io.github.v2compose.ui.topic
 
+import android.util.Size
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -29,7 +30,9 @@ class TopicViewModel @Inject constructor(
             replay = 1,
         )
 
-    val fixedHtmls = mutableStateMapOf<String, String>()
+    private val _htmlImageSizes = mutableStateMapOf<String, Size>()
+    val htmlImageSizes: Map<String, Size>
+        get() = _htmlImageSizes.toMap()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val topicItemFlow: Flow<PagingData<Any>> =
@@ -40,6 +43,10 @@ class TopicViewModel @Inject constructor(
         viewModelScope.launch {
             topicRepository.toggleRepliesReversed()
         }
+    }
+
+    fun saveHtmlImageSize(src: String, size: Size) {
+        _htmlImageSizes[src] = size
     }
 
 }

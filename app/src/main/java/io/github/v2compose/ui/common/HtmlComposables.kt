@@ -1,10 +1,9 @@
 package io.github.v2compose.ui.common
 
 import android.util.Log
+import android.util.Size
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
@@ -20,6 +19,7 @@ private const val TAG = "HtmlComposables"
 fun HtmlContent(
     content: String,
     modifier: Modifier = Modifier,
+    htmlImageSizes: Map<String, Size> = emptyMap(),
     selectable: Boolean = false,
     textStyle: TextStyle = MaterialTheme.typography.bodyMedium.copy(
         fontSize = 15.sp,
@@ -28,10 +28,27 @@ fun HtmlContent(
     ),
     baseUrl: String = Constants.baseUrl,
     onUriClick: ((uri: String) -> Unit)? = null,
-    onContentChanged: ((String) -> Unit)? = null,
 ) {
     val document = remember(content) { Jsoup.parse(content) }
-    val imgElements = remember(content) { document.select("img") }
+    val imgElements = remember(document) { document.select("img") }
+    val changedImgElements by remember(htmlImageSizes) {
+        derivedStateOf {
+            imgElements.associateBy { it.attr("src") }.filter {
+                Log.d(TAG, "filter, src = ${it.key}, img = ${it.value}")
+                htmlImageSizes.containsKey(it.key) }
+        }
+    }
+
+    val newHtml = if (changedImgElements.isNotEmpty()) {
+        changedImgElements.forEach { (src, ele) ->
+            htmlImageSizes[src]?.let {
+                ele.attr("width", it.width.toString())
+                ele.attr("height", it.height.toString())
+                Log.d(TAG, "resetImage, newImg = $ele")
+            }
+        }
+        document.outerHtml()
+    } else content
 
     val uriHandler = remember(onUriClick) {
         object : UriHandler {
@@ -43,27 +60,12 @@ fun HtmlContent(
 
     CompositionLocalProvider(LocalUriHandler provides uriHandler) {
         HtmlText(
-            html = content,
+            html = newHtml,
             modifier = modifier,
             selectable = selectable,
             textStyle = textStyle,
             baseUrl = baseUrl,
             onImageClick = { img, allImgs -> Log.d(TAG, "onHtmlImageClick, img = $img") },
-            onImageLoaded = { img ->
-                onContentChanged?.let {
-                    document.select("img[src=\"${img.src}\"]").forEach { ele ->
-                        ele.attr("width", img.width.toString())
-                        ele.attr("height", img.height.toString())
-
-                        Log.d(TAG, "onContentChanged, newImg = $ele")
-                    }
-                    val newHtml = document.outerHtml()
-                    if (newHtml != content) {
-                        Log.d(TAG, "onContentChanged, callback, outerHtml = $newHtml")
-                        it(newHtml)
-                    }
-                }
-            },
         )
     }
 }

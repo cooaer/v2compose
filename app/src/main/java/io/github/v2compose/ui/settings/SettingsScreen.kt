@@ -139,15 +139,15 @@ private fun SettingsScreen(
                 summary = stringResource(id = R.string.settings_clear_cache_summary, cacheSize),
                 onPreferenceClick = onClearCacheClick
             )
-            DropdownPreference(
-                title = stringResource(id = R.string.settings_open_in_browser),
-                entries = listOf(
-                    stringResource(id = R.string.settings_internal_browser),
-                    stringResource(id = R.string.settings_external_browser),
-                ),
-                selectedIndex = if (appSettings.openInInternalBrowser) 0 else 1,
-                onEntryClick = { selectedIndex -> onOpenInBrowserChanged(selectedIndex == 0) },
-            )
+//            DropdownPreference(
+//                title = stringResource(id = R.string.settings_open_in_browser),
+//                entries = listOf(
+//                    stringResource(id = R.string.settings_internal_browser),
+//                    stringResource(id = R.string.settings_external_browser),
+//                ),
+//                selectedIndex = if (appSettings.openInInternalBrowser) 0 else 1,
+//                onEntryClick = { selectedIndex -> onOpenInBrowserChanged(selectedIndex == 0) },
+//            )
             PreferenceGroupTitle(title = stringResource(id = R.string.settings_appearance))
             DropdownPreference(
                 title = stringResource(id = R.string.settings_dark_mode),

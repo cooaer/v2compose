@@ -13,12 +13,14 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavHostController
 import io.github.v2compose.bean.RedirectEvent
+import io.github.v2compose.core.extension.fullUrl
 import io.github.v2compose.core.extension.tryParse
 import io.github.v2compose.core.openInBrowser
 import io.github.v2compose.ui.main.mainNavigationRoute
 import io.github.v2compose.ui.node.navigateToNode
 import io.github.v2compose.ui.topic.navigateToTopic
 import io.github.v2compose.ui.user.navigateToUser
+import io.github.v2compose.ui.webview.navigateToWebView
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -68,7 +70,7 @@ class V2AppState @Inject constructor(
         }
     }
 
-    fun openUri(uri: String, inExternalBrowser: Boolean = false) {
+    fun openUri(uri: String, inExternalBrowser: Boolean = true) {
         Log.d(TAG, "openUri, uri = $uri")
         if (!innerOpenUri(uri)) {
             context.openInBrowser(uri, inExternalBrowser)
@@ -85,23 +87,15 @@ class V2AppState @Inject constructor(
         if (!host.isNullOrEmpty() && !host.endsWith(Constants.host)) {
             return false
         }
-        val screenType = uriObj.pathSegments.getOrNull(0) ?: return false
-        val screenId = uriObj.pathSegments.getOrNull(1) ?: return false
+        val screenType = uriObj.pathSegments.getOrNull(0) ?: ""
+        val screenId = uriObj.pathSegments.getOrNull(1) ?: ""
         when (screenType) {
-            "t" -> {
-                navHostController.navigateToTopic(screenId)
-                return true
-            }
-            "go" -> {
-                navHostController.navigateToNode(screenId)
-                return true
-            }
-            "member" -> {
-                navHostController.navigateToUser(userName = screenId)
-                return true
-            }
+            "t" -> navHostController.navigateToTopic(screenId)
+            "go" -> navHostController.navigateToNode(screenId)
+            "member" -> navHostController.navigateToUser(userName = screenId)
+            else -> navHostController.navigateToWebView(uri.fullUrl(Constants.baseUrl))
         }
-        return false
+        return true
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -109,8 +103,8 @@ class V2AppState @Inject constructor(
         Log.d(TAG, "onRedirectEvent, location = ${event.location}")
         val uri = Uri.parse(event.location)
         val firstPathSegment = uri.lastPathSegment?.firstOrNull() ?: ""
-        // ege : /
         navHostController.navigate(event.location) {
+            // ege : /
             if (firstPathSegment == "") {
                 popUpTo(mainNavigationRoute) {
                     inclusive = true

@@ -192,6 +192,7 @@ private fun LoginContent(
         )
         Spacer(modifier = Modifier.height(16.dp))
         SignInWithGoogle(
+            loginParamState = loginParamState,
             onClick = onSignInWithGoogleClick,
             modifier = Modifier.align(Alignment.End)
         )
@@ -383,8 +384,16 @@ private fun LoginButton(loginState: LoginState, enabled: Boolean, onLoginClick: 
 }
 
 @Composable
-private fun SignInWithGoogle(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    OutlinedButton(onClick = onClick, modifier = modifier.height(48.dp)) {
+private fun SignInWithGoogle(
+    loginParamState: LoginParamState,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedButton(
+        enabled = loginParamState is LoginParamState.Success,
+        onClick = onClick,
+        modifier = modifier.height(48.dp)
+    ) {
         Image(
             painter = painterResource(id = R.drawable.googleg_standard_color),
             contentDescription = "google branding",

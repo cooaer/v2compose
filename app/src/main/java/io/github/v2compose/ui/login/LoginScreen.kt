@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.Info
@@ -44,7 +45,7 @@ import io.github.v2compose.ui.common.HtmlContent
 @Composable
 fun LoginScreenRoute(
     onCloseClick: () -> Unit,
-    onSignInWithGoogleClick: () -> Unit,
+    onSignInWithGoogleClick: (String) -> Unit,
     redirect: String? = null,
     viewModel: LoginViewModel = hiltViewModel(),
     loginScreenState: LoginScreenState = rememberLoginScreenState(),
@@ -71,7 +72,7 @@ private fun LoginScreen(
     loginState: LoginState,
     onCloseClick: () -> Unit,
     login: (String, String, String) -> Unit,
-    onSignInWithGoogleClick: () -> Unit,
+    onSignInWithGoogleClick: (String) -> Unit,
     reloadLoginParam: () -> Unit,
 ) {
     var problem by rememberSaveable(loginParamState) {
@@ -98,7 +99,11 @@ private fun LoginScreen(
             loginState = loginState,
             reloadLoginParam = reloadLoginParam,
             login = login,
-            onSignInWithGoogleClick = onSignInWithGoogleClick,
+            onSignInWithGoogleClick = {
+                if (loginParamState is LoginParamState.Success) {
+                    onSignInWithGoogleClick(loginParamState.data.once)
+                }
+            },
             modifier = Modifier.padding(it)
         )
     }
@@ -298,7 +303,7 @@ private fun Captcha(
             when (loginParamState) {
                 is LoginParamState.Success -> {
                     val captchaImage =
-                        "${Constants.baseUrl}_captcha?once=${loginParamState.data.once}"
+                        "${Constants.baseUrl}/_captcha?once=${loginParamState.data.once}"
                     AsyncImage(
                         model = captchaImage,
                         contentDescription = "captcha image",
@@ -371,15 +376,15 @@ private fun LoginButton(loginState: LoginState, enabled: Boolean, onLoginClick: 
         colors = ButtonDefaults.buttonColors(
             backgroundColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
-            disabledBackgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+            disabledBackgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = ContentAlpha.disabled),
+            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = ContentAlpha.medium),
         )
     )
 }
 
 @Composable
 private fun SignInWithGoogle(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    OutlinedButton(onClick = onClick, modifier = modifier) {
+    OutlinedButton(onClick = onClick, modifier = modifier.height(48.dp)) {
         Image(
             painter = painterResource(id = R.drawable.googleg_standard_color),
             contentDescription = "google branding",

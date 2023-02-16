@@ -20,7 +20,7 @@ fun NavController.navigateToLogin(next: String? = null) {
 @OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.loginScreen(
     onCloseClick: () -> Unit,
-    onSignInWithGoogleClick: () -> Unit,
+    onSignInWithGoogleClick: (String) -> Unit,
 ) {
     composable(
         route = loginRoute,

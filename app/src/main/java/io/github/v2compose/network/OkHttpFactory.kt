@@ -6,6 +6,8 @@ import com.google.gson.GsonBuilder
 import io.github.v2compose.BuildConfig
 import io.github.v2compose.Constants
 import io.github.v2compose.bean.RedirectEvent
+import io.github.v2compose.network.NetConstants.keyUserAgent
+import io.github.v2compose.network.NetConstants.wapUserAgent
 import io.github.v2compose.util.Check
 import io.github.v2compose.util.L
 import me.ghui.fruit.Fruit
@@ -18,11 +20,7 @@ import org.greenrobot.eventbus.EventBus
 import java.util.concurrent.TimeUnit
 
 object OkHttpFactory {
-    val WAP_USER_AGENT =
-        "Mozilla/5.0 (Linux; Android 10; V2er Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Mobile Safari/537.36"
-    const val WEB_USER_AGENT =
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4; V2er) " + "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36"
-    private const val UA_KEY = "user-agent"
+
     private const val TIMEOUT_SECONDS: Long = 10
 
     val gson: Gson by lazy { createGson() }
@@ -78,9 +76,9 @@ object OkHttpFactory {
     private class ConfigInterceptor : Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
             var request: Request = chain.request()
-            val ua = request.header(UA_KEY)
+            val ua = request.header(keyUserAgent)
             if (Check.isEmpty(ua)) {
-                request = request.newBuilder().addHeader(UA_KEY, WAP_USER_AGENT).build()
+                request = request.newBuilder().addHeader(keyUserAgent, wapUserAgent).build()
             }
             return chain.proceed(request)
         }

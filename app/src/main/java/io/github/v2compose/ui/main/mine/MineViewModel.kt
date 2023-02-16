@@ -26,7 +26,10 @@ class MineViewModel @Inject constructor(private val accountRepository: AccountRe
         refreshAccount()
     }
 
-    private fun refreshAccount(){
+    private fun refreshAccount() {
+        if (!account.value.isValid()) {
+            return
+        }
         viewModelScope.launch {
             accountRepository.refreshAccount()
         }

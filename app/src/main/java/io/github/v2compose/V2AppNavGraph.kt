@@ -7,11 +7,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import io.github.v2compose.datasource.AppSettings
+import io.github.v2compose.ui.login.google.googleLoginScreen
+import io.github.v2compose.ui.login.google.navigateToGoogleLogin
 import io.github.v2compose.ui.login.loginScreen
 import io.github.v2compose.ui.login.navigateToLogin
 import io.github.v2compose.ui.login.twostep.twoStepLoginScreen
 import io.github.v2compose.ui.main.mainNavigationRoute
 import io.github.v2compose.ui.main.mainScreen
+import io.github.v2compose.ui.main.navigateToMain
 import io.github.v2compose.ui.node.navigateToNode
 import io.github.v2compose.ui.node.nodeScreen
 import io.github.v2compose.ui.search.navigateToSearch
@@ -84,10 +87,14 @@ fun V2AppNavGraph(
         )
         loginScreen(
             onCloseClick = appState::back,
-            onSignInWithGoogleClick = {},
+            onSignInWithGoogleClick = navController::navigateToGoogleLogin,
         )
         twoStepLoginScreen(
             onCloseClick = appState::back,
+        )
+        googleLoginScreen(
+            onCloseClick = appState::back,
+            onLoginSuccess = navController::navigateToMain
         )
     }
 }

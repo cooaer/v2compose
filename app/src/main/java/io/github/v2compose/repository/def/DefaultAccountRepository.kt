@@ -75,6 +75,13 @@ class DefaultAccountRepository @Inject constructor(
         return v2exApi.homePageInfo(account.first().userName)
     }
 
+    override suspend fun fetchUserInfo() {
+        val dailyInfo = v2exApi.dailyInfo()
+        if (dailyInfo.isValid) {
+            updateLocalUserInfo(userName = dailyInfo.userName, userAvatar = dailyInfo.avatar)
+        }
+    }
+
     override suspend fun refreshAccount() {
         val userName = account.first().userName
         val homePageInfo = v2exApi.homePageInfo(userName)

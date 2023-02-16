@@ -80,7 +80,7 @@ interface V2exApi {
 
     @Html
     @GET("/notifications")
-    @Headers("user-agent: " + OkHttpFactory.WEB_USER_AGENT)
+    @Headers("user-agent: " + NetConstants.webUserAgent)
     suspend fun notifications(@Query("p") page: Int): NotificationInfo
 
     @Html

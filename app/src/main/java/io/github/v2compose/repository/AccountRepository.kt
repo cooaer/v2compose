@@ -33,6 +33,8 @@ interface AccountRepository {
 
     suspend fun getHomePageInfo(): HomePageInfo
 
+    suspend fun fetchUserInfo()
+
     suspend fun refreshAccount()
 
     //签到

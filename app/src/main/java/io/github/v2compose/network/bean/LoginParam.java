@@ -1,5 +1,7 @@
 package io.github.v2compose.network.bean;
 
+import androidx.annotation.NonNull;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +26,7 @@ public class LoginParam extends BaseInfo {
     @Pick(value = "div.problem", attr = Attrs.INNER_HTML)
     private String problem;
 
+    @NonNull
     @Override
     public String toString() {
         return "LoginParam{" +
@@ -39,28 +42,12 @@ public class LoginParam extends BaseInfo {
         return nameParam;
     }
 
-    public void setNameParam(String nameParam) {
-        this.nameParam = nameParam;
-    }
-
     public String getPswParam() {
         return pswParam;
     }
 
-    public void setPswParam(String pswParam) {
-        this.pswParam = pswParam;
-    }
-
     public String getOnce() {
         return once;
-    }
-
-    public void setOnce(String once) {
-        this.once = once;
-    }
-
-    public String getCaptchaParam() {
-        return captchaParam;
     }
 
     public boolean needCaptcha() {
@@ -68,16 +55,16 @@ public class LoginParam extends BaseInfo {
     }
 
     public String getProblem() {
-        return problem;
+        return problem != null ? problem : "";
     }
 
     public Map<String, String> toMap(String userName, String psw, String captcha) {
-        Map map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         map.put(nameParam, userName);
         map.put(pswParam, psw);
         map.put(captchaParam, captcha);
         map.put("once", once);
-        map.put("next", "/mission/daily");
+//        map.put("next", "/mission/daily");
         return map;
     }
 

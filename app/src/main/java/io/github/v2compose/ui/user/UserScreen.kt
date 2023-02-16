@@ -1,4 +1,4 @@
-package io.github.v2compose.ui.main.user
+package io.github.v2compose.ui.user
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
@@ -218,6 +218,7 @@ private fun UserContent(
         is UserUiState.Error -> {
             LoadError(error = userUiState.error, onRetryClick = onRetryClick)
         }
+        else -> {}
     }
 }
 
@@ -230,7 +231,7 @@ private fun UserHeader(userPageInfo: UserPageInfo) {
             modifier = Modifier
                 .size(48.dp)
                 .clip(CircleShape)
-                .background(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f)),
+                .background(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)),
             contentScale = ContentScale.Crop,
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -434,29 +435,28 @@ fun UserReplyItem(
     openUri: (String) -> Unit
 ) {
     val contentColor = LocalContentColor.current
-    Box(modifier = Modifier.fillMaxSize().clickable { onTopicClick(reply.dock.link) }) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .clickable { onTopicClick(reply.dock.link) }) {
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)) {
-            Row {
-                Text(
-                    reply.dock.title,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = contentColor.copy(alpha = ContentAlpha.medium),
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    reply.dock.time,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = contentColor.copy(alpha = ContentAlpha.disabled),
-                )
-            }
-
+            Text(
+                reply.dock.title,
+                style = MaterialTheme.typography.labelMedium,
+                color = contentColor.copy(alpha = ContentAlpha.medium),
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                reply.dock.time,
+                style = MaterialTheme.typography.labelMedium,
+                color = contentColor.copy(alpha = ContentAlpha.disabled),
+                modifier = Modifier.align(Alignment.End),
+            )
             Spacer(modifier = Modifier.height(8.dp))
 
             val backgroundColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)
             val leftBorderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f)
             HtmlContent(
-                html = reply.content.content,
+                content = reply.content.content,
                 modifier = Modifier
                     .fillMaxWidth()
                     .drawBehind {

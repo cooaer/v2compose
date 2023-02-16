@@ -3,7 +3,7 @@ package io.github.v2compose.repository.def
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import io.github.v2compose.datasource.AppSettingsDataSource
+import io.github.v2compose.datasource.AppPreferences
 import io.github.v2compose.datasource.SearchPagingSource
 import io.github.v2compose.datasource.TopicPagingSource
 import io.github.v2compose.network.V2exApi
@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 class DefaultTopicRepository @Inject constructor(
     private val api: V2exApi,
-    private val appSettingsDataSource: AppSettingsDataSource,
+    private val appPreferences: AppPreferences,
 ) : TopicRepository {
 
     override suspend fun getTopicInfo(topicId: String): TopicInfo {
@@ -28,10 +28,10 @@ class DefaultTopicRepository @Inject constructor(
     }
 
     override val repliesOrderReversed: Flow<Boolean>
-        get() = appSettingsDataSource.appSettings.map { it.topicRepliesReversed }
+        get() = appPreferences.appSettings.map { it.topicRepliesReversed }
 
     override suspend fun toggleRepliesReversed() {
-        appSettingsDataSource.toggleTopicRepliesOrder()
+        appPreferences.toggleTopicRepliesOrder()
     }
 
     override fun search(keyword: String): Flow<PagingData<SoV2EXSearchResultInfo.Hit>> {
@@ -39,6 +39,6 @@ class DefaultTopicRepository @Inject constructor(
     }
 
     override val topicTitleOverview: Flow<Boolean>
-        get() = appSettingsDataSource.appSettings.map { it.topicTitleOverview }
+        get() = appPreferences.appSettings.map { it.topicTitleOverview }
 
 }

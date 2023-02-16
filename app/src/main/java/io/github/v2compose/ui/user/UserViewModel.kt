@@ -1,4 +1,4 @@
-package io.github.v2compose.ui.main.user
+package io.github.v2compose.ui.user
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

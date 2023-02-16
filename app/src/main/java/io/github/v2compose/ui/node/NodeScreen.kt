@@ -152,7 +152,7 @@ private fun NodeTitle(nodeArgs: NodeArgs, nodeUiState: NodeUiState, nodeTopicInf
             modifier = Modifier
                 .size(48.dp)
                 .clip(CircleShape)
-                .background(color = MaterialTheme.colorScheme.onBackground.copy(alpha = ContentAlpha.disabled))
+                .background(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f))
         )
         Spacer(modifier = Modifier.width(8.dp))
         Column {
@@ -258,7 +258,7 @@ private fun NodeDescription(desc: String, openUri: (String) -> Unit) {
             .background(color = MaterialTheme.colorScheme.background)
     ) {
         HtmlContent(
-            html = desc,
+            content = desc,
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             onUriClick = openUri

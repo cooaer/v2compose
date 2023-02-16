@@ -6,8 +6,6 @@ import me.ghui.fruit.converter.retrofit.FruitConverterFactory
 import me.ghui.retrofit.converter.GlobalConverterFactory
 import me.ghui.retrofit.converter.annotations.Html
 import me.ghui.retrofit.converter.annotations.Json
-import okhttp3.ResponseBody
-import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
@@ -67,14 +65,14 @@ interface V2exApi {
     suspend fun recentNews(@Query("p") page: Int): NewsInfo
 
     @Html
-    @GET("/signinnext=/mission/daily")
+    @GET("/signin")
     suspend fun loginParam(): LoginParam
 
     @Html
     @FormUrlEncoded
     @Headers("Referer: " + NetConstants.BASE_URL + "/signin")
     @POST("/signin")
-    suspend fun login(@FieldMap loginParams: Map<String, String>): Response<ResponseBody>
+    suspend fun login(@FieldMap loginParams: Map<String, String>): LoginParam
 
     @Html
     @GET("/t/{id}")
@@ -82,7 +80,7 @@ interface V2exApi {
 
     @Html
     @GET("/notifications")
-    @Headers("user-agent: " + OkHttpFactory.WEB_USER_AGENT)
+    @Headers("user-agent: " + NetConstants.webUserAgent)
     suspend fun notifications(@Query("p") page: Int): NotificationInfo
 
     @Html
@@ -226,17 +224,21 @@ interface V2exApi {
     @GET("/mission/daily")
     suspend fun dailyInfo(): DailyInfo
 
-    //    /mission/daily/redeemonce=84830
+    //    /mission/daily/redeem?once=84830
     @Html
     @Headers("Referer: " + NetConstants.BASE_URL + "/mission/daily")
     @GET("/mission/daily/redeem")
     suspend fun checkIn(@Query("once") once: String): DailyInfo
 
     @Html
+    @GET("/2fa")
+    suspend fun twoStepLogin(): TwoStepLoginInfo
+
+    @Html
     @FormUrlEncoded
-    @Headers("Referer: " + NetConstants.BASE_URL + "/mission/daily")
-    @POST("/2fanext=/mission/daily")
-    suspend fun signInTwoStep(@FieldMap map: Map<String, String>): NewsInfo
+    @Headers("Referer: " + NetConstants.BASE_URL)
+    @POST("/2fa")
+    suspend fun signInTwoStep(@FieldMap map: Map<String, String>): TwoStepLoginInfo
 
     @Html
     @Headers("Referer: " + RefererUtils.TINY_REFER)
@@ -250,4 +252,9 @@ interface V2exApi {
     @Html
     @GET
     suspend fun stickyTopic(@Url url: String): TopicInfo
+
+    @Html
+    @GET("/member/{user}")
+    suspend fun homePageInfo(@Path("user") username: String): HomePageInfo
+
 }

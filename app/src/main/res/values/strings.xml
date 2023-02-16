@@ -13,6 +13,7 @@
     <string name="ok">确定</string>
     <string name="cancel">取消</string>
 
+    <string name="function_not_implemented">该功能正在开发中…</string>
 
     <!-- Topic Screen Start -->
     <string name="topic">主题</string>
@@ -85,7 +86,7 @@
     <string name="settings_open_source">源码</string>
 
     <string name="settings_version">版本</string>
-    
+
     <string name="settings_check_for_updates">检查更新</string>
     <string name="settings_check_for_updates_summary">检查是否有新版本</string>
     <string name="checking_for_updates">检查更新中…</string>
@@ -94,6 +95,37 @@
     <string name="goto_update">去更新</string>
     <string name="ignore_this_release">忽略该版本</string>
 
+    <string name="logout">退出帐号</string>
+    <string name="logout_tips">确认退出帐号吗？</string>
+
     <!-- Settings Screen End -->
-    
+
+    <!-- mine start -->
+    <string name="daily_mission">领取每日登录奖励</string>
+    <string name="daily_mission_ok">已领取</string>
+    <string name="create_topic">创建主题</string>
+    <string name="my_nodes">节点收藏</string>
+    <string name="my_topics">主题收藏</string>
+    <string name="my_following">特别关注</string>
+    <!-- mine end -->
+
+    <!-- Login Screen Start -->
+    <string name="login">登录</string>
+    <string name="login_username">用户名/邮箱</string>
+    <string name="login_password">密码</string>
+    <string name="login_captcha">验证码</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="login_username_blank">用户名/邮箱不能为空</string>
+    <string name="login_password_blank">密码不能为空</string>
+    <string name="login_captcha_blank">验证码不能为空</string>
+    <!-- Login Screen End -->
+
+    <!-- Two Step Screen Start -->
+    <string name="two_step_login">两步验证登录</string>
+    <string name="tfa_code">验证码</string>
+    <string name="two_step_login_desc">你的 V2EX 账号已经开启了两步验证，请输入验证码继续</string>
+    <string name="two_step_login_tips">出于安全考虑，当你开启了两步验证功能之后，那么你将需要每两周输入一次你的两步验证码</string>
+    <string name="tfa_code_empty">验证码不能为空</string>
+    <string name="captcha_error">验证码错误，请重试</string>
+    <!-- Two Step Screen End -->
 </resources>

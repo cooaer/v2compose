@@ -1,4 +1,4 @@
-package io.github.v2compose.ui.main.user
+package io.github.v2compose.ui.user
 
 import android.net.Uri
 import androidx.compose.animation.ExperimentalAnimationApi

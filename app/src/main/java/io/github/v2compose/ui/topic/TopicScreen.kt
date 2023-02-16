@@ -1,5 +1,7 @@
 package io.github.v2compose.ui.topic
 
+import android.util.Log
+import android.util.Size
 import androidx.annotation.StringRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -32,6 +34,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
+import io.github.cooaer.htmltext.Img
+import io.github.cooaer.htmltext.LocalHtmlImageLoadedCallback
 import io.github.v2compose.R
 import io.github.v2compose.network.bean.TopicInfo
 import io.github.v2compose.network.bean.TopicInfo.ContentInfo.Supplement
@@ -51,7 +55,6 @@ fun TopicScreenRoute(
     screenState: TopicScreenState = rememberTopicScreenState(),
 ) {
     val repliesReversed by viewModel.repliesReversed.collectAsStateWithLifecycle(initialValue = true)
-
     val lazyPagingItems = viewModel.topicItemFlow.collectAsLazyPagingItems()
 
     val topicInfo = if (lazyPagingItems.itemCount > 0) {
@@ -60,17 +63,26 @@ fun TopicScreenRoute(
         }
     } else null
 
-    TopicScreen(
-        topicInfo = topicInfo,
-        repliesOrder = if (repliesReversed) RepliesOrder.Negative else RepliesOrder.Positive,
-        topicItems = lazyPagingItems,
-        onBackClick = onBackClick,
-        onMenuClick = { screenState.onMenuClick(it, viewModel.topicArgs, topicInfo) },
-        onUserAvatarClick = onUserAvatarClick,
-        onNodeClick = onNodeClick,
-        onRepliedOrderClick = { viewModel.toggleRepliesReversed() },
-        openUri = openUri,
-    )
+    val onHtmlImageLoaded = fun(img:Img){
+        img.size()?.let {
+            viewModel.saveHtmlImageSize(img.src, it)
+        }
+    }
+
+    CompositionLocalProvider(LocalHtmlImageLoadedCallback provides onHtmlImageLoaded) {
+        TopicScreen(
+            topicInfo = topicInfo,
+            repliesOrder = if (repliesReversed) RepliesOrder.Negative else RepliesOrder.Positive,
+            topicItems = lazyPagingItems,
+            htmlImageSizes = viewModel.htmlImageSizes,
+            onBackClick = onBackClick,
+            onMenuClick = { screenState.onMenuClick(it, viewModel.topicArgs, topicInfo) },
+            onUserAvatarClick = onUserAvatarClick,
+            onNodeClick = onNodeClick,
+            onRepliedOrderClick = { viewModel.toggleRepliesReversed() },
+            openUri = openUri,
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,6 +91,7 @@ private fun TopicScreen(
     topicInfo: TopicInfo?,
     repliesOrder: RepliesOrder,
     topicItems: LazyPagingItems<Any>,
+    htmlImageSizes: Map<String, Size>,
     onBackClick: () -> Unit,
     onMenuClick: (MenuItem) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
@@ -126,11 +139,12 @@ private fun TopicScreen(
                 repliesOrder = repliesOrder,
                 topicItems = topicItems,
                 lazyListState = scrollState,
+                htmlImageSizes = htmlImageSizes,
                 onUserAvatarClick = onUserAvatarClick,
                 onNodeClick = onNodeClick,
                 onRepliedOrderClick = onRepliedOrderClick,
                 openUri = openUri,
-                modifier = Modifier.nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
+                modifier = Modifier.nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
             )
         }
     }
@@ -143,6 +157,7 @@ private fun TopicList(
     repliesOrder: RepliesOrder,
     topicItems: LazyPagingItems<Any>,
     lazyListState: LazyListState,
+    htmlImageSizes: Map<String, Size>,
     onUserAvatarClick: (String, String) -> Unit,
     onNodeClick: (String, String) -> Unit,
     onRepliedOrderClick: (RepliesOrder) -> Unit,
@@ -195,7 +210,8 @@ private fun TopicList(
                 item(key = "content", contentType = "content") {
                     TopicContent(
                         content = topicInfo.contentInfo.content,
-                        openUri = openUri
+                        htmlImageSizes = htmlImageSizes,
+                        openUri = openUri,
                     )
                 }
                 listItemIndex++
@@ -210,7 +226,8 @@ private fun TopicList(
                     TopicSupplement(
                         index = supplementIndex,
                         supplement = item,
-                        openUri = openUri
+                        htmlImageSizes = htmlImageSizes,
+                        openUri = openUri,
                     )
                 }
                 listItemIndex += topicInfo.contentInfo.supplements.size
@@ -244,6 +261,7 @@ private fun TopicList(
                 TopicReply(
                     index = index,
                     reply = item,
+                    htmlImageSizes = htmlImageSizes,
                     onUserAvatarClick = onUserAvatarClick,
                     onUriClick = clickUriHandler
                 )
@@ -272,12 +290,7 @@ private fun UserRepliesDialog(
             Column {
                 Row(
                     modifier = Modifier
-                        .padding(
-                            start = 16.dp,
-                            top = 16.dp,
-                            end = 16.dp,
-                            bottom = 8.dp
-                        )
+                        .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp)
                         .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -317,7 +330,7 @@ private fun UserReply(index: Int, reply: Reply, onUriClick: (String, Reply) -> U
             ListDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = ContentAlpha.disabled))
         }
         Spacer(Modifier.height(8.dp))
-        HtmlContent(html = reply.replyContent, onUriClick = { onUriClick(it, reply) })
+        HtmlContent(content = reply.replyContent, onUriClick = { onUriClick(it, reply) })
         Row {
             ReplyFloor(floor = reply.floor)
             Spacer(modifier = Modifier.width(8.dp))
@@ -356,9 +369,15 @@ private fun TopicTitle(
 }
 
 @Composable
-private fun TopicContent(content: String, openUri: (String) -> Unit) {
+private fun TopicContent(
+    content: String,
+    htmlImageSizes:Map<String, Size>,
+    openUri: (String) -> Unit,
+) {
+    Log.d(TAG, "TopicContent, content = \n$content")
     HtmlContent(
-        html = content,
+        content = content,
+        htmlImageSizes = htmlImageSizes,
         selectable = false,
         textStyle = TextStyle.Default.copy(fontSize = 15.sp),
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
@@ -370,10 +389,12 @@ private fun TopicContent(content: String, openUri: (String) -> Unit) {
 private fun TopicSupplement(
     index: Int,
     supplement: Supplement,
-    openUri: (String) -> Unit
+    htmlImageSizes: Map<String, Size>,
+    openUri: (String) -> Unit,
 ) {
     val backgroundColor = MaterialTheme.colorScheme.surfaceVariant
     val leftBorderColor = MaterialTheme.colorScheme.tertiary
+
     Box(modifier = Modifier.padding(horizontal = 16.dp)) {
         ListDivider(modifier = Modifier.align(alignment = Alignment.BottomCenter))
         Column(
@@ -390,7 +411,8 @@ private fun TopicSupplement(
                 style = MaterialTheme.typography.labelMedium
             )
             HtmlContent(
-                html = supplement.content,
+                content = supplement.content,
+                htmlImageSizes = htmlImageSizes,
                 selectable = false,
                 textStyle = TextStyle.Default.copy(fontSize = 15.sp),
                 modifier = Modifier.fillMaxWidth(),
@@ -446,6 +468,7 @@ private fun TopicRepliesBar(
 private fun TopicReply(
     index: Int,
     reply: Reply,
+    htmlImageSizes: Map<String, Size>,
     onUserAvatarClick: (String, String) -> Unit,
     onUriClick: (String, Reply) -> Unit
 ) {
@@ -465,7 +488,8 @@ private fun TopicReply(
                 UserName(userName = reply.userName)
 
                 HtmlContent(
-                    html = reply.replyContent,
+                    content = reply.replyContent,
+                    htmlImageSizes = htmlImageSizes,
                     selectable = false,
                     textStyle = TextStyle.Default.copy(fontSize = 15.sp),
                     onUriClick = { onUriClick(it, reply) },
@@ -566,7 +590,6 @@ private fun TopicTopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     TopAppBar(
-//        modifier = Modifier.shadow(elevation = 4.dp),
         title = {
             Text(
                 text = with(topicInfo?.headerInfo?.title) {
@@ -609,4 +632,3 @@ private fun TopicTopBar(
         scrollBehavior = scrollBehavior,
     )
 }
-

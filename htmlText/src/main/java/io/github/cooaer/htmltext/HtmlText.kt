@@ -1,6 +1,7 @@
 package io.github.cooaer.htmltext
 
 import android.util.Log
+import android.util.Size
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,8 +34,8 @@ import androidx.compose.ui.unit.*
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import coil.size.Size
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.jsoup.nodes.TextNode
@@ -52,13 +53,24 @@ fun HtmlText(
     baseUrl: String? = null,
     onImageClick: ((Img, List<Img>) -> Unit)? = null,
 ) {
-    val document = Jsoup.parse(html)
+    val document = remember(html) { Jsoup.parse(html) }
+    HtmlText(document, modifier, selectable, textStyle, baseUrl, onImageClick)
+}
+
+@Composable
+fun HtmlText(
+    document: Document,
+    modifier: Modifier = Modifier,
+    selectable: Boolean = false,
+    textStyle: TextStyle = TextStyle.Default,
+    baseUrl: String? = null,
+    onImageClick: ((Img, List<Img>) -> Unit)? = null,
+) {
     val scope =
         HtmlElementsScope(baseUrl = baseUrl, linkColor = MaterialTheme.colorScheme.tertiary)
 
-    val allImgs = remember(html) { document.select("img").map { Img(it) } }
-
-    val imageClickHandler: HtmlImageClickHandler? = remember(onImageClick, allImgs) {
+    val imageClickHandler: HtmlImageClickHandler? = remember(onImageClick) {
+        val allImgs = document.select("img").map { Img(it) }
         if (onImageClick == null) null else { img -> onImageClick(img, allImgs) }
     }
 
@@ -291,7 +303,6 @@ private fun HtmlElementsScope.Li(element: Element, index: Int? = null, textStyle
             BlockToInlineNodes(element, textStyle)
         }
     }
-
 }
 
 @Composable
@@ -301,14 +312,19 @@ private fun HtmlElementsScope.P(element: Element, textStyle: TextStyle) {
 
 @Composable
 private fun HtmlElementsScope.Img(element: Element, textStyle: TextStyle) {
-    BoxWithConstraints(modifier = Modifier.padding(vertical = 4.dp)) {
-        var img by remember { mutableStateOf(Img(element)) }
+    val loadImageCallback = LocalHtmlImageLoadedCallback.current
 
+    Log.d(TAG, "Img = $element")
+
+    BoxWithConstraints(modifier = Modifier.padding(vertical = 4.dp)) {
+        val img by remember(element) { mutableStateOf(Img(element)) }
         val (realWidth, realHeight) = rememberImageSize(img = img, maxWidth = maxWidth)
 
         InlineImage(
             img = img,
-            onLoadSuccess = { oldImg, newImg -> img = newImg },
+            onLoadSuccess = { newImg ->
+                loadImageCallback?.invoke(newImg)
+            },
             modifier = Modifier.size(realWidth, realHeight)
         )
     }
@@ -317,6 +333,7 @@ private fun HtmlElementsScope.Img(element: Element, textStyle: TextStyle) {
 @Composable
 private fun rememberImageSize(img: Img, maxWidth: Dp): Pair<Dp, Dp> {
     val density = LocalDensity.current
+
     return remember(img, density) {
         val imgWidthDp = img.width?.dp
         val imgHeightDp = img.height?.dp
@@ -360,16 +377,16 @@ private fun HtmlElementsScope.InlineNodes(
 ) {
     //消除将非block元素渲染为block元素后，产生的多余的换行
     val inlineNodes = nodes.toMutableList()
-    if(prevNode != null && !prevNode.isBlock()){
+    if (prevNode != null && !prevNode.isBlock()) {
         inlineNodes.firstOrNull()?.let {
-            if(it.nodeName().lowercase() == "br"){
+            if (it.nodeName().lowercase() == "br") {
                 inlineNodes.removeFirst()
             }
         }
     }
-    if(nextNode != null && !nextNode.isBlock()){
+    if (nextNode != null && !nextNode.isBlock()) {
         inlineNodes.lastOrNull()?.let {
-            if(it.nodeName().lowercase() == "br"){
+            if (it.nodeName().lowercase() == "br") {
                 inlineNodes.removeLast()
             }
         }
@@ -377,11 +394,12 @@ private fun HtmlElementsScope.InlineNodes(
 
     BoxWithConstraints {
         val density = LocalDensity.current
+        val loadImageCallback = LocalHtmlImageLoadedCallback.current
 
         val allImgs = remember(inlineNodes) {
             inlineNodes.filterIsInstance<Element>()
-                .map { ele -> ele.select("img").map { eles -> Img(eles) } }.flatten()
-                .toMutableStateList()
+                .map { ele -> ele.select("img").map { element -> Img(element) } }
+                .flatten()
         }
 
         val annotatedString by remember {
@@ -404,9 +422,8 @@ private fun HtmlElementsScope.InlineNodes(
                         maxWidthDp = maxWidth,
                         density = density,
                         scope = this@InlineNodes,
-                        onLoadSuccess = { oldImg, newImg ->
-                            allImgs.remove(oldImg)
-                            allImgs.add(newImg)
+                        onLoadSuccess = { newImg ->
+                            loadImageCallback?.invoke(newImg)
                         })
                 })
             }
@@ -451,7 +468,7 @@ private fun createInlineTextImage(
     maxWidthDp: Dp,
     density: Density,
     scope: HtmlElementsScope,
-    onLoadSuccess: (Img, Img) -> Unit,
+    onLoadSuccess: (Img) -> Unit,
 ): InlineTextContent {
 
     val imgWidthDp = img.width?.dp
@@ -483,14 +500,15 @@ private fun createInlineTextImage(
 @Composable
 private fun HtmlElementsScope.InlineImage(
     img: Img,
-    onLoadSuccess: (Img, Img) -> Unit,
+    onLoadSuccess: (Img) -> Unit,
     modifier: Modifier
 ) {
     val context = LocalContext.current
     var retryTimes by remember { mutableStateOf(0) }
 
     SubcomposeAsyncImage(
-        model = ImageRequest.Builder(context).data(img.src.fullUrl(baseUrl)).size(Size.ORIGINAL)
+        model = ImageRequest.Builder(context).data(img.src.fullUrl(baseUrl))
+            .size(coil.size.Size.ORIGINAL)
             .setParameter("retryTimes", retryTimes)
             .build(),
         contentDescription = img.alt,
@@ -517,7 +535,11 @@ private fun HtmlElementsScope.InlineImage(
         },
         onSuccess = {
             with(it.result.drawable) {
-                onLoadSuccess(img, img.copy(width = intrinsicWidth, height = intrinsicHeight))
+                Log.d(
+                    TAG,
+                    "load image success, url = ${img.src}, width = ${intrinsicWidth}, height = $intrinsicHeight"
+                )
+                onLoadSuccess(img.copy(width = intrinsicWidth, height = intrinsicHeight))
             }
         },
         onError = {
@@ -657,6 +679,9 @@ data class Img(
         element.attr("width").toIntOrNull(),
         element.attr("height").toIntOrNull()
     )
+
+    fun size() = if (width == null || height == null) null else Size(width, height)
+
 }
 
 private fun String.fullUrl(baseUrl: String? = null): String {
@@ -673,3 +698,7 @@ private fun String.fullUrl(baseUrl: String? = null): String {
 private typealias HtmlImageClickHandler = (Img) -> Unit
 
 private val LocalImageClickHandler = compositionLocalOf<HtmlImageClickHandler?> { null }
+
+private typealias HtmlImageLoadedCallback = (Img) -> Unit
+
+val LocalHtmlImageLoadedCallback = compositionLocalOf<HtmlImageLoadedCallback?> { null }

@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.v2compose.network.bean.NewsInfo
 import io.github.v2compose.repository.NewsRepository
 import io.github.v2compose.repository.TopicRepository
+import io.github.v2compose.usecase.UpdateAccountUseCase
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -17,6 +18,7 @@ class NewsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val newsRepository: NewsRepository,
     private val topicRepository: TopicRepository,
+    private val updateAccount: UpdateAccountUseCase,
 ) : ViewModel() {
 
     companion object {
@@ -64,7 +66,9 @@ class NewsViewModel @Inject constructor(
         try {
             val newsInfo = newsRepository.getHomeNews(tab)
             _newsInfoFlow.emit(NewsUiState.Success(newsInfo))
+//            updateAccount.updateWithNewsInfo(newsInfo)
         } catch (e: Exception) {
+            e.printStackTrace()
             _newsInfoFlow.emit(NewsUiState.Error(e))
         }
     }

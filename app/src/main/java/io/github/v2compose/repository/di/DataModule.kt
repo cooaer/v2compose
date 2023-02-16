@@ -25,4 +25,8 @@ abstract class DataModule {
 
     @Binds
     abstract fun provideUserRepository(defaultUserRepository: DefaultUserRepository): UserRepository
+
+    @Binds
+    abstract fun provideAccountRepository(defaultAccountRepository: DefaultAccountRepository): AccountRepository
+
 }

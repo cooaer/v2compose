@@ -12,6 +12,7 @@ import com.orhanobut.logger.FormatStrategy
 import com.orhanobut.logger.Logger
 import com.orhanobut.logger.PrettyFormatStrategy
 import dagger.hilt.android.HiltAndroidApp
+import io.github.v2compose.network.OkHttpFactory
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 
@@ -19,7 +20,7 @@ import java.lang.reflect.Modifier
 class App : Application(), ImageLoaderFactory {
 
     companion object {
-        const val TAG = "APP"
+        private const val TAG = "APP"
         lateinit var instance: App
     }
 
@@ -53,7 +54,9 @@ class App : Application(), ImageLoaderFactory {
     }
 
     override fun newImageLoader(): ImageLoader {
-        return ImageLoader.Builder(this).components {
+        return ImageLoader.Builder(this)
+            .okHttpClient(OkHttpFactory.imageHttpClient)
+            .components {
             if (Build.VERSION.SDK_INT >= 28) {
                 add(ImageDecoderDecoder.Factory())
             } else {

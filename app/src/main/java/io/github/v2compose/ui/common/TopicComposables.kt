@@ -105,7 +105,7 @@ fun TopicUserAvatar(
         modifier = modifier
             .size(36.dp)
             .clip(CircleShape)
-            .background(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f))
+            .background(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f))
             .clickable(enabled = onUserAvatarClick != null) { onUserAvatarClick?.invoke() },
         contentScale = ContentScale.Crop,
     )

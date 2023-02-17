@@ -5,9 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.v2compose.datasource.Account
 import io.github.v2compose.repository.AccountRepository
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,11 +25,14 @@ class MineViewModel @Inject constructor(private val accountRepository: AccountRe
     }
 
     private fun refreshAccount() {
-        if (!account.value.isValid()) {
-            return
-        }
         viewModelScope.launch {
-            accountRepository.refreshAccount()
+            account.map { it.userName }
+                .distinctUntilChanged()
+                .collectLatest {
+                    if (it.isNotEmpty()) {
+                        accountRepository.refreshAccount()
+                    }
+                }
         }
     }
 

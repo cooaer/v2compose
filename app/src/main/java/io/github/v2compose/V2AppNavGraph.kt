@@ -25,16 +25,15 @@ import io.github.v2compose.ui.topic.navigateToTopic
 import io.github.v2compose.ui.topic.topicScreen
 import io.github.v2compose.ui.user.navigateToUser
 import io.github.v2compose.ui.user.userScreen
+import io.github.v2compose.ui.webview.webViewScreen
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun V2AppNavGraph(
     navController: NavHostController,
     appState: V2AppState,
-    appSettings: AppSettings,
     viewModel: V2AppViewModel,
 ) {
-    val openUri = fun(uri: String) { appState.openUri(uri, appSettings.openInInternalBrowser) }
     val account by viewModel.account.collectAsStateWithLifecycle()
 
     AnimatedNavHost(navController = navController, startDestination = mainNavigationRoute) {
@@ -57,19 +56,19 @@ fun V2AppNavGraph(
             onMyFollowingClick = {},
             onCreateTopicClick = {},
             onSettingsClick = navController::navigateToSettings,
-            openUri = openUri,
+            openUri = appState::openUri,
         )
         topicScreen(
             onBackClick = appState::back,
             onNodeClick = navController::navigateToNode,
             onUserAvatarClick = navController::navigateToUser,
-            openUri = openUri
+            openUri = appState::openUri
         )
         nodeScreen(
             onBackClick = appState::back,
             onTopicClick = { item -> navController.navigateToTopic(item.topicId) },
             onUserAvatarClick = navController::navigateToUser,
-            openUri = openUri
+            openUri = appState::openUri
         )
         searchScreen(
             goBack = appState::back,
@@ -77,13 +76,13 @@ fun V2AppNavGraph(
         )
         userScreen(
             onBackClick = appState::back,
-            onTopicClick = openUri,
-            onNodeClick = { nodePath, _ -> openUri(nodePath) },
-            openUri = openUri
+            onTopicClick = appState::openUri,
+            onNodeClick = { nodePath, _ -> appState.openUri(nodePath) },
+            openUri = appState::openUri
         )
         settingsScreen(
             onBackClick = appState::back,
-            openUri = openUri,
+            openUri = appState::openUri,
         )
         loginScreen(
             onCloseClick = appState::back,
@@ -95,6 +94,9 @@ fun V2AppNavGraph(
         googleLoginScreen(
             onCloseClick = appState::back,
             onLoginSuccess = navController::navigateToMain
+        )
+        webViewScreen(
+            onCloseClick = appState::back,
         )
     }
 }

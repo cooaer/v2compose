@@ -24,7 +24,7 @@ val LocalSnackbarHostStateHolder =
     compositionLocalOf<SnackbarHostState> { error("LocalSnackbar not provided") }
 private val BottomAppBarHeight = 72.dp
 
-@OptIn(ExperimentalAnimationApi::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun V2App(viewModel: V2AppViewModel = viewModel()) {
     val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
@@ -48,7 +48,6 @@ fun V2App(viewModel: V2AppViewModel = viewModel()) {
                 V2AppNavGraph(
                     navController = navController,
                     appState = appState,
-                    appSettings = appSettings,
                     viewModel = viewModel,
                 )
 

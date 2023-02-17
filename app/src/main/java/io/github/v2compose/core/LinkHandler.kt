@@ -5,7 +5,7 @@ import android.content.Intent
 import androidx.browser.customtabs.CustomTabsIntent
 import io.github.v2compose.core.extension.tryParse
 
-fun Context.openInBrowser(url: String, inExternalBrowser: Boolean = false) {
+fun Context.openInBrowser(url: String, inExternalBrowser: Boolean = true) {
     val uri = url.tryParse() ?: return
     if (inExternalBrowser) {
         val defaultBrowser = getDefaultBrowser()

@@ -2,6 +2,7 @@ package io.github.v2compose.ui.login.google
 
 import android.util.Log
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -84,6 +85,7 @@ private fun GoogleLoginScreen(
         Box(modifier = Modifier.padding(paddingValues)) {
             WebView(
                 state = webViewState,
+                modifier = Modifier.fillMaxSize(),
                 captureBackPresses = true,
                 onCreated = { it.settings.userAgentString = wapUserAgent })
             if (webViewState.isLoading) {

@@ -32,7 +32,7 @@ fun NavGraphBuilder.mainScreen(
     openUri: (String) -> Unit,
 ) {
     composable(route = mainNavigationRoute) {
-        MainScreen(
+        MainScreenRoute(
             onNewsItemClick = onNewsItemClick,
             onNodeClick = onNodeClick,
             onUserAvatarClick = onUserAvatarClick,

@@ -1,6 +1,9 @@
 package io.github.v2compose.network.bean;
 
+import androidx.compose.runtime.Stable;
+
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 import io.github.v2compose.network.NetConstants;
@@ -14,23 +17,28 @@ import me.ghui.fruit.annotations.Pick;
  * Created by ghui on 10/05/2017.
  */
 
-@Pick("div#Main div.box")
+@Stable
+@Pick("div#Wrapper")
 public class NotificationInfo extends BaseInfo {
-    @Pick("div.fr.f12 strong")
+    @Pick("div#Main div.box div.fr.f12 strong")
     private int total;
-    @Pick("div.cell[id^=n_]")
+    @Pick("div#Main div.box div.cell[id^=n_]")
     private List<Reply> replies;
+
+    @Pick("div#Rightbar div.box a[href*=notifications]")
+    private String unread;
 
     public int getTotal() {
         return total;
     }
 
     public List<Reply> getReplies() {
-        return replies;
+        return replies != null ? replies : Collections.emptyList();
     }
 
-    public void setReplies(List<Reply> replies) {
-        this.replies = replies;
+    public int getUnreadCount() {
+        if (Check.isEmpty(unread)) return 0;
+        return Integer.parseInt(unread.split(" ")[0]);
     }
 
     @Override
@@ -47,7 +55,10 @@ public class NotificationInfo extends BaseInfo {
         return Check.notEmpty(replies.get(0).name);
     }
 
+    @Stable
     public static class Reply implements Serializable {
+        @Pick(value = "div.cell[id^=n_]", attr = "id")
+        private String idText;
         @Pick("a[href^=/member/] strong")
         private String name;
         @Pick(value = "a[href^=/member/] img", attr = Attrs.SRC)
@@ -61,16 +72,8 @@ public class NotificationInfo extends BaseInfo {
         @Pick("span.snow")
         private String time;
 
-        @Override
-        public String toString() {
-            return "Reply{" +
-                    "name='" + name + '\'' +
-                    ", avatar='" + avatar + '\'' +
-                    ", title='" + title + '\'' +
-                    ", link='" + link + '\'' +
-                    ", content='" + content + '\'' +
-                    ", time='" + time + '\'' +
-                    '}';
+        public String getId() {
+            return idText.substring(2);
         }
 
         public String getLink() {
@@ -93,11 +96,24 @@ public class NotificationInfo extends BaseInfo {
         }
 
         public String getContent() {
-            return content;
+            return content != null ? content : "";
         }
 
         public String getTime() {
             return time;
+        }
+
+        @Override
+        public String toString() {
+            return "Reply{" +
+                    "idText='" + idText + '\'' +
+                    ", name='" + name + '\'' +
+                    ", avatar='" + avatar + '\'' +
+                    ", title='" + title + '\'' +
+                    ", link='" + link + '\'' +
+                    ", content='" + content + '\'' +
+                    ", time='" + time + '\'' +
+                    '}';
         }
     }
 

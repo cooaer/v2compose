@@ -12,20 +12,20 @@ import io.github.v2compose.repository.NodeRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class DefaultNodeRepository @Inject constructor(private val v2ExService: V2exService) : NodeRepository {
+class DefaultNodeRepository @Inject constructor(private val v2exService: V2exService) : NodeRepository {
     override suspend fun getNodes(): NodesInfo {
-        return v2ExService.nodes()
+        return v2exService.nodes()
     }
 
     override suspend fun getNodesNavInfo(): NodesNavInfo {
-        return v2ExService.nodesNavInfo()
+        return v2exService.nodesNavInfo()
     }
 
     override suspend fun getNodeInfo(nodeId: String): NodeInfo {
-        return v2ExService.nodeInfo(nodeId)
+        return v2exService.nodeInfo(nodeId)
     }
 
     override fun getNodeTopicInfoFlow(nodeId: String): Flow<PagingData<Any>> {
-        return Pager(PagingConfig(pageSize = 10)) { NodePagingSource(nodeId, v2ExService) }.flow
+        return Pager(PagingConfig(pageSize = 10)) { NodePagingSource(nodeId, v2exService) }.flow
     }
 }

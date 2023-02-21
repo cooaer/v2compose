@@ -13,9 +13,9 @@ import io.github.v2compose.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class DefaultUserRepository @Inject constructor(private val v2ExService: V2exService) : UserRepository {
+class DefaultUserRepository @Inject constructor(private val v2exService: V2exService) : UserRepository {
     override suspend fun getUserPageInfo(userName: String): UserPageInfo {
-        return v2ExService.userPageInfo(userName)
+        return v2exService.userPageInfo(userName)
     }
 
     override fun getUserTopics(userName: String): Flow<PagingData<UserTopics.Item>> {
@@ -24,7 +24,7 @@ class DefaultUserRepository @Inject constructor(private val v2ExService: V2exSer
                 pageSize = 20,
                 enablePlaceholders = false
             )
-        ) { UserTopicsDataSource(userName, v2ExService) }.flow
+        ) { UserTopicsDataSource(userName, v2exService) }.flow
     }
 
     override fun getUserReplies(userName: String): Flow<PagingData<UserReplies.Item>> {
@@ -33,7 +33,7 @@ class DefaultUserRepository @Inject constructor(private val v2ExService: V2exSer
                 pageSize = 20,
                 enablePlaceholders = false
             )
-        ) { UserRepliesDataSource(userName, v2ExService) }.flow
+        ) { UserRepliesDataSource(userName, v2exService) }.flow
     }
 
 }

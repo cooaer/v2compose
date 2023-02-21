@@ -1,5 +1,6 @@
 package io.github.v2compose.usecase
 
+import io.github.v2compose.datasource.AppPreferences
 import io.github.v2compose.network.OkHttpFactory
 import io.github.v2compose.network.bean.LoginResultInfo
 import io.github.v2compose.network.bean.NewsInfo
@@ -9,6 +10,7 @@ import retrofit2.HttpException
 import javax.inject.Inject
 
 class UpdateAccountUseCase @Inject constructor(
+    private val appPreferences: AppPreferences,
     private val accountRepository: AccountRepository
 ) {
 
@@ -21,7 +23,7 @@ class UpdateAccountUseCase @Inject constructor(
         if (loginResultInfo == null || !loginResultInfo.isValid) {
             return
         }
-        accountRepository.updateLocalUserInfo(
+        appPreferences.updateAccount(
             userName = loginResultInfo.userName,
             userAvatar = loginResultInfo.avatar,
         )
@@ -33,7 +35,7 @@ class UpdateAccountUseCase @Inject constructor(
         }
         val resp = e.response()?.raw()
         if (resp != null && resp.isRedirect && resp.headers("location").firstOrNull() == "/") {
-            accountRepository.updateLocalUserInfo(userName = userName)
+            appPreferences.updateAccount(userName = userName)
         }
     }
 

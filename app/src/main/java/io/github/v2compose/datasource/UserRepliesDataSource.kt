@@ -5,7 +5,7 @@ import androidx.paging.PagingState
 import io.github.v2compose.network.V2exService
 import io.github.v2compose.network.bean.UserReplies
 
-class UserRepliesDataSource(private val userName: String, private val v2ExService: V2exService) :
+class UserRepliesDataSource(private val userName: String, private val v2exService: V2exService) :
     PagingSource<Int, UserReplies.Item>() {
 
     companion object {
@@ -22,7 +22,7 @@ class UserRepliesDataSource(private val userName: String, private val v2ExServic
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, UserReplies.Item> {
         return try {
             val page = params.key ?: FIRST_PAGE
-            val userReplies = v2ExService.userReplies(userName, page)
+            val userReplies = v2exService.userReplies(userName, page)
             val prevKey = if (page == FIRST_PAGE) null else page - 1
             val nextKey = if (page < userReplies.pageCount) page + 1 else null
             LoadResult.Page(userReplies.items, prevKey, nextKey)

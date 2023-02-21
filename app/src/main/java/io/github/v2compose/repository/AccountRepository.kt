@@ -1,8 +1,10 @@
 package io.github.v2compose.repository
 
+import androidx.paging.PagingData
 import io.github.v2compose.datasource.Account
 import io.github.v2compose.network.bean.HomePageInfo
 import io.github.v2compose.network.bean.LoginParam
+import io.github.v2compose.network.bean.NotificationInfo
 import io.github.v2compose.network.bean.TwoStepLoginInfo
 import kotlinx.coroutines.flow.Flow
 
@@ -11,6 +13,12 @@ interface AccountRepository {
     val account: Flow<Account>
 
     val isLoggedIn: Flow<Boolean>
+
+    val unreadNotifications: Flow<Int>
+
+    fun getNotifications(): Flow<PagingData<NotificationInfo.Reply>>
+
+    suspend fun resetNotificationCount()
 
     suspend fun getLoginParam(): LoginParam
 
@@ -21,15 +29,6 @@ interface AccountRepository {
     suspend fun loginNextStep(once: String, code: String): TwoStepLoginInfo
 
     suspend fun logout(): Boolean
-
-    suspend fun updateLocalUserInfo(
-        userName: String? = null,
-        userAvatar: String? = null,
-        description: String? = null,
-        nodes: Int? = null,
-        topics: Int? = null,
-        following: Int? = null,
-    )
 
     suspend fun getHomePageInfo(): HomePageInfo
 

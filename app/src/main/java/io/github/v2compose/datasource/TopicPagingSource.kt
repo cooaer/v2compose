@@ -5,7 +5,7 @@ import androidx.paging.PagingState
 import io.github.v2compose.network.V2exService
 
 class TopicPagingSource constructor(
-    private val v2ExService: V2exService,
+    private val v2exService: V2exService,
     private val topicId: String,
     private val reversed: Boolean
 ) : PagingSource<Int, Any>() {
@@ -33,7 +33,7 @@ class TopicPagingSource constructor(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Any> {
         return try {
             var page = params.key ?: startPage
-            val topicInfo = v2ExService.topicDetails(topicId, page)
+            val topicInfo = v2exService.topicDetails(topicId, page)
             if (page == startPageReversed) {
                 startPage = topicInfo.totalPage
                 page = startPage

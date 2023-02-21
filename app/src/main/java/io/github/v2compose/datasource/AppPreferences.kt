@@ -2,16 +2,14 @@ package io.github.v2compose.datasource
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.v2compose.bean.DarkMode
 import io.github.v2compose.network.OkHttpFactory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -39,6 +37,7 @@ data class Account(
     val nodes: Int = 0,
     val topics: Int = 0,
     val following: Int = 0,
+    val unreadNotifications: Int = 0,
 ) {
     companion object {
         val Empty = Account()
@@ -122,6 +121,29 @@ class AppPreferences @Inject constructor(@ApplicationContext private val context
         context.dataStore.edit {
             it[KeyAccount] = value.toJson()
         }
+    }
+
+    suspend fun updateAccount(
+        userName: String? = null,
+        userAvatar: String? = null,
+        description: String? = null,
+        nodes: Int? = null,
+        topics: Int? = null,
+        following: Int? = null,
+        unreadNotifications:Int? = null,
+    ) {
+        val current = account.first()
+        account(
+            current.copy(
+                userName = userName ?: current.userName,
+                userAvatar = userAvatar ?: current.userAvatar,
+                description = description ?: current.description,
+                nodes = nodes ?: current.nodes,
+                topics = topics ?: current.topics,
+                following = following ?: current.following,
+                unreadNotifications = unreadNotifications ?: current.unreadNotifications,
+            )
+        )
     }
 
 }

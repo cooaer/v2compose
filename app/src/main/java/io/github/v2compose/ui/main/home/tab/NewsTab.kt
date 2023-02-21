@@ -145,7 +145,7 @@ private fun NewsList(
                     userName = item.userName,
                     userAvatar = item.avatar,
                     time = item.time,
-                    replyNum = item.replies.toString(),
+                    replyCount = item.replies.toString(),
                     nodeId = item.tagId,
                     nodeName = item.tagName,
                     titleOverview = topicTitleOverview,

@@ -42,7 +42,6 @@ import io.github.v2compose.network.bean.SoV2EXSearchResultInfo
 import io.github.v2compose.ui.common.pagingAppendMoreItem
 import io.github.v2compose.ui.common.pagingRefreshItem
 import io.github.v2compose.ui.common.rememberLazyListState
-import kotlinx.coroutines.delay
 
 @Composable
 fun SearchScreenRoute(
@@ -152,7 +151,6 @@ private fun SearchBar(keyword: String?, onCloseClick: () -> Unit, onSearchClick:
     LaunchedEffect(focusRequester) {
         if (autoShowKeyboard) {
             focusRequester.requestFocus()
-            delay(100)
             keyboard?.show()
             autoShowKeyboard = false
         }

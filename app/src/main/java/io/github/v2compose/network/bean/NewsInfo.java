@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import androidx.compose.runtime.Stable;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 import io.github.v2compose.util.AvatarUtils;
@@ -41,7 +42,7 @@ public class NewsInfo extends BaseInfo {
     }
 
     public List<Item> getItems() {
-        return items;
+        return items != null ? items : Collections.emptyList();
     }
 
     public void setItems(List<Item> items) {

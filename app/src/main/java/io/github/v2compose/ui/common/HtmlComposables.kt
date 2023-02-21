@@ -3,10 +3,11 @@ package io.github.v2compose.ui.common
 import android.util.Log
 import android.util.Size
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
 import io.github.cooaer.htmltext.HtmlText
@@ -31,6 +32,7 @@ fun HtmlContent(
     ),
     baseUrl: String = Constants.baseUrl,
     onUriClick: ((uri: String) -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
 ) {
     val document = remember(content) { Jsoup.parse(content) }
 
@@ -52,24 +54,15 @@ fun HtmlContent(
         document.outerHtml()
     } else content
 
-    val uriHandler = remember(onUriClick) {
-        object : UriHandler {
-            override fun openUri(uri: String) {
-                onUriClick?.invoke(uri)
-            }
-        }
-    }
-
-    CompositionLocalProvider(LocalUriHandler provides uriHandler) {
-        HtmlText(
-            html = newHtml,
-            modifier = modifier,
-            selectable = selectable,
-            textStyle = textStyle,
-            baseUrl = baseUrl,
-            onImageClick = { img, allImgs -> Log.d(TAG, "onHtmlImageClick, img = $img") },
-        )
-    }
+    HtmlText(
+        html = newHtml,
+        modifier = modifier,
+        selectable = selectable,
+        textStyle = textStyle,
+        baseUrl = baseUrl,
+        onLinkClick = onUriClick,
+        onClick = onClick
+    )
 }
 
 private fun resetImgSize(ele: Element, it: Size) {

@@ -3,10 +3,10 @@ package io.github.v2compose.datasource
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import io.github.v2compose.core.error.VisibilityError
-import io.github.v2compose.network.V2exApi
+import io.github.v2compose.network.V2exService
 import io.github.v2compose.network.bean.UserTopics
 
-class UserTopicsDataSource(private val userName: String, private val v2exApi: V2exApi) :
+class UserTopicsDataSource(private val userName: String, private val v2ExService: V2exService) :
     PagingSource<Int, UserTopics.Item>() {
 
     companion object {
@@ -23,7 +23,7 @@ class UserTopicsDataSource(private val userName: String, private val v2exApi: V2
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, UserTopics.Item> {
         return try {
             val page = params.key ?: FIRST_PAGE
-            val userTopics = v2exApi.userTopics(userName, page)
+            val userTopics = v2ExService.userTopics(userName, page)
             val prevKey = if (page == FIRST_PAGE) null else page - 1
             val nextKey = if (page < userTopics.pageCount) page + 1 else null
             if (userTopics.visibility.isNotEmpty()) {

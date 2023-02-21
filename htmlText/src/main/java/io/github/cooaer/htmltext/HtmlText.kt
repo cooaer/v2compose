@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
@@ -34,6 +35,7 @@ import androidx.compose.ui.unit.*
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import coil.size.Dimension
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -51,10 +53,21 @@ fun HtmlText(
     selectable: Boolean = false,
     textStyle: TextStyle = TextStyle.Default,
     baseUrl: String? = null,
-    onImageClick: ((Img, List<Img>) -> Unit)? = null,
+    onImageClick: ((clicked: Img, all: List<Img>) -> Unit)? = null,
+    onLinkClick: ((uri: String) -> Unit)? = null,
+    onClick: (() -> Unit)? = null
 ) {
     val document = remember(html) { Jsoup.parse(html) }
-    HtmlText(document, modifier, selectable, textStyle, baseUrl, onImageClick)
+    HtmlText(
+        document,
+        modifier,
+        selectable,
+        textStyle,
+        baseUrl,
+        onImageClick,
+        onLinkClick,
+        onClick
+    )
 }
 
 @Composable
@@ -64,25 +77,32 @@ fun HtmlText(
     selectable: Boolean = false,
     textStyle: TextStyle = TextStyle.Default,
     baseUrl: String? = null,
-    onImageClick: ((Img, List<Img>) -> Unit)? = null,
+    onImageClick: ((clicked: Img, all: List<Img>) -> Unit)? = null,
+    onLinkClick: ((href: String) -> Unit)? = null,
+    onClick: (() -> Unit)? = null
 ) {
-    val scope =
-        HtmlElementsScope(baseUrl = baseUrl, linkColor = MaterialTheme.colorScheme.tertiary)
-
-    val imageClickHandler: HtmlImageClickHandler? = remember(onImageClick) {
-        val allImgs = document.select("img").map { Img(it) }
-        if (onImageClick == null) null else { img -> onImageClick(img, allImgs) }
-    }
-
-    CompositionLocalProvider(LocalImageClickHandler provides imageClickHandler) {
-        if (selectable) {
-            SelectionContainer(modifier = modifier) {
-                scope.Block(element = document.body(), textStyle = textStyle)
+    val scope = HtmlElementsScope(
+        baseUrl = baseUrl,
+        linkColor = MaterialTheme.colorScheme.tertiary,
+        onImageClick = { img ->
+            if (onImageClick != null) {
+                val allImgs = document.select("img").map { Img(it) }
+                onImageClick(img, allImgs)
+            } else {
+                onClick?.invoke()
             }
-        } else {
-            Box(modifier = modifier) {
-                scope.Block(element = document.body(), textStyle = textStyle)
-            }
+        },
+        onLinkClick = onLinkClick,
+        onClick = onClick
+    )
+
+    if (selectable) {
+        SelectionContainer(modifier = modifier) {
+            scope.Block(element = document.body(), textStyle = textStyle)
+        }
+    } else {
+        Box(modifier = modifier) {
+            scope.Block(element = document.body(), textStyle = textStyle)
         }
     }
 }
@@ -434,8 +454,6 @@ private fun HtmlElementsScope.InlineNodes(
             mapOf("checkbox" to createInlineCheckbox(lineHeight, density))
         }
 
-        val uriHandler = LocalUriHandler.current
-
         ClickableText(
             annotatedString,
             modifier = Modifier.innermostBlockPadding(),
@@ -445,17 +463,17 @@ private fun HtmlElementsScope.InlineNodes(
             },
             style = textStyle,
             onClick = { offset ->
-                annotatedString.getStringAnnotations(
+                Log.d(TAG, "InlineNodes, onClick, text = $annotatedString, offset = $offset")
+                val firstAnnotation = annotatedString.getStringAnnotations(
                     tag = "URL",
                     start = offset,
                     end = offset
-                ).firstOrNull()?.let {
-                    Log.d(TAG, "openUri, uri = ${it.item}")
-                    try {
-                        uriHandler.openUri(it.item)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+                ).firstOrNull()
+                if (firstAnnotation != null && onLinkClick != null) {
+                    Log.d(TAG, "InlineNodes, openUri, uri = ${firstAnnotation.item}")
+                    onLinkClick.invoke(firstAnnotation.item)
+                } else {
+                    onClick?.invoke()
                 }
             }
         )
@@ -504,18 +522,19 @@ private fun HtmlElementsScope.InlineImage(
     modifier: Modifier
 ) {
     val context = LocalContext.current
+    val screenWidth =
+        with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.roundToPx() }
     var retryTimes by remember { mutableStateOf(0) }
 
     SubcomposeAsyncImage(
         model = ImageRequest.Builder(context).data(img.src.fullUrl(baseUrl))
-            .size(coil.size.Size.ORIGINAL)
+            .size(coil.size.Size(screenWidth, Dimension.Undefined))
             .setParameter("retryTimes", retryTimes)
             .build(),
         contentDescription = img.alt,
         modifier = modifier,
         success = {
-            val imageClickHandler = LocalImageClickHandler.current
-            val imgModifier = Modifier.apply { imageClickHandler?.let { clickable { it(img) } } }
+            val imgModifier = Modifier.apply { onImageClick?.let { clickable { it(img) } } }
             Image(
                 painter = rememberAsyncImagePainter(model = it.result.drawable),
                 contentDescription = img.alt,
@@ -644,7 +663,13 @@ private fun AnnotatedString.Builder.childNodesInlineText(
 
 //=========== Inline Elements End ============
 
-private data class HtmlElementsScope(val baseUrl: String? = null, val linkColor: Color = Color.Blue)
+private data class HtmlElementsScope(
+    val baseUrl: String? = null,
+    val linkColor: Color = Color.Blue,
+    val onImageClick: ((Img) -> Unit)? = null,
+    val onLinkClick: ((String) -> Unit)? = null,
+    val onClick: (() -> Unit)? = null,
+)
 
 private fun Modifier.innermostBlockPadding() = this.padding(PaddingValues(vertical = 5.dp))
 
@@ -694,10 +719,6 @@ private fun String.fullUrl(baseUrl: String? = null): String {
     }
     return this
 }
-
-private typealias HtmlImageClickHandler = (Img) -> Unit
-
-private val LocalImageClickHandler = compositionLocalOf<HtmlImageClickHandler?> { null }
 
 private typealias HtmlImageLoadedCallback = (Img) -> Unit
 

@@ -1,30 +1,30 @@
 package io.github.v2compose.ui.topic
 
-import android.util.Log
 import android.util.Size
+import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
+import androidx.compose.animation.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.ContentAlpha
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Report
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.LineHeightStyle
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -41,6 +41,7 @@ import io.github.v2compose.network.bean.TopicInfo
 import io.github.v2compose.network.bean.TopicInfo.ContentInfo.Supplement
 import io.github.v2compose.network.bean.TopicInfo.Reply
 import io.github.v2compose.ui.common.*
+import io.github.v2compose.ui.topic.composables.*
 import kotlinx.coroutines.launch
 
 private const val TAG = "TopicScreen"
@@ -54,114 +55,207 @@ fun TopicScreenRoute(
     viewModel: TopicViewModel = hiltViewModel(),
     screenState: TopicScreenState = rememberTopicScreenState(),
 ) {
-    val repliesReversed by viewModel.repliesReversed.collectAsStateWithLifecycle(initialValue = true)
-    val lazyPagingItems = viewModel.topicItemFlow.collectAsLazyPagingItems()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val uiMessage by viewModel.uiMessage.collectAsStateWithLifecycle()
+    LaunchedEffect(uiMessage) {
+        uiMessage?.let {
+            snackbarHostState.showSnackbar(message = it, duration = SnackbarDuration.Short)
+            viewModel.resetUiMessage()
+        }
+    }
 
-    val topicInfo = if (lazyPagingItems.itemCount > 0) {
-        lazyPagingItems.peek(0)?.let {
-            if (it is TopicInfo) it else null
+    val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
+    val repliesReversed by viewModel.repliesReversed.collectAsStateWithLifecycle(initialValue = true)
+    val topicItems = viewModel.topicItems.collectAsLazyPagingItems()
+
+    val topicInfo = if (topicItems.itemCount > 0) {
+        topicItems.peek(0)?.let {
+            if (it is TopicInfo) it.also { viewModel.updateTopicInfoWrapper(topic = it) } else null
         }
     } else null
 
-    val onHtmlImageLoaded = fun(img:Img){
-        img.size()?.let {
-            viewModel.saveHtmlImageSize(img.src, it)
-        }
-    }
+    val topicInfoWrapper by viewModel.topicInfoWrapper
+    val replyWrappers = viewModel.replyWrappers
+    val replyTopicState by viewModel.replyTopicState.collectAsStateWithLifecycle()
 
-    CompositionLocalProvider(LocalHtmlImageLoadedCallback provides onHtmlImageLoaded) {
-        TopicScreen(
-            topicInfo = topicInfo,
-            repliesOrder = if (repliesReversed) RepliesOrder.Negative else RepliesOrder.Positive,
-            topicItems = lazyPagingItems,
-            htmlImageSizes = viewModel.htmlImageSizes,
-            onBackClick = onBackClick,
-            onMenuClick = { screenState.onMenuClick(it, viewModel.topicArgs, topicInfo) },
-            onUserAvatarClick = onUserAvatarClick,
-            onNodeClick = onNodeClick,
-            onRepliedOrderClick = { viewModel.toggleRepliesReversed() },
-            openUri = openUri,
-        )
-    }
+    HandleReplyTopicState(replyTopicState, topicItems, openUri)
+
+    TopicScreen(
+        isLoggedIn = isLoggedIn,
+        topicInfo = topicInfoWrapper,
+        repliesOrder = if (repliesReversed) RepliesOrder.Negative else RepliesOrder.Positive,
+        topicItems = topicItems,
+        htmlImageSizes = viewModel.htmlImageSizes,
+        snackbarHostState = snackbarHostState,
+        replyWrappers = replyWrappers,
+        replyTopicState = replyTopicState,
+        onBackClick = onBackClick,
+        onTopicMenuClick = {
+            when (it) {
+                TopicMenuItem.Favorite -> viewModel.favoriteTopic()
+                TopicMenuItem.Favorited -> viewModel.unFavoriteTopic()
+                TopicMenuItem.Thanks -> viewModel.thanksTopic()
+                TopicMenuItem.Thanked -> viewModel.unThanksTopic()
+                TopicMenuItem.Ignore -> viewModel.ignoreTopic()
+                TopicMenuItem.Ignored -> viewModel.unIgnoreTopic()
+                TopicMenuItem.Report -> viewModel.reportTopic()
+                TopicMenuItem.Reported -> viewModel.unReportTopic()
+                else -> screenState.onMenuClick(it, viewModel.topicArgs, topicInfo)
+            }
+        },
+        onUserAvatarClick = onUserAvatarClick,
+        onNodeClick = onNodeClick,
+        onRepliedOrderClick = { viewModel.toggleRepliesReversed() },
+        openUri = openUri,
+        onReplyMenuItemClick = { menuItem, reply ->
+            when (menuItem) {
+                ReplyMenuItem.Thank -> viewModel.thankReply(reply)
+                ReplyMenuItem.Thanked -> viewModel.unFavoriteReply(reply)
+                ReplyMenuItem.Ignore -> viewModel.ignoreReply(reply)
+                ReplyMenuItem.Copy -> screenState.copy(reply)
+                ReplyMenuItem.HomePage -> onUserAvatarClick(reply.userName, reply.avatar)
+                else -> {}
+            }
+        },
+        onHtmlImageLoaded = { img -> img.size()?.let { viewModel.saveHtmlImageSize(img.src, it) } },
+        onSendComment = viewModel::replyTopic,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopicScreen(
-    topicInfo: TopicInfo?,
+    isLoggedIn: Boolean,
+    topicInfo: TopicInfoWrapper,
     repliesOrder: RepliesOrder,
     topicItems: LazyPagingItems<Any>,
     htmlImageSizes: Map<String, Size>,
+    replyWrappers: Map<String, ReplyWrapper>,
+    snackbarHostState: SnackbarHostState,
+    replyTopicState: ReplyTopicState,
     onBackClick: () -> Unit,
-    onMenuClick: (MenuItem) -> Unit,
+    onTopicMenuClick: (TopicMenuItem) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
     onNodeClick: (String, String) -> Unit,
     onRepliedOrderClick: (RepliesOrder) -> Unit,
     openUri: (String) -> Unit,
+    onReplyMenuItemClick: (ReplyMenuItem, Reply) -> Unit,
+    onHtmlImageLoaded: (Img) -> Unit,
+    onSendComment: (String) -> Unit,
 ) {
     val density = LocalDensity.current
+
+    var replyInputInitialText by remember { mutableStateOf("") }
+    var replyInputCurrentText by remember { mutableStateOf("") }
+    var replyInputState by remember { mutableStateOf(ReplyInputState.Collapsed) }
 
     val scrollState = topicItems.rememberLazyListState()
     val topBarShowTopicTitle by remember(density, scrollState) {
         derivedStateOf {
-            scrollState.firstVisibleItemIndex > 0 ||
-                    scrollState.firstVisibleItemScrollOffset < with(density) { -64.dp.toPx() }
+            scrollState.firstVisibleItemIndex > 0 || scrollState.firstVisibleItemScrollOffset < with(
+                density
+            ) { -64.dp.toPx() }
         }
     }
     val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
+    BackHandler(enabled = replyInputState == ReplyInputState.Expanded) {
+        replyInputState = ReplyInputState.Collapsed
+    }
+
     Scaffold(
         topBar = {
             TopicTopBar(
+                isLoggedIn = isLoggedIn,
                 topicInfo = topicInfo,
                 showTopicTitle = topBarShowTopicTitle,
                 onBackClick = onBackClick,
-                onMenuClick = onMenuClick,
+                onMenuClick = onTopicMenuClick,
                 scrollBehavior = topAppBarScrollBehavior
             )
         },
-//        floatingActionButton = {
-//            FloatingActionButton(onClick = { onMenuClick(MenuItem.Comment) }) {
-//                Icon(
-//                    MenuItem.Comment.icon,
-//                    "comment",
-//                )
-//            }
-//        }
+        floatingActionButton = {
+            val fabType = if (replyTopicState == ReplyTopicState.Loading) FabType.Loading else {
+                when (replyInputState) {
+                    ReplyInputState.Collapsed -> FabType.Reply
+                    ReplyInputState.Expanded -> FabType.Send
+                }
+            }
+            FabButton(visible = isLoggedIn, type = fabType, onClick = { tabType ->
+                if (fabType == FabType.Send) {
+                    onSendComment(replyInputCurrentText)
+                    replyInputState = ReplyInputState.Collapsed
+                } else if (tabType == FabType.Reply) {
+                    replyInputState = ReplyInputState.Expanded
+                }
+            })
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        contentWindowInsets = WindowInsets.ime.union(WindowInsets.systemBars),
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            TopicList(
-                topicInfo = topicInfo,
-                repliesOrder = repliesOrder,
-                topicItems = topicItems,
-                lazyListState = scrollState,
-                htmlImageSizes = htmlImageSizes,
-                onUserAvatarClick = onUserAvatarClick,
-                onNodeClick = onNodeClick,
-                onRepliedOrderClick = onRepliedOrderClick,
-                openUri = openUri,
-                modifier = Modifier.nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
+            CompositionLocalProvider(LocalHtmlImageLoadedCallback provides onHtmlImageLoaded) {
+                TopicList(
+                    topicInfo = topicInfo,
+                    repliesOrder = repliesOrder,
+                    topicItems = topicItems,
+                    lazyListState = scrollState,
+                    htmlImageSizes = htmlImageSizes,
+                    replyWrappers = replyWrappers,
+                    onUserAvatarClick = onUserAvatarClick,
+                    onNodeClick = onNodeClick,
+                    onRepliedOrderClick = onRepliedOrderClick,
+                    onTopicReplyClick = {
+                        replyInputInitialText = initialReplyText(it)
+                        replyInputState = ReplyInputState.Expanded
+                    },
+                    openUri = openUri,
+                    onTopicMenuItemClick = { menuItem, reply ->
+                        if (menuItem == ReplyMenuItem.Reply) {
+                            replyInputInitialText = initialReplyText(reply)
+                            replyInputState = ReplyInputState.Expanded
+                        } else {
+                            onReplyMenuItemClick(menuItem, reply)
+                        }
+                    },
+                    modifier = Modifier.nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
+                )
+            }
+
+            ReplyInput(
+                initialValue = replyInputInitialText,
+                onValueChanged = { replyInputCurrentText = it },
+                state = replyInputState,
+                modifier = Modifier.align(Alignment.BottomCenter),
             )
         }
     }
 }
 
+fun initialReplyText(mention: Reply?): String {
+    if (mention == null) return ""
+    return "@${mention.userName} "
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun TopicList(
-    topicInfo: TopicInfo?,
+    topicInfo: TopicInfoWrapper,
     repliesOrder: RepliesOrder,
     topicItems: LazyPagingItems<Any>,
     lazyListState: LazyListState,
     htmlImageSizes: Map<String, Size>,
+    replyWrappers: Map<String, ReplyWrapper>,
     onUserAvatarClick: (String, String) -> Unit,
     onNodeClick: (String, String) -> Unit,
     onRepliedOrderClick: (RepliesOrder) -> Unit,
+    onTopicReplyClick: (Reply) -> Unit,
     openUri: (String) -> Unit,
+    onTopicMenuItemClick: (ReplyMenuItem, Reply) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val clickedUserReplies = rememberMutableStateListOf<List<Reply>>()
@@ -188,10 +282,14 @@ private fun TopicList(
         )
     }
 
-    LazyColumn(state = lazyListState, modifier = modifier) {
+    LazyColumn(
+        state = lazyListState,
+        modifier = modifier,
+        contentPadding = PaddingValues(bottom = fabSizeWithMargin),
+    ) {
         pagingRefreshItem(topicItems)
-        if (topicInfo != null) {
-            if (!topicInfo.isValid) {
+        if (topicInfo.topic != null) {
+            if (!topicInfo.topic.isValid) {
                 //TODO 非登录状态，触发某些关键字（如 fg ），重定向到首页，导致解析失败
                 return@LazyColumn
             }
@@ -199,17 +297,17 @@ private fun TopicList(
 
             item(key = "title", contentType = "title") {
                 TopicTitle(
-                    topicInfo = topicInfo,
+                    topicInfo = topicInfo.topic,
                     onUserAvatarClick = onUserAvatarClick,
                     onNodeClick = onNodeClick
                 )
             }
             listItemIndex++
 
-            if (topicInfo.contentInfo.content.isNotEmpty()) {
+            if (topicInfo.topic.contentInfo.content.isNotEmpty()) {
                 item(key = "content", contentType = "content") {
                     TopicContent(
-                        content = topicInfo.contentInfo.content,
+                        content = topicInfo.topic.contentInfo.content,
                         htmlImageSizes = htmlImageSizes,
                         openUri = openUri,
                     )
@@ -217,12 +315,10 @@ private fun TopicList(
                 listItemIndex++
             }
 
-            if (topicInfo.contentInfo.supplements.isNotEmpty()) {
-                itemsIndexed(
-                    items = topicInfo.contentInfo.supplements,
+            if (topicInfo.topic.contentInfo.supplements.isNotEmpty()) {
+                itemsIndexed(items = topicInfo.topic.contentInfo.supplements,
                     key = { supplementIndex, item -> "supplement:$supplementIndex" },
-                    contentType = { _, _ -> "supplement" }
-                ) { supplementIndex, item ->
+                    contentType = { _, _ -> "supplement" }) { supplementIndex, item ->
                     TopicSupplement(
                         index = supplementIndex,
                         supplement = item,
@@ -230,10 +326,10 @@ private fun TopicList(
                         openUri = openUri,
                     )
                 }
-                listItemIndex += topicInfo.contentInfo.supplements.size
+                listItemIndex += topicInfo.topic.contentInfo.supplements.size
             }
 
-            if (topicInfo.contentInfo.content.isNotEmpty() && topicInfo.contentInfo.supplements.isEmpty()) {
+            if (topicInfo.topic.contentInfo.content.isNotEmpty() && topicInfo.topic.contentInfo.supplements.isEmpty()) {
                 item(key = "divider#onRepliesBar", contentType = "divider") {
                     ListDivider(
                         modifier = Modifier.padding(end = 16.dp),
@@ -245,7 +341,7 @@ private fun TopicList(
             repliesBarIndex = listItemIndex
             stickyHeader(key = "repliesBar", contentType = "repliesBar") {
                 TopicRepliesBar(
-                    replyNum = topicInfo.headerInfo.commentNum,
+                    replyNum = topicInfo.topic.headerInfo.commentNum,
                     repliesOrder = repliesOrder,
                     onRepliedOrderClick = {
                         onRepliedOrderClick(it)
@@ -256,15 +352,22 @@ private fun TopicList(
                 )
             }
         }
-        itemsIndexed(items = topicItems, key = { index, item -> item }) { index, item ->
+        itemsIndexed(items = topicItems,
+            key = { index, item -> if (item is Reply) item.replyId else "item#$index#${topicItems.itemCount}" }) { index, item ->
             if (item is Reply) {
-                TopicReply(
-                    index = index,
+                val replyWrapper = replyWrappers[item.replyId]
+                if (replyWrapper?.ignored == true) {
+                    return@itemsIndexed
+                }
+                TopicReply(index = index,
                     reply = item,
+                    replyWrapper = replyWrapper,
+                    opName = topicInfo.topic?.headerInfo?.userName ?: "",
                     htmlImageSizes = htmlImageSizes,
                     onUserAvatarClick = onUserAvatarClick,
-                    onUriClick = clickUriHandler
-                )
+                    onUriClick = clickUriHandler,
+                    onClick = onTopicReplyClick,
+                    onMenuItemClick = { onTopicMenuItemClick(it, item) })
             }
         }
         pagingAppendMoreItem(lazyPagingItems = topicItems)
@@ -290,16 +393,16 @@ private fun UserRepliesDialog(
             Column {
                 Row(
                     modifier = Modifier
-                        .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp)
+                        .padding(
+                            start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp
+                        )
                         .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     with(userReplies.first()) {
-                        TopicUserAvatar(
-                            userName = userName,
+                        TopicUserAvatar(userName = userName,
                             userAvatar = avatar,
-                            onUserAvatarClick = { onUserAvatarClick(userName, avatar) }
-                        )
+                            onUserAvatarClick = { onUserAvatarClick(userName, avatar) })
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             stringResource(id = R.string.user_previous_replies, userName),
@@ -313,33 +416,15 @@ private fun UserRepliesDialog(
                     contentPadding = PaddingValues(bottom = 8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    itemsIndexed(items = userReplies, key = { _, item -> item }) { index, item ->
-                        UserReply(index, reply = item, onUriClick = onUriClick)
+                    itemsIndexed(items = userReplies,
+                        key = { _, item -> item.replyId }) { index, item ->
+                        UserTopicReply(index, reply = item, onUriClick = onUriClick)
                     }
                 }
             }
         }
     }
 }
-
-
-@Composable
-private fun UserReply(index: Int, reply: Reply, onUriClick: (String, Reply) -> Unit) {
-    Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp)) {
-        if (index != 0) {
-            ListDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = ContentAlpha.disabled))
-        }
-        Spacer(Modifier.height(8.dp))
-        HtmlContent(content = reply.replyContent, onUriClick = { onUriClick(it, reply) })
-        Row {
-            ReplyFloor(floor = reply.floor)
-            Spacer(modifier = Modifier.width(8.dp))
-            PublishedTime(time = reply.time)
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-    }
-}
-
 
 @Composable
 private fun TopicTitle(
@@ -348,33 +433,30 @@ private fun TopicTitle(
     onNodeClick: (String, String) -> Unit
 ) {
     if (topicInfo == null) return
-    SimpleTopic(
-        userName = topicInfo.headerInfo.userName,
+    SimpleTopic(userName = topicInfo.headerInfo.userName,
         userAvatar = topicInfo.headerInfo.avatar,
         time = topicInfo.headerInfo.time,
-        replyNum = topicInfo.headerInfo.commentNum,
+        replyCount = topicInfo.headerInfo.commentNum,
+        viewCount = topicInfo.headerInfo.viewCount,
         nodeId = topicInfo.headerInfo.tagId,
         nodeName = topicInfo.headerInfo.tag,
         title = topicInfo.headerInfo.title,
         onUserAvatarClick = {
             onUserAvatarClick(
-                topicInfo.headerInfo.userName,
-                topicInfo.headerInfo.avatar
+                topicInfo.headerInfo.userName, topicInfo.headerInfo.avatar
             )
         },
         onNodeClick = {
             onNodeClick(topicInfo.headerInfo.tagId, topicInfo.headerInfo.tag)
-        }
-    )
+        })
 }
 
 @Composable
 private fun TopicContent(
     content: String,
-    htmlImageSizes:Map<String, Size>,
+    htmlImageSizes: Map<String, Size>,
     openUri: (String) -> Unit,
 ) {
-    Log.d(TAG, "TopicContent, content = \n$content")
     HtmlContent(
         content = content,
         htmlImageSizes = htmlImageSizes,
@@ -397,14 +479,12 @@ private fun TopicSupplement(
 
     Box(modifier = Modifier.padding(horizontal = 16.dp)) {
         ListDivider(modifier = Modifier.align(alignment = Alignment.BottomCenter))
-        Column(
-            modifier = Modifier
-                .drawBehind {
-                    drawRect(color = backgroundColor)
-                    drawRect(color = leftBorderColor, size = size.copy(width = 4.dp.toPx()))
-                }
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
+        Column(modifier = Modifier
+            .drawBehind {
+                drawRect(color = backgroundColor)
+                drawRect(color = leftBorderColor, size = size.copy(width = 4.dp.toPx()))
+            }
+            .padding(horizontal = 8.dp, vertical = 4.dp)) {
             Text(
                 supplement.title,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
@@ -432,9 +512,7 @@ enum class RepliesOrder(@StringRes val textResId: Int) {
 
 @Composable
 private fun TopicRepliesBar(
-    replyNum: String,
-    repliesOrder: RepliesOrder,
-    onRepliedOrderClick: (RepliesOrder) -> Unit
+    replyNum: String, repliesOrder: RepliesOrder, onRepliedOrderClick: (RepliesOrder) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -464,171 +542,55 @@ private fun TopicRepliesBar(
     }
 }
 
-@Composable
-private fun TopicReply(
-    index: Int,
-    reply: Reply,
-    htmlImageSizes: Map<String, Size>,
-    onUserAvatarClick: (String, String) -> Unit,
-    onUriClick: (String, Reply) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 16.dp)
-    ) {
-        TopicUserAvatar(
-            userName = reply.userName,
-            userAvatar = reply.avatar,
-            modifier = Modifier.padding(top = 12.dp),
-            onUserAvatarClick = { onUserAvatarClick(reply.userName, reply.avatar) })
-        Spacer(modifier = Modifier.width(8.dp))
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(top = 12.dp, end = 16.dp)) {
-                UserName(userName = reply.userName)
 
-                HtmlContent(
-                    content = reply.replyContent,
-                    htmlImageSizes = htmlImageSizes,
-                    selectable = false,
-                    textStyle = TextStyle.Default.copy(fontSize = 15.sp),
-                    onUriClick = { onUriClick(it, reply) },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                ReplyFloor(
-                    floor = reply.floor,
-                    modifier = Modifier.padding(bottom = 12.dp, top = 4.dp)
-                )
+enum class FabType {
+    Reply, Send, Loading
+}
+
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+private fun FabButton(
+    visible: Boolean,
+    type: FabType,
+    onClick: (FabType) -> Unit,
+) {
+    val focusRequester = remember { FocusRequester() }
+
+    if (visible) {
+        FloatingActionButton(
+            shape = CircleShape,
+            onClick = { onClick(type) },
+            modifier = Modifier.focusRequester(focusRequester)
+        ) {
+            val contentColor = LocalContentColor.current
+            AnimatedContent(targetState = type) { state ->
+                when (state) {
+                    FabType.Send -> Icon(Icons.Rounded.Send, type.name, tint = contentColor)
+                    FabType.Reply -> Icon(Icons.Rounded.Comment, type.name, tint = contentColor)
+                    FabType.Loading -> CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = contentColor,
+                        strokeWidth = 2.dp
+                    )
+                }
             }
-            ListDivider(
-                modifier = Modifier
-                    .padding(end = 16.dp)
-                    .align(Alignment.BottomCenter),
-            )
-//            IconButton(
-//                modifier = Modifier
-//                    .align(Alignment.TopEnd)
-//                    .padding(end = 4.dp),
-//                onClick = { /*TODO*/ }) {
-//                Icon(
-//                    imageVector = Icons.Rounded.MoreVert,
-//                    contentDescription = "more",
-//                    tint = MaterialTheme.colorScheme.secondary
-//                )
-//            }
-//            IconButton(
-//                modifier = Modifier
-//                    .align(Alignment.BottomEnd)
-//                    .padding(end = 4.dp),
-//                onClick = { /*TODO*/ }) {
-//                Icon(
-//                    imageVector = Icons.Rounded.FavoriteBorder,
-//                    contentDescription = "favorite",
-//                    tint = MaterialTheme.colorScheme.secondary
-//                )
-//            }
         }
     }
 }
 
 @Composable
-private fun UserName(userName: String, modifier: Modifier = Modifier) {
-    Text(
-        userName,
-        modifier = modifier,
-        style = MaterialTheme.typography.bodyLarge.copy(
-            lineHeightStyle = LineHeightStyle(
-                trim = LineHeightStyle.Trim.FirstLineTop,
-                alignment = LineHeightStyle.Alignment.Center,
-            )
-        ),
-    )
-}
-
-@Composable
-private fun PublishedTime(time: String, modifier: Modifier = Modifier) {
-    Text(
-        time,
-        modifier = modifier,
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-    )
-}
-
-@Composable
-private fun ReplyFloor(floor: Int, modifier: Modifier = Modifier) {
-    Text(
-        stringResource(id = R.string.n_floor, floor),
-        modifier = modifier,
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-    )
-}
-
-
-enum class MenuItem(val icon: ImageVector, @StringRes val textResId: Int) {
-    Sort(Icons.Rounded.Sort, R.string.topic_menu_item_sort),
-    BookmarkAdd(Icons.Rounded.BookmarkAdd, R.string.topic_menu_item_add_bookmark),
-    Bookmark(Icons.Rounded.Bookmark, R.string.topic_menu_item_bookmark),
-    More(Icons.Rounded.MoreVert, R.string.topic_menu_item_more),
-    Comment(Icons.Rounded.Comment, R.string.topic_menu_item_comment),
-    Thanks(Icons.Rounded.FavoriteBorder, R.string.topic_menu_item_thanks),
-    Thanked(Icons.Rounded.Favorite, R.string.topic_menu_item_thanked),
-    Report(Icons.Rounded.Report, R.string.topic_menu_item_report),
-    Reported(Icons.Outlined.Report, R.string.topic_menu_item_reported),
-    Share(Icons.Rounded.Share, R.string.topic_menu_item_share),
-    OpenInBrowser(Icons.Rounded.OpenInBrowser, R.string.topic_menu_item_open_in_browser),
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TopicTopBar(
-    topicInfo: TopicInfo?,
-    showTopicTitle: Boolean,
-    onBackClick: () -> Unit,
-    onMenuClick: (MenuItem) -> Unit,
-    scrollBehavior: TopAppBarScrollBehavior? = null
+private fun HandleReplyTopicState(
+    replyTopicState: ReplyTopicState,
+    topicItems: LazyPagingItems<Any>,
+    onUriClick: (String) -> Unit,
 ) {
-    TopAppBar(
-        title = {
-            Text(
-                text = with(topicInfo?.headerInfo?.title) {
-                    if (showTopicTitle && this != null) this else stringResource(R.string.topic)
-                },
-                style = MaterialTheme.typography.titleMedium,
-                fontSize = 18.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        },
-        navigationIcon = { BackIcon(onBackClick) },
-        actions = {
-//            listOf(MenuItem.Sort).forEach { menuItem ->
-//                IconButton(onClick = { onMenuClick(menuItem) }) {
-//                    Icon(menuItem.icon, contentDescription = menuItem.name)
-//                }
-//            }
-            var moreExpanded by remember { mutableStateOf(false) }
-            IconButton(onClick = { moreExpanded = true }) {
-                Icon(MenuItem.More.icon, contentDescription = "")
-            }
-            DropdownMenu(expanded = moreExpanded, onDismissRequest = { moreExpanded = false }) {
-                listOf(
-//                    if (topicInfo?.headerInfo?.hadThanked() == true) MenuItem.Thanked else MenuItem.Thanks,
-//                    if (topicInfo?.hasReported() == true) MenuItem.Reported else MenuItem.Report,
-                    MenuItem.Share,
-                    MenuItem.OpenInBrowser
-                ).forEach { menuItem ->
-                    DropdownMenuItem(
-                        text = { Text(stringResource(id = menuItem.textResId)) },
-                        leadingIcon = { Icon(menuItem.icon, menuItem.name) },
-                        onClick = {
-                            onMenuClick(menuItem)
-                            moreExpanded = false
-                        })
-                }
-            }
-        },
-        scrollBehavior = scrollBehavior,
-    )
+    if (replyTopicState is ReplyTopicState.Success) {
+        LaunchedEffect(replyTopicState) {
+            topicItems.refresh()
+        }
+    } else if (replyTopicState is ReplyTopicState.Failure) {
+        val problem = rememberSaveable(replyTopicState) { replyTopicState.result.problem }
+        HtmlAlertDialog(problem, onUriClick = onUriClick)
+    }
 }
+

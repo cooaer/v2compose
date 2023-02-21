@@ -1,5 +1,7 @@
 package io.github.v2compose.ui.topic
 
+import android.content.ClipData
+import android.content.ClipDescription
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -9,6 +11,7 @@ import io.github.v2compose.Constants
 import io.github.v2compose.core.openInBrowser
 import io.github.v2compose.core.share
 import io.github.v2compose.network.bean.TopicInfo
+import io.github.v2compose.ui.topic.composables.TopicMenuItem
 
 @Composable
 fun rememberTopicScreenState(context: Context = LocalContext.current): TopicScreenState {
@@ -27,19 +30,32 @@ class TopicScreenState(private val context: Context) {
         context.openInBrowser(url)
     }
 
-    fun onMenuClick(item: MenuItem, topicArgs: TopicArgs, topicInfo: TopicInfo?) {
+    fun onMenuClick(item: TopicMenuItem, topicArgs: TopicArgs, topicInfo: TopicInfo?) {
         if (topicInfo == null) return
         when (item) {
-            MenuItem.Share -> {
+            TopicMenuItem.Share -> {
                 share(
                     topicInfo.headerInfo.title,
                     Constants.topicUrl(topicArgs.topicId)
                 )
             }
-            MenuItem.OpenInBrowser -> {
+            TopicMenuItem.OpenInBrowser -> {
                 openInBrowser(Constants.topicUrl(topicArgs.topicId))
             }
             else -> {}
         }
     }
+
+    fun copy(reply: TopicInfo.Reply) {
+        val clipboardManager =
+            context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        clipboardManager.setPrimaryClip(
+            ClipData.newPlainText(
+                ClipDescription.MIMETYPE_TEXT_HTML,
+                reply.replyContent
+            )
+        )
+    }
+
+
 }

@@ -40,7 +40,7 @@ import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSJetPackComposeProgres
 import io.github.v2compose.Constants
 import io.github.v2compose.R
 import io.github.v2compose.ui.common.CloseButton
-import io.github.v2compose.ui.common.HtmlContent
+import io.github.v2compose.ui.common.HtmlAlertDialog
 
 @Composable
 fun LoginScreenRoute(
@@ -75,20 +75,10 @@ private fun LoginScreen(
     onSignInWithGoogleClick: (String) -> Unit,
     reloadLoginParam: () -> Unit,
 ) {
-    var problem by rememberSaveable(loginParamState) {
-        mutableStateOf(if (loginParamState is LoginParamState.Success) loginParamState.data.problem else "")
+    val problem = rememberSaveable(loginParamState) {
+        if (loginParamState is LoginParamState.Success) loginParamState.data.problem else ""
     }
-
-    if (problem.isNotEmpty()) {
-        // show problem dialog
-        AlertDialog(onDismissRequest = { problem = "" }, title = {
-            HtmlContent(content = problem)
-        }, confirmButton = {
-            TextButton(onClick = { problem = "" }) {
-                Text(stringResource(id = R.string.ok))
-            }
-        })
-    }
+    HtmlAlertDialog(problem)
 
     Scaffold(
         topBar = { LoginTopBar(onCloseClick = onCloseClick) },
@@ -108,6 +98,7 @@ private fun LoginScreen(
         )
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -6,20 +6,20 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Path
 
-interface GithubApi {
+interface GithubService {
 
     companion object {
         private const val BaseUrl = "https://api.github.com/"
 
-        val instance: GithubApi by lazy { createGithubApi() }
+        val instance: GithubService by lazy { createGithubApi() }
 
-        private fun createGithubApi(): GithubApi {
+        private fun createGithubApi(): GithubService {
             val retrofit = Retrofit.Builder()
                 .client(OkHttpFactory.httpClient)
                 .addConverterFactory(GsonConverterFactory.create(OkHttpFactory.gson))
                 .baseUrl(BaseUrl)
                 .build()
-            return retrofit.create(GithubApi::class.java)
+            return retrofit.create(GithubService::class.java)
         }
     }
 

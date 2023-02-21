@@ -6,6 +6,8 @@ import me.ghui.fruit.converter.retrofit.FruitConverterFactory
 import me.ghui.retrofit.converter.GlobalConverterFactory
 import me.ghui.retrofit.converter.annotations.Html
 import me.ghui.retrofit.converter.annotations.Json
+import okhttp3.ResponseBody
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
@@ -13,11 +15,11 @@ import retrofit2.http.*
 /**
  * Created by ghui on 05/05/2017.
  */
-interface V2exApi {
+interface V2exService {
 
     companion object {
-        val instance: V2exApi by lazy { createV2exApi() }
-        private fun createV2exApi(): V2exApi {
+        val instance: V2exService by lazy { createV2exService() }
+        private fun createV2exService(): V2exService {
             val retrofit = Retrofit.Builder()
                 .client(OkHttpFactory.httpClient)
                 .addConverterFactory(
@@ -27,7 +29,7 @@ interface V2exApi {
                 )
                 .baseUrl(NetConstants.BASE_URL)
                 .build()
-            return retrofit.create(V2exApi::class.java)
+            return retrofit.create(V2exService::class.java)
         }
     }
 
@@ -144,36 +146,52 @@ interface V2exApi {
     ): TopicInfo
 
     @Html
-    @POST("/thank/reply/{id}")
-    suspend fun thxReplier(@Path("id") replyId: String, @Query("once") once: String): SimpleInfo
-
-    @Html
-    @POST("/thank/topic/{id}")
-    suspend fun thxCreator(@Path("id") id: String, @Query("once") once: String): SimpleInfo
-
-    @Html
     @POST("/ajax/money")
     suspend fun thxMoney(): ThxResponseInfo
 
-    // /favorite/topic/812518
     @Html
-    @GET("/favorite/topic/{id}")
-    suspend fun starTopic(
-        @Header("Referer") referer: String,
-        @Path("id") id: String,
+    @GET("/{action}/topic/{id}")
+    suspend fun getTopicAction(
+        @Header("referer") referer: String,
+        @Path("action") action: String,
+        @Path("id") topicId: String,
         @Query("once") once: String
-    ): TopicInfo
+    ): V2exResult
 
     @Html
-    @GET("/ignore/topic/{id}")
-    suspend fun ignoreTopic(@Path("id") id: String, @Query("once") once: String): NewsInfo
+    @POST("/{action}/topic/{id}")
+    suspend fun postTopicAction(
+        @Header("referer") referer: String,
+        @Path("action") action: String,
+        @Path("id") topicId: String,
+        @Query("once") once: String
+    ): V2exResult
+
+    @Html
+    @GET("/{action}/reply/{id}")
+    suspend fun getReplyAction(
+        @Header("referer") referer: String,
+        @Path("action") action: String,
+        @Path("id") replyId: String,
+        @Query("once") once: String,
+    ): V2exResult
+
+    @Html
+    @POST("/{action}/reply/{id}")
+    suspend fun postReplyAction(
+        @Header("referer") referer: String,
+        @Path("action") action: String,
+        @Path("id") replyId: String,
+        @Query("once") once: String,
+    ): V2exResult
 
     @Html
     @POST("/ignore/reply/{id}")
     suspend fun ignoreReply(
+        @Header("referer") referer: String,
         @Path("id") replyId: String,
-        @Query("once") once: String
-    ): IgnoreResultInfo
+        @Query("once") once: String,
+    ): Response<ResponseBody>
 
     @Html
     @GET("/settings/ignore/node/{id}")
@@ -182,14 +200,6 @@ interface V2exApi {
     @Html
     @GET("/settings/unignore/node/{id}")
     suspend fun unIgnoreNode(@Path("id") nodeId: String, @Query("once") once: String): NodeTopicInfo
-
-    @Html
-    @GET("/unfavorite/topic/{id}")
-    suspend fun unStarTopic(
-        @Header("Referer") referer: String,
-        @Path("id") id: String,
-        @Query("once") once: String
-    ): TopicInfo
 
     @Html
     @POST("/up/topic/{id}")
@@ -205,7 +215,7 @@ interface V2exApi {
     suspend fun replyTopic(
         @Path("id") id: String,
         @FieldMap replyMap: Map<String, String>
-    ): TopicInfo
+    ): ReplyTopicResultInfo
 
     @Html
     @GET

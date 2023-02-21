@@ -28,19 +28,17 @@ import io.github.v2compose.ui.common.BackIcon
 import io.github.v2compose.ui.common.ListDivider
 import io.github.v2compose.ui.common.NewReleaseDialog
 import io.github.v2compose.ui.common.SingleChoiceListDialog
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreenRoute(
     onBackClick: () -> Unit,
     openUri: (String) -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: SettingsViewModel = hiltViewModel(),
+    settingsScreenState: SettingsScreenState = rememberSettingsScreenState()
 ) {
-    val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
-
-    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     var newRelease by rememberSaveable(
         saver = mapSaver(
@@ -72,7 +70,7 @@ fun SettingsScreenRoute(
         isLoggedIn = isLoggedIn,
         cacheSize = cacheSize,
         appSettings = appSettings,
-        snackbarHostState = snackbarHostState,
+        snackbarHostState = settingsScreenState.snackbarHostState,
         onBackClick = onBackClick,
         onClearCacheClick = viewModel::clearCache,
         onOpenInBrowserChanged = viewModel::setOpenInInternalBrowser,
@@ -82,27 +80,17 @@ fun SettingsScreenRoute(
         onVersionClick = {},
         onCheckForUpdatesClick = {
             coroutineScope.launch {
-                val showSnackbar =
-                    async {
-                        snackbarHostState.showSnackbar(
-                            context.getString(R.string.checking_for_updates),
-                            duration = SnackbarDuration.Short,
-                        )
-                    }
-                val check = async { viewModel.checkForUpdates() }
-                val release = check.await()
-                showSnackbar.cancel()
-                if (release.isValid()) {
-                    newRelease = release
-                } else {
-                    snackbarHostState.showSnackbar(
-                        context.getString(R.string.no_updates),
-                        duration = SnackbarDuration.Short,
-                    )
-                }
+                settingsScreenState.checkForUpdates(
+                    checkForUpdates = viewModel.checkForUpdates::invoke,
+                    onNewRelease = {newRelease = it}
+                )
             }
         },
-        onLogout = viewModel::logout
+        onLogout = {
+            coroutineScope.launch {
+                settingsScreenState.logout(logout = viewModel::logout)
+            }
+        }
     )
 }
 

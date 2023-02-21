@@ -70,10 +70,10 @@ class V2AppState @Inject constructor(
         }
     }
 
-    fun openUri(uri: String, inExternalBrowser: Boolean = true) {
+    fun openUri(uri: String) {
         Log.d(TAG, "openUri, uri = $uri")
         if (!innerOpenUri(uri)) {
-            context.openInBrowser(uri, inExternalBrowser)
+            context.openInBrowser(uri, true)
         }
     }
 
@@ -102,12 +102,13 @@ class V2AppState @Inject constructor(
     fun onRedirectEvent(event: RedirectEvent) {
         Log.d(TAG, "onRedirectEvent, location = ${event.location}")
         val uri = Uri.parse(event.location)
-        val firstPathSegment = uri.lastPathSegment?.firstOrNull() ?: ""
-        navHostController.navigate(event.location) {
-            // ege : /
-            if (firstPathSegment == "") {
-                popUpTo(mainNavigationRoute) {
-                    inclusive = true
+        val screenType = uri.pathSegments?.getOrNull(0) ?: ""
+        when (screenType) {
+            "", "signin", "2fa" -> navHostController.navigate(event.location) {
+                if (screenType == "") {
+                    popUpTo(mainNavigationRoute) {
+                        inclusive = true
+                    }
                 }
             }
         }

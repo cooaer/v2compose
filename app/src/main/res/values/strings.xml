@@ -8,6 +8,7 @@
     <string name="retry">重试</string>
 
     <string name="n_comment">评论%s</string>
+    <string name="n_views">点击%s</string>
     <string name="n_floor">%d楼</string>
 
     <string name="ok">确定</string>
@@ -18,21 +19,39 @@
     <!-- Topic Screen Start -->
     <string name="topic">主题</string>
     <string name="topic_menu_item_sort">浏览顺序</string>
-    <string name="topic_menu_item_add_bookmark">添加收藏</string>
-    <string name="topic_menu_item_bookmark">已收藏</string>
+    <string name="topic_menu_item_favorite">收藏</string>
+    <string name="topic_menu_item_unfavorite">取消收藏</string>
     <string name="topic_menu_item_comment">评论</string>
     <string name="topic_menu_item_more">更多</string>
-    <string name="topic_menu_item_thanks">感谢</string>
-    <string name="topic_menu_item_thanked">已感谢</string>
+    <string name="menu_item_thank">感谢</string>
+    <string name="menu_item_unthank">感谢已发送</string>
+    <string name="topic_menu_item_ignore">忽略</string>
+    <string name="topic_menu_item_unignore">取消忽略</string>
     <string name="topic_menu_item_report">举报</string>
     <string name="topic_menu_item_reported">已举报</string>
     <string name="topic_menu_item_share">分享</string>
     <string name="topic_menu_item_open_in_browser">在浏览器中打开</string>
 
+    <string name="unthanks_tips">感谢已发送，不能取消</string>
+    <string name="unreport_tips">你已对本主题进行了报告，不能取消</string>
+    <string name="action_success">%s成功</string>
+    <string name="action_failure">%s异常，请重试</string>
+    <string name="thanks_fail_is_self">不能感谢自己</string>
+    <string name="thanks_fail_just_joined">感谢发送失败，可能因为您刚注册不久</string>
+
     <string name="user_previous_replies">%s之前的评论</string>
 
     <string name="replies_order_positive">最早</string>
     <string name="replies_order_negative">最新</string>
+
+
+    <string name="reply">回复</string>
+    <string name="op">OP</string>
+    <string name="reply_comment">回复评论</string>
+    <string name="copy_comment">复制评论</string>
+    <string name="ignore_comment">忽略评论</string>
+    <string name="user_home_page">他的主页</string>
+
     <!-- Topic Screen End -->
 
     <!-- Node Screen Start -->
@@ -97,6 +116,7 @@
 
     <string name="logout">退出帐号</string>
     <string name="logout_tips">确认退出帐号吗？</string>
+    <string name="logout_success">您已退出帐号</string>
 
     <!-- Settings Screen End -->
 

@@ -8,7 +8,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -18,8 +17,6 @@ import io.github.v2compose.network.NetConstants;
 import io.github.v2compose.util.AvatarUtils;
 import io.github.v2compose.util.Check;
 import io.github.v2compose.util.UriUtils;
-import io.github.v2compose.util.UserUtils;
-import io.github.v2compose.util.Utils;
 import me.ghui.fruit.Attrs;
 import me.ghui.fruit.annotations.Pick;
 
@@ -43,14 +40,12 @@ public class TopicInfo extends BaseInfo {
     private String topicLink;
     @Pick(value = "a[onclick*=/report/topic/]", attr = "onclick")
     private String reportLink;
-    @Pick(value = "div.content div.box div.inner span.fade")
+    @Pick(value = "div#Wrapper div.box div.inner span.fade")
     private String hasRePortStr;
     @Pick(value = "a[onclick*=/fade/topic/]", attr = "onclick")
     private String fadeStr;
     @Pick(value = "a[onclick*=/sticky/topic/]", attr = "onclick")
     private String stickyStr;
-
-    private List<Item> items;
 
     public Problem getProblem() {
         return problem;
@@ -69,7 +64,7 @@ public class TopicInfo extends BaseInfo {
     }
 
     public boolean hasReported() {
-        return UserUtils.isLogin() && !TextUtils.isEmpty(hasRePortStr) && hasRePortStr.contains("已对本主题进行了报告");
+        return !TextUtils.isEmpty(hasRePortStr) && hasRePortStr.contains("已对本主题进行了报告");
     }
 
     public boolean hasReportPermission() {
@@ -118,41 +113,6 @@ public class TopicInfo extends BaseInfo {
     }
 
     /**
-     * 加载分页后的数据
-     *
-     * @param isLoadMore
-     * @param isInOrder  是否是正序加载
-     * @return
-     */
-    public List<Item> getItems(boolean isLoadMore, boolean isInOrder) {
-        if (items == null) {
-            items = new ArrayList<>(Utils.listSize(replies) + 2);
-        } else {
-            items.clear();
-        }
-
-        if (!isInOrder && Check.notEmpty(replies) && !hasReversed()) {
-            Collections.reverse(replies);
-        }
-
-        if (!isLoadMore) {
-            // 第一次加载需要将头部、内容信息加入列表
-            items.add(headerInfo);
-            if (contentInfo.isValid()) {
-                items.add(contentInfo);
-            }
-        }
-        String owner = headerInfo.getUserName();
-        if (Check.notEmpty(replies)) {
-            for (Reply reply : replies) {
-                reply.setOwner(owner);
-            }
-            items.addAll(replies);
-        }
-        return items;
-    }
-
-    /**
      * replies是否已经reversed
      *
      * @return
@@ -192,18 +152,6 @@ public class TopicInfo extends BaseInfo {
         return headerInfo.isValid();
     }
 
-    public interface Item extends Serializable {
-        boolean isHeaderItem();
-
-        boolean isContentItem();
-
-        boolean isSelf();
-
-        String getUserName();
-
-        String getAvatar();
-    }
-
     public static class Problem implements Serializable {
         @Pick(attr = Attrs.OWN_TEXT)
         private String title;
@@ -231,7 +179,7 @@ public class TopicInfo extends BaseInfo {
         }
     }
 
-    public static class ContentInfo extends BaseInfo implements Item {
+    public static class ContentInfo extends BaseInfo {
         @Pick(attr = Attrs.HTML)
         private String html;
 
@@ -245,7 +193,6 @@ public class TopicInfo extends BaseInfo {
 
         /**
          * 得到处理后的html, 移除最后一个element(时间，收藏，等不需要显示的信息)
-         *
          * @return
          */
         public String getFormattedHtml() {
@@ -276,31 +223,6 @@ public class TopicInfo extends BaseInfo {
             return !TextUtils.isEmpty(getFormattedHtml());
         }
 
-        @Override
-        public boolean isHeaderItem() {
-            return false;
-        }
-
-        @Override
-        public boolean isContentItem() {
-            return true;
-        }
-
-        @Override
-        public boolean isSelf() {
-            return false;
-        }
-
-        @Override
-        public String getUserName() {
-            return null;
-        }
-
-        @Override
-        public String getAvatar() {
-            return null;
-        }
-
         public static class Supplement implements Serializable {
             @Pick("span.fade")
             private String title;
@@ -317,7 +239,7 @@ public class TopicInfo extends BaseInfo {
         }
     }
 
-    public static class HeaderInfo extends BaseInfo implements Item {
+    public static class HeaderInfo extends BaseInfo {
         @Pick(value = "div.box img.avatar", attr = "src")
         private String avatar;
         @Pick("div.box small.gray a")
@@ -336,8 +258,12 @@ public class TopicInfo extends BaseInfo {
         private int currentPage;
         @Pick("div.box h1")
         private String title;
+        @Pick(value = "div.content div.box div.inner span:first-child")
+        private String favoriteText;
         @Pick(value = "div.box a[href*=favorite/]", attr = Attrs.HREF)
         private String favoriteLink;
+        @Pick(value = "div.box a[onclick*=ignore/]", attr = "onclick")
+        private String ignoreLink;
         @Pick("div.box div[id=topic_thank]")
         private String thankedText;// 感谢已发送
         @Pick("div.box div.inner div#topic_thank")
@@ -371,10 +297,8 @@ public class TopicInfo extends BaseInfo {
             return Check.notEmpty(appendTxt) && appendTxt.equals("APPEND");
         }
 
-
         /**
          * new user can't send thanks
-         *
          * @return
          */
         public boolean canSendThanks() {
@@ -389,22 +313,6 @@ public class TopicInfo extends BaseInfo {
             return favoriteLink;
         }
 
-        public void setFavoriteLink(String favoriteLink) {
-            this.favoriteLink = favoriteLink;
-        }
-
-        public void updateThxStatus(boolean thxed) {
-            thankedText = thxed ? "感谢已发送" : null;
-        }
-
-        public void updateStarStatus(boolean stared) {
-            if (stared) {
-                favoriteLink = favoriteLink.replace("/favorite/", "/unfavorite/");
-            } else {
-                favoriteLink = favoriteLink.replace("/unfavorite/", "/favorite/");
-            }
-        }
-
         public String getT() {
             if (Check.isEmpty(favoriteLink)) {
                 return null;
@@ -412,8 +320,21 @@ public class TopicInfo extends BaseInfo {
             return UriUtils.getParamValue(NetConstants.BASE_URL + favoriteLink, "t");
         }
 
-        public boolean hadStared() {
+        public boolean hadFavorited() {
             return !Check.isEmpty(favoriteLink) && favoriteLink.contains("unfavorite/");
+        }
+
+        //17 人收藏
+        public int getFavoriteCount(){
+            if(Check.isEmpty(favoriteText)){
+                return 0;
+            }
+            try{
+                return Integer.parseInt(favoriteText.trim().substring(0, favoriteText.indexOf(" ")));
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            return 0;
         }
 
         public String getCommentNum() {
@@ -473,6 +394,10 @@ public class TopicInfo extends BaseInfo {
             return Math.max(Math.max(page, currentPage), 1);
         }
 
+        public boolean hadIgnored() {
+            return !Check.isEmpty(ignoreLink) && ignoreLink.contains("unignore/");
+        }
+
         @Override
         public String toString() {
             return "HeaderInfo{" +
@@ -486,37 +411,17 @@ public class TopicInfo extends BaseInfo {
                     ", currentPage=" + currentPage +
                     ", title='" + title + '\'' +
                     ", favoriteLink='" + favoriteLink + '\'' +
+                    ", ignoreLink='" + ignoreLink + '\'' +
                     ", thankedText='" + thankedText + '\'' +
                     ", canSendThanksText='" + canSendThanksText + '\'' +
                     ", computedTime='" + computedTime + '\'' +
                     ", appendTxt='" + appendTxt + '\'' +
                     '}';
         }
-
-        @Override
-        public boolean isHeaderItem() {
-            return true;
-        }
-
-        @Override
-        public boolean isContentItem() {
-            return false;
-        }
-
-        @Override
-        public boolean isSelf() {
-            try {
-                return userName.equals(UserUtils.getUserInfo().getUserName());
-            } catch (NullPointerException e) {
-                return false;
-            }
-        }
-
-
     }
 
     @Stable
-    public static class Reply implements Item {
+    public static class Reply {
         @Pick(value = "div.reply_content", attr = Attrs.INNER_HTML)
         private String replyContent;
         @Pick("strong a.dark[href^=/member]")
@@ -526,7 +431,7 @@ public class TopicInfo extends BaseInfo {
         @Pick("span.fade.small:not(:contains(♥))")
         private String time;
         @Pick("span.small.fade:has(img)")
-        private String love;
+        private String thanksText;
         @Pick("span.no")
         private int floor;
         @Pick("div.thank_area.thanked")
@@ -537,10 +442,6 @@ public class TopicInfo extends BaseInfo {
 
         public boolean isOwner() {
             return isOwner;
-        }
-
-        public void setOwner(String owner) {
-            isOwner = Check.notEmpty(userName) && Check.notEmpty(owner) && owner.equals(userName);
         }
 
         public int getFloor() {
@@ -556,19 +457,6 @@ public class TopicInfo extends BaseInfo {
                 return null;
             }
         }
-
-        @Override
-        public String toString() {
-            return "Reply{" +
-                    "replyContent='" + replyContent + '\'' +
-                    ", userName='" + userName + '\'' +
-                    ", avatar='" + avatar + '\'' +
-                    ", time='" + time + '\'' +
-                    ", love='" + love + '\'' +
-                    ", floor='" + floor + '\'' +
-                    '}';
-        }
-
         public boolean hadThanked() {
             return Check.notEmpty(alreadyThanked);
         }
@@ -577,72 +465,44 @@ public class TopicInfo extends BaseInfo {
             return replyContent;
         }
 
-        public void setReplyContent(String replyContent) {
-            this.replyContent = replyContent;
-        }
-
         public String getUserName() {
             return userName;
-        }
-
-        public void setUserName(String userName) {
-            this.userName = userName;
         }
 
         public String getAvatar() {
             return AvatarUtils.adjustAvatar(avatar);
         }
 
-        public void setAvatar(String avatar) {
-            this.avatar = avatar;
-        }
-
         public String getTime() {
             return time;
         }
 
-        public void setTime(String time) {
-            this.time = time;
-        }
-
-        public int getLove() {
-            int loveCount = 0;
-            if (Check.isEmpty(love)) {
-                return loveCount;
+        public int getThanksCount() {
+            int thanksCount = 0;
+            if (Check.isEmpty(thanksText)) {
+                return thanksCount;
             }
             try {
-                loveCount = Integer.parseInt(love);
+                thanksCount = Integer.parseInt(thanksText);
             } catch (Exception e) {
                 e.printStackTrace();
-                loveCount = 0;
             }
-            return loveCount;
-        }
-
-        public void updateThanks(boolean isSuccess) {
-            if (isSuccess) {
-                alreadyThanked = "感谢已发送";
-                this.love = getLove() + 1 + "";
-            }
+            return thanksCount;
         }
 
         @Override
-        public boolean isHeaderItem() {
-            return false;
-        }
-
-        @Override
-        public boolean isContentItem() {
-            return false;
-        }
-
-        @Override
-        public boolean isSelf() {
-            try {
-                return userName.equals(UserUtils.getUserInfo().getUserName());
-            } catch (NullPointerException e) {
-                return false;
-            }
+        public String toString() {
+            return "Reply{" +
+                    "replyContent='" + replyContent + '\'' +
+                    ", userName='" + userName + '\'' +
+                    ", avatar='" + avatar + '\'' +
+                    ", time='" + time + '\'' +
+                    ", thanksText='" + thanksText + '\'' +
+                    ", floor=" + floor +
+                    ", alreadyThanked='" + alreadyThanked + '\'' +
+                    ", replyId='" + replyId + '\'' +
+                    ", isOwner=" + isOwner +
+                    '}';
         }
     }
 

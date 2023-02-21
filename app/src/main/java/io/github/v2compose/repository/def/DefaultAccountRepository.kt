@@ -3,7 +3,7 @@ package io.github.v2compose.repository.def
 import io.github.v2compose.datasource.Account
 import io.github.v2compose.datasource.AppPreferences
 import io.github.v2compose.network.OkHttpFactory
-import io.github.v2compose.network.V2exApi
+import io.github.v2compose.network.V2exService
 import io.github.v2compose.network.bean.HomePageInfo
 import io.github.v2compose.network.bean.LoginParam
 import io.github.v2compose.network.bean.TwoStepLoginInfo
@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class DefaultAccountRepository @Inject constructor(
-    private val v2exApi: V2exApi,
+    private val v2ExService: V2exService,
     private val appPreferences: AppPreferences,
 ) : AccountRepository {
 
@@ -29,19 +29,19 @@ class DefaultAccountRepository @Inject constructor(
         get() = appPreferences.account.map { it.isValid() }
 
     override suspend fun getLoginParam(): LoginParam {
-        return v2exApi.loginParam()
+        return v2ExService.loginParam()
     }
 
     override suspend fun login(loginParams: Map<String, String>): LoginParam {
-        return v2exApi.login(loginParams)
+        return v2ExService.login(loginParams)
     }
 
     override suspend fun getTwoStepLoginInfo(): TwoStepLoginInfo {
-        return v2exApi.twoStepLogin()
+        return v2ExService.twoStepLogin()
     }
 
     override suspend fun loginNextStep(once: String, code: String): TwoStepLoginInfo {
-        return v2exApi.signInTwoStep(mapOf("once" to once, "code" to code))
+        return v2ExService.signInTwoStep(mapOf("once" to once, "code" to code))
     }
 
     override suspend fun logout(): Boolean {
@@ -72,11 +72,11 @@ class DefaultAccountRepository @Inject constructor(
     }
 
     override suspend fun getHomePageInfo(): HomePageInfo {
-        return v2exApi.homePageInfo(account.first().userName)
+        return v2ExService.homePageInfo(account.first().userName)
     }
 
     override suspend fun fetchUserInfo() {
-        val dailyInfo = v2exApi.dailyInfo()
+        val dailyInfo = v2ExService.dailyInfo()
         if (dailyInfo.isValid) {
             updateLocalUserInfo(userName = dailyInfo.userName, userAvatar = dailyInfo.avatar)
         }
@@ -84,8 +84,8 @@ class DefaultAccountRepository @Inject constructor(
 
     override suspend fun refreshAccount() {
         val userName = account.first().userName
-        val homePageInfo = v2exApi.homePageInfo(userName)
-        val userInfo = v2exApi.userInfo(userName)
+        val homePageInfo = v2ExService.homePageInfo(userName)
+        val userInfo = v2ExService.userInfo(userName)
         updateLocalUserInfo(
             userName = homePageInfo.userName,
             userAvatar = userInfo.largestAvatar,

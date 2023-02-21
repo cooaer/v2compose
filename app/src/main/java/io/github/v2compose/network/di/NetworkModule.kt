@@ -5,9 +5,9 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import io.github.v2compose.network.GithubApi
+import io.github.v2compose.network.GithubService
 import io.github.v2compose.network.OkHttpFactory
-import io.github.v2compose.network.V2exApi
+import io.github.v2compose.network.V2exService
 import me.ghui.fruit.Fruit
 import okhttp3.CookieJar
 import okhttp3.OkHttpClient
@@ -26,13 +26,13 @@ annotation class ImageOkHttpClient
 object NetworkModule {
 
     @Provides
-    fun provideV2exApi(): V2exApi {
-        return V2exApi.instance
+    fun provideV2exApi(): V2exService {
+        return V2exService.instance
     }
 
     @Provides
-    fun provideGithubApi(): GithubApi {
-        return GithubApi.instance
+    fun provideGithubApi(): GithubService {
+        return GithubService.instance
     }
 
     @Provides

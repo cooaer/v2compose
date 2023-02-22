@@ -123,19 +123,19 @@ interface V2exService {
 
     @Html
     @GET("/new")
-    suspend fun topicCreatePageInfo(): CreateTopicPageInfo
-
-    @Html
-    @GET("/append/topic/{id}")
-    suspend fun appendPageInfo(
-        @Header("Referer") referer: String,
-        @Path("id") topicID: String
-    ): AppendTopicPageInfo
+    suspend fun createTopicPageInfo(): CreateTopicPageInfo
 
     @Html
     @FormUrlEncoded
     @POST("/new")
-    suspend fun postTopic(@FieldMap postParams: Map<String, String>): TopicInfo
+    suspend fun createTopic(@FieldMap postParams: Map<String, String>): TopicInfo
+
+    @Html
+    @GET("/append/topic/{id}")
+    suspend fun appendTopicPageInfo(
+        @Header("Referer") referer: String,
+        @Path("id") topicID: String
+    ): AppendTopicPageInfo
 
     @Html
     @FormUrlEncoded
@@ -149,7 +149,7 @@ interface V2exService {
     @POST("/ajax/money")
     suspend fun thxMoney(): ThxResponseInfo
 
-    @Html
+    @Json
     @GET("/{action}/topic/{id}")
     suspend fun getTopicAction(
         @Header("referer") referer: String,
@@ -158,7 +158,7 @@ interface V2exService {
         @Query("once") once: String
     ): V2exResult
 
-    @Html
+    @Json
     @POST("/{action}/topic/{id}")
     suspend fun postTopicAction(
         @Header("referer") referer: String,
@@ -167,7 +167,7 @@ interface V2exService {
         @Query("once") once: String
     ): V2exResult
 
-    @Html
+    @Json
     @GET("/{action}/reply/{id}")
     suspend fun getReplyAction(
         @Header("referer") referer: String,
@@ -176,7 +176,7 @@ interface V2exService {
         @Query("once") once: String,
     ): V2exResult
 
-    @Html
+    @Json
     @POST("/{action}/reply/{id}")
     suspend fun postReplyAction(
         @Header("referer") referer: String,
@@ -185,7 +185,7 @@ interface V2exService {
         @Query("once") once: String,
     ): V2exResult
 
-    @Html
+    @Json
     @POST("/ignore/reply/{id}")
     suspend fun ignoreReply(
         @Header("referer") referer: String,

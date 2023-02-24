@@ -3,16 +3,15 @@ package io.github.v2compose.ui.topic
 import android.app.Application
 import android.util.Size
 import androidx.annotation.StringRes
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.v2compose.App
 import io.github.v2compose.R
 import io.github.v2compose.core.StringDecoder
 import io.github.v2compose.core.extension.isRedirect
@@ -22,6 +21,7 @@ import io.github.v2compose.network.bean.TopicInfo.Reply
 import io.github.v2compose.repository.AccountRepository
 import io.github.v2compose.repository.ActionMethod
 import io.github.v2compose.repository.TopicRepository
+import io.github.v2compose.ui.BaseViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -36,7 +36,7 @@ class TopicViewModel @Inject constructor(
     stringDecoder: StringDecoder,
     private val topicRepository: TopicRepository,
     private val accountRepository: AccountRepository,
-) : AndroidViewModel(application) {
+) : BaseViewModel(application) {
 
     val topicArgs = TopicArgs(savedStateHandle, stringDecoder)
 
@@ -53,20 +53,6 @@ class TopicViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(),
             replay = 1,
         )
-
-    private val _uiMessage = MutableStateFlow<String?>(null)
-    val uiMessage = _uiMessage.asStateFlow()
-    private suspend fun showUiMessage(@StringRes messageResId: Int) {
-        _uiMessage.emit(getContext().getString(messageResId))
-    }
-
-    private suspend fun showUiMessage(message: String) {
-        _uiMessage.emit(message)
-    }
-
-    fun resetUiMessage() {
-        viewModelScope.launch { _uiMessage.emit(null) }
-    }
 
     //缓存评论的收藏、感谢、忽略等状态
     private val _topicInfoWrapper = mutableStateOf(TopicInfoWrapper())
@@ -103,7 +89,7 @@ class TopicViewModel @Inject constructor(
 
     fun unThanksTopic() {
         viewModelScope.launch {
-            showUiMessage(R.string.unthanks_tips)
+            updateSnackbarMessage(R.string.unthanks_tips)
         }
     }
 
@@ -136,7 +122,7 @@ class TopicViewModel @Inject constructor(
 
     fun unReportTopic() {
         viewModelScope.launch {
-            showUiMessage(R.string.unreport_tips)
+            updateSnackbarMessage(R.string.unreport_tips)
         }
     }
 
@@ -149,10 +135,10 @@ class TopicViewModel @Inject constructor(
         onError: ((Throwable?) -> Unit)? = null
     ) {
         val topic = topicInfoWrapper.value.topic ?: return
-        val actionName = getContext().getString(actionNameResId)
+        val actionName = context.getString(actionNameResId)
         viewModelScope.launch {
             try {
-                val result = topicRepository.topicAction(
+                val result = topicRepository.doTopicAction(
                     action = action,
                     method = method,
                     topicId = topicArgs.topicId,
@@ -161,16 +147,26 @@ class TopicViewModel @Inject constructor(
                 if (result.success) {
                     onSuccess?.invoke()
                     if (result.message.isNotEmpty()) {
-                        showUiMessage(result.message)
+                        updateSnackbarMessage(result.message)
                     } else {
-                        showUiMessage(getContext().getString(R.string.action_success, actionName))
+                        updateSnackbarMessage(
+                            context.getString(
+                                R.string.action_success,
+                                actionName
+                            )
+                        )
                     }
                 } else {
                     onFailure?.invoke(result.message)
                     if (result.message.isNotEmpty()) {
-                        showUiMessage(result.message)
+                        updateSnackbarMessage(result.message)
                     } else {
-                        showUiMessage(getContext().getString(R.string.action_failure, actionName))
+                        updateSnackbarMessage(
+                            context.getString(
+                                R.string.action_failure,
+                                actionName
+                            )
+                        )
                     }
                 }
 
@@ -178,11 +174,11 @@ class TopicViewModel @Inject constructor(
                 e.printStackTrace()
                 if (e is HttpException && e.code().isRedirect) {
                     onSuccess?.invoke()
-                    showUiMessage(getContext().getString(R.string.action_success, actionName))
+                    updateSnackbarMessage(context.getString(R.string.action_success, actionName))
                 } else {
                     onError?.invoke(e)
-                    showUiMessage(
-                        e.message ?: getContext().getString(R.string.action_failure, actionName)
+                    updateSnackbarMessage(
+                        e.message ?: context.getString(R.string.action_failure, actionName)
                     )
                 }
 
@@ -254,7 +250,7 @@ class TopicViewModel @Inject constructor(
 
     fun ignoreReply(reply: Reply) {
         val topic = topicInfoWrapper.value.topic ?: return
-        val actionName = getContext().getString(R.string.ignore_comment)
+        val actionName = context.getString(R.string.ignore_comment)
         viewModelScope.launch {
             try {
                 val result = topicRepository.ignoreReply(
@@ -264,14 +260,14 @@ class TopicViewModel @Inject constructor(
                 )
                 if (result) {
                     updateReplyWrapper(reply, ignored = true)
-                    showUiMessage(getContext().getString(R.string.action_success, actionName))
+                    updateSnackbarMessage(context.getString(R.string.action_success, actionName))
                 } else {
-                    showUiMessage(getContext().getString(R.string.action_failure, actionName))
+                    updateSnackbarMessage(context.getString(R.string.action_failure, actionName))
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                showUiMessage(
-                    e.message ?: getContext().getString(R.string.action_failure, actionName)
+                updateSnackbarMessage(
+                    e.message ?: context.getString(R.string.action_failure, actionName)
                 )
             }
         }
@@ -287,10 +283,10 @@ class TopicViewModel @Inject constructor(
         onError: ((Throwable?) -> Unit)? = null
     ) {
         val topic = topicInfoWrapper.value.topic ?: return
-        val actionName = getContext().getString(actionNameResId)
+        val actionName = context.getString(actionNameResId)
         viewModelScope.launch {
             try {
-                val result = topicRepository.replyAction(
+                val result = topicRepository.doReplyAction(
                     action = action,
                     method = method,
                     topicId = topicArgs.topicId,
@@ -300,16 +296,26 @@ class TopicViewModel @Inject constructor(
                 if (result.success) {
                     onSuccess?.invoke()
                     if (result.message.isNotEmpty()) {
-                        showUiMessage(result.message)
+                        updateSnackbarMessage(result.message)
                     } else {
-                        showUiMessage(getContext().getString(R.string.action_success, actionName))
+                        updateSnackbarMessage(
+                            context.getString(
+                                R.string.action_success,
+                                actionName
+                            )
+                        )
                     }
                 } else {
                     onFailure?.invoke(result.message)
                     if (result.message.isNotEmpty()) {
-                        showUiMessage(result.message)
+                        updateSnackbarMessage(result.message)
                     } else {
-                        showUiMessage(getContext().getString(R.string.action_failure, actionName))
+                        updateSnackbarMessage(
+                            context.getString(
+                                R.string.action_failure,
+                                actionName
+                            )
+                        )
                     }
                 }
 
@@ -317,11 +323,11 @@ class TopicViewModel @Inject constructor(
                 e.printStackTrace()
                 if (e is HttpException && e.code().isRedirect) {
                     onSuccess?.invoke()
-                    showUiMessage(getContext().getString(R.string.action_success, actionName))
+                    updateSnackbarMessage(context.getString(R.string.action_success, actionName))
                 } else {
                     onError?.invoke(e)
-                    showUiMessage(
-                        e.message ?: getContext().getString(R.string.action_failure, actionName)
+                    updateSnackbarMessage(
+                        e.message ?: context.getString(R.string.action_failure, actionName)
                     )
                 }
 
@@ -357,7 +363,7 @@ class TopicViewModel @Inject constructor(
         viewModelScope.launch {
             _replyTopicState.emit(ReplyTopicState.Idle)
             val topic = topicInfoWrapper.value.topic ?: return@launch
-            val actionName = getContext().getString(R.string.reply)
+            val actionName = context.getString(R.string.reply)
 
             _replyTopicState.emit(ReplyTopicState.Loading)
             try {
@@ -368,29 +374,28 @@ class TopicViewModel @Inject constructor(
                 if (e is HttpException && e.code().isRedirect) {
                     val location = e.response()?.raw()?.headers?.get("location") ?: ""
                     _replyTopicState.emit(ReplyTopicState.Success(location))
-                    _uiMessage.emit(getContext().getString(R.string.action_success, actionName))
+                    updateSnackbarMessage(context.getString(R.string.action_success, actionName))
                 } else {
                     _replyTopicState.emit(ReplyTopicState.Error(e))
-                    val errorMsg = getContext().getString(R.string.action_failure, actionName)
-                    _uiMessage.emit(e.message ?: errorMsg)
+                    val errorMsg = context.getString(R.string.action_failure, actionName)
+                    updateSnackbarMessage(e.message ?: errorMsg)
                 }
             }
         }
     }
 
-    private fun getContext() = getApplication<App>().applicationContext
 
     private fun checkCanThanks(userName: String): Boolean {
         val account = runBlocking { accountRepository.account.first() }
         if (userName == account.userName) {
             viewModelScope.launch {
-                showUiMessage(getContext().getString(R.string.thanks_fail_is_self))
+                updateSnackbarMessage(context.getString(R.string.thanks_fail_is_self))
             }
             return false
         }
         if (_topicInfoWrapper.value.topic?.headerInfo?.canSendThanks() == false) {
             viewModelScope.launch {
-                showUiMessage(getContext().getString(R.string.thanks_fail_just_joined))
+                updateSnackbarMessage(context.getString(R.string.thanks_fail_just_joined))
             }
             return false
         }
@@ -399,6 +404,7 @@ class TopicViewModel @Inject constructor(
 
 }
 
+@Stable
 sealed interface ReplyTopicState {
     object Idle : ReplyTopicState
     object Loading : ReplyTopicState

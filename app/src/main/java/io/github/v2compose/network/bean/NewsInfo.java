@@ -22,13 +22,18 @@ import me.ghui.fruit.annotations.Pick;
 @Stable
 @Pick("div#Wrapper")
 public class NewsInfo extends BaseInfo {
-
+    @Pick("div.box a[href*=mission/daily]")
+    private String checkInTips;
     @Pick(value = "input.super.special.button", attr = "value")
     private String unread;
     @Pick("div.cell.item")
     private List<Item> items;
     @Pick("form[action=/2fa]")
     private String twoStepStr;
+
+    public boolean hasCheckingInTips(){
+        return !Check.isEmpty(checkInTips);
+    }
 
     private boolean isTwoStepError() {
         return Check.notEmpty(twoStepStr) && twoStepStr.contains("两步验证");

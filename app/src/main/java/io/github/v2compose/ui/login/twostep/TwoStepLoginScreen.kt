@@ -28,7 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonType
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSJetPackComposeProgressButton
-import io.github.v2compose.LocalSnackbarHostStateHolder
+import io.github.v2compose.LocalSnackbarHostState
 import io.github.v2compose.R
 import io.github.v2compose.network.bean.TwoStepLoginInfo
 import io.github.v2compose.ui.common.CloseButton
@@ -41,7 +41,7 @@ fun TwoStepLoginScreenRoute(
     viewModel: TwoStepLoginViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val snackbarHostState = LocalSnackbarHostStateHolder.current
+    val snackbarHostState = LocalSnackbarHostState.current
 
     val twoStepLoginUiState by viewModel.twoStepLoginUiState.collectAsStateWithLifecycle()
     val loginState by viewModel.login.collectAsStateWithLifecycle()

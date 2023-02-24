@@ -1,5 +1,6 @@
 package io.github.v2compose.ui.login
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -70,12 +71,14 @@ class LoginViewModel @Inject constructor(
 
 }
 
+@Stable
 sealed interface LoginParamState {
     data class Success(val data: LoginParam) : LoginParamState
     object Loading : LoginParamState
     data class Error(val error: Throwable?) : LoginParamState
 }
 
+@Stable
 sealed interface LoginState {
     object Idle : LoginState
     object Loading : LoginState

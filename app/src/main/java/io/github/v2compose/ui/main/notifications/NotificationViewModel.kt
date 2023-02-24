@@ -14,6 +14,13 @@ class NotificationViewModel @Inject constructor(
     private val accountRepository: AccountRepository,
 ) : ViewModel() {
 
+    val isLoggedIn = accountRepository.isLoggedIn
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(),
+            false
+        )
+
     val unreadNotifications = accountRepository.unreadNotifications.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),

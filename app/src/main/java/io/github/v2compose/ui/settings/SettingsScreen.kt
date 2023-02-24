@@ -73,6 +73,7 @@ fun SettingsScreenRoute(
         snackbarHostState = settingsScreenState.snackbarHostState,
         onBackClick = onBackClick,
         onClearCacheClick = viewModel::clearCache,
+        onAutoCheckInChanged = viewModel::updateAutoCheckIn,
         onOpenInBrowserChanged = viewModel::setOpenInInternalBrowser,
         onDarkModeChanged = viewModel::setDarkMode,
         onTopicTitleTwoLineMaxChanged = viewModel::setTopicTitleTwoLineMax,
@@ -82,7 +83,7 @@ fun SettingsScreenRoute(
             coroutineScope.launch {
                 settingsScreenState.checkForUpdates(
                     checkForUpdates = viewModel.checkForUpdates::invoke,
-                    onNewRelease = {newRelease = it}
+                    onNewRelease = { newRelease = it }
                 )
             }
         },
@@ -103,6 +104,7 @@ private fun SettingsScreen(
     snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
     onClearCacheClick: () -> Unit,
+    onAutoCheckInChanged: (Boolean) -> Unit,
     onOpenInBrowserChanged: (Boolean) -> Unit,
     onDarkModeChanged: (DarkMode) -> Unit,
     onTopicTitleTwoLineMaxChanged: (Boolean) -> Unit,
@@ -126,6 +128,12 @@ private fun SettingsScreen(
                 title = stringResource(id = R.string.settings_clear_cache),
                 summary = stringResource(id = R.string.settings_clear_cache_summary, cacheSize),
                 onPreferenceClick = onClearCacheClick
+            )
+            SwitchPreference(
+                title = stringResource(R.string.settings_auto_check_in),
+                summary = stringResource(R.string.settings_auto_check_in_description),
+                checked = appSettings.autoCheckIn,
+                onCheckedChange = onAutoCheckInChanged,
             )
 //            DropdownPreference(
 //                title = stringResource(id = R.string.settings_open_in_browser),
@@ -224,6 +232,7 @@ private fun Logout(onLogout: () -> Unit) {
             color = MaterialTheme.colorScheme.error,
             modifier = Modifier.align(Alignment.Center)
         )
+        ListDivider(modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
 

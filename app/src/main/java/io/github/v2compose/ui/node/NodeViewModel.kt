@@ -1,6 +1,7 @@
 package io.github.v2compose.ui.node
 
 import android.util.Log
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -65,7 +66,7 @@ class NodeViewModel @Inject constructor(
     }
 }
 
-
+@Stable
 sealed interface NodeUiState {
     data class Success(val nodeInfo: NodeInfo) : NodeUiState
     object Loading : NodeUiState

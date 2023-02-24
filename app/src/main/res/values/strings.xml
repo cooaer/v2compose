@@ -86,6 +86,9 @@
     <string name="settings_clear_cache">清除缓存</string>
     <string name="settings_clear_cache_summary">包括图片及其他缓存数据，共%dMB</string>
 
+    <string name="settings_auto_check_in">自动签到</string>
+    <string name="settings_auto_check_in_description">自动领取每日登录奖励</string>
+
     <string name="settings_open_in_browser">打开主题、回复等携带的链接</string>
     <string name="settings_internal_browser">内置浏览器</string>
     <string name="settings_external_browser">外置浏览器</string>
@@ -123,6 +126,7 @@
     <!-- mine start -->
     <string name="daily_mission">领取每日登录奖励</string>
     <string name="daily_mission_ok">已领取</string>
+    <string name="daily_mission_failure">领取失败，请重试</string>
     <string name="create_topic">创建主题</string>
     <string name="my_nodes">节点收藏</string>
     <string name="my_topics">主题收藏</string>
@@ -138,6 +142,7 @@
     <string name="login_username_blank">用户名/邮箱不能为空</string>
     <string name="login_password_blank">密码不能为空</string>
     <string name="login_captcha_blank">验证码不能为空</string>
+    <string name="login_first">登录后才能进行该操作</string>
     <!-- Login Screen End -->
 
     <!-- Two Step Screen Start -->
@@ -148,4 +153,15 @@
     <string name="tfa_code_empty">验证码不能为空</string>
     <string name="captcha_error">验证码错误，请重试</string>
     <!-- Two Step Screen End -->
+
+    <!-- Write Topic Screen Start -->
+    <string name="send">发送</string>
+    <string name="topic_title_empty">标题不能为空</string>
+    <string name="node_empty">请选择一个节点</string>
+    <string name="topic_title">标题</string>
+    <string name="topic_content_placeholder">如果标题能够表达完整内容，则正文可以为空。</string>
+    <string name="load_nodes_failure">加载节点列表失败</string>
+    <string name="select_node">选择节点</string>
+    <string name="search_all_nodes">搜索全部节点</string>
+    <!-- Write Topic Screen End-->
 </resources>

@@ -56,6 +56,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun updateAutoCheckIn(value:Boolean){
+        viewModelScope.launch {
+            appPreferences.autoCheckIn(value)
+        }
+    }
+
     fun setOpenInInternalBrowser(value: Boolean) {
         viewModelScope.launch {
             appPreferences.openInInternalBrowser(value)

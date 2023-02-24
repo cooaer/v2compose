@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import io.github.v2compose.R
@@ -22,6 +23,7 @@ fun rememberSettingsScreenState(
     }
 }
 
+@Stable
 class SettingsScreenState @Inject constructor(
     private val context: Context,
     val snackbarHostState: SnackbarHostState,

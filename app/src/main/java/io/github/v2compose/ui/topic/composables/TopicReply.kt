@@ -88,7 +88,6 @@ fun TopicReply(
                     content = reply.replyContent,
                     htmlImageSizes = htmlImageSizes,
                     selectable = false,
-                    textStyle = TextStyle.Default.copy(fontSize = 15.sp),
                     onUriClick = { onUriClick(it, reply) },
                     onClick = { onClick(reply) },
                     modifier = Modifier.fillMaxWidth()

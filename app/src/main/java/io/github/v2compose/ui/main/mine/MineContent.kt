@@ -10,12 +10,10 @@ import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,11 +21,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import io.github.cooaer.htmltext.HtmlText
-import io.github.v2compose.LocalSnackbarHostStateHolder
 import io.github.v2compose.R
-import io.github.v2compose.datasource.Account
+import io.github.v2compose.bean.Account
+import io.github.v2compose.core.extension.isBeforeTodayByUTC
+import io.github.v2compose.ui.HandleSnackbarMessage
 import io.github.v2compose.ui.common.ListDivider
-import kotlinx.coroutines.launch
 
 
 @Composable
@@ -39,31 +37,32 @@ fun MineContent(
     onMyTopicsClick: () -> Unit,
     onMyFollowingClick: () -> Unit,
     onSettingsClick: () -> Unit,
-    viewModel: MineViewModel = hiltViewModel()
+    viewModel: MineViewModel = hiltViewModel(),
+    mineContentState: MineContentState = rememberMineContentState(),
 ) {
-    val snackbarHostState = LocalSnackbarHostStateHolder.current
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-
     val account by viewModel.account.collectAsStateWithLifecycle()
+    val lastCheckInTime by viewModel.lastCheckInTime.collectAsStateWithLifecycle()
+    val hasCheckingInTips by viewModel.hasCheckingInTips.collectAsStateWithLifecycle()
 
-    val notImplemented = {
-        coroutineScope.launch {
-            val message = context.getString(R.string.function_not_implemented)
-            snackbarHostState.showSnackbar(message = message)
-        }
-        Unit
-    }
+    HandleSnackbarMessage(viewModel, mineContentState)
 
     MineContainer(
         account = account,
+        lastCheckInTime = lastCheckInTime,
+        hasCheckingInTips = hasCheckingInTips,
         onLoginClick = onLoginClick,
         onMyHomePageClick = onMyHomePageClick,
-        onDailyMissionClick = viewModel::completeDailyMission,
-        onCreateTopicClick = notImplemented,
-        onMyNodesClick = notImplemented,
-        onMyTopicsClick = notImplemented,
-        onMyFollowingClick = notImplemented,
+        onCheckInClick = viewModel::doCheckIn,
+        onCreateTopicClick = {
+            if (account.isValid()) {
+                onCreateTopicClick()
+            } else {
+                mineContentState.showMessage(R.string.login_first)
+            }
+        },
+        onMyNodesClick = mineContentState::notImplemented,
+        onMyTopicsClick = mineContentState::notImplemented,
+        onMyFollowingClick = mineContentState::notImplemented,
         onSettingsClick = onSettingsClick
     )
 }
@@ -71,9 +70,11 @@ fun MineContent(
 @Composable
 private fun MineContainer(
     account: Account,
+    lastCheckInTime: Long,
+    hasCheckingInTips: Boolean,
     onLoginClick: () -> Unit,
     onMyHomePageClick: () -> Unit,
-    onDailyMissionClick: () -> Unit,
+    onCheckInClick: () -> Unit,
     onCreateTopicClick: () -> Unit,
     onMyNodesClick: () -> Unit,
     onMyTopicsClick: () -> Unit,
@@ -88,9 +89,11 @@ private fun MineContainer(
         Column {
             MineHeader(
                 account = account,
+                lastCheckInTime = lastCheckInTime,
+                hasCheckingInTips = hasCheckingInTips,
                 onLoginClick = onLoginClick,
                 onMyHomePageClick = onMyHomePageClick,
-                onDailyMissionClick = onDailyMissionClick,
+                onCheckInClick = onCheckInClick,
             )
             Spacer(Modifier.height(8.dp))
             MineEntry(
@@ -140,9 +143,11 @@ private fun MineContainer(
 @Composable
 private fun MineHeader(
     account: Account,
+    lastCheckInTime: Long,
+    hasCheckingInTips: Boolean,
     onLoginClick: () -> Unit,
     onMyHomePageClick: () -> Unit,
-    onDailyMissionClick: () -> Unit,
+    onCheckInClick: () -> Unit,
 ) {
     val contentColor = LocalContentColor.current
     Row(
@@ -170,23 +175,29 @@ private fun MineHeader(
             Text(
                 if (account.isValid()) account.userName else stringResource(id = R.string.login),
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = 0.dp).wrapContentHeight()
+                modifier = Modifier
+                    .padding(horizontal = 0.dp)
+                    .wrapContentHeight()
             )
             if (account.isValid()) {
+                val canCheckIn = hasCheckingInTips || lastCheckInTime.isBeforeTodayByUTC()
                 AssistChip(
-                    onClick = onDailyMissionClick,
+                    onClick = onCheckInClick,
+                    enabled = canCheckIn,
                     label = {
                         Text(
-                            stringResource(id = R.string.daily_mission),
+                            stringResource(if (canCheckIn) R.string.daily_mission else R.string.daily_mission_ok),
                             color = contentColor.copy(alpha = ContentAlpha.medium),
                         )
                     },
                     leadingIcon = {
-                        Icon(
-                            Icons.Rounded.Check,
-                            "daily mission",
-                            tint = contentColor.copy(alpha = ContentAlpha.medium),
-                        )
+                        if (!canCheckIn){
+                            Icon(
+                                Icons.Rounded.Check,
+                                "daily mission",
+                                tint = contentColor.copy(alpha = ContentAlpha.medium),
+                            )
+                        }
                     },
                     shape = RoundedCornerShape(16.dp)
                 )

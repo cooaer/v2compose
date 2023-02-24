@@ -3,14 +3,13 @@ package io.github.v2compose.repository.def
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import io.github.v2compose.bean.DraftTopic
+import io.github.v2compose.datasource.AccountPreferences
 import io.github.v2compose.datasource.AppPreferences
 import io.github.v2compose.datasource.SearchPagingSource
 import io.github.v2compose.datasource.TopicPagingSource
 import io.github.v2compose.network.V2exService
-import io.github.v2compose.network.bean.ReplyTopicResultInfo
-import io.github.v2compose.network.bean.SoV2EXSearchResultInfo
-import io.github.v2compose.network.bean.TopicInfo
-import io.github.v2compose.network.bean.V2exResult
+import io.github.v2compose.network.bean.*
 import io.github.v2compose.repository.ActionMethod
 import io.github.v2compose.repository.TopicRepository
 import io.github.v2compose.util.V2exUri
@@ -21,6 +20,7 @@ import javax.inject.Inject
 class DefaultTopicRepository @Inject constructor(
     private val v2exService: V2exService,
     private val appPreferences: AppPreferences,
+    private val accountPreferences: AccountPreferences,
 ) : TopicRepository {
 
     override suspend fun getTopicInfo(topicId: String): TopicInfo {
@@ -28,7 +28,13 @@ class DefaultTopicRepository @Inject constructor(
     }
 
     override fun getTopic(topicId: String, reversed: Boolean): Flow<PagingData<Any>> {
-        return Pager(PagingConfig(pageSize = 10)) { TopicPagingSource(v2exService, topicId, reversed) }.flow
+        return Pager(PagingConfig(pageSize = 10)) {
+            TopicPagingSource(
+                v2exService,
+                topicId,
+                reversed
+            )
+        }.flow
     }
 
     override val repliesOrderReversed: Flow<Boolean>
@@ -45,7 +51,7 @@ class DefaultTopicRepository @Inject constructor(
     override val topicTitleOverview: Flow<Boolean>
         get() = appPreferences.appSettings.map { it.topicTitleOverview }
 
-    override suspend fun topicAction(
+    override suspend fun doTopicAction(
         action: String,
         method: ActionMethod,
         topicId: String,
@@ -58,7 +64,7 @@ class DefaultTopicRepository @Inject constructor(
         }
     }
 
-    override suspend fun replyAction(
+    override suspend fun doReplyAction(
         action: String,
         method: ActionMethod,
         topicId: String,
@@ -81,8 +87,45 @@ class DefaultTopicRepository @Inject constructor(
         return v2exService.ignoreReply(topicUrl, replyId, once).isSuccessful
     }
 
-    override suspend fun replyTopic(topicId: String, content: String, once: String): ReplyTopicResultInfo {
+    override suspend fun replyTopic(
+        topicId: String,
+        content: String,
+        once: String
+    ): ReplyTopicResultInfo {
         val params = mapOf("content" to content, "once" to once)
         return v2exService.replyTopic(topicId, params)
+    }
+
+    override val draftTopic: Flow<DraftTopic>
+        get() = accountPreferences.draftTopic
+
+    override suspend fun saveDraftTopic(title: String, content: String, node: TopicNode?) {
+        accountPreferences.draftTopic(DraftTopic(title, content, node))
+    }
+
+    override suspend fun getCreateTopicPageInfo(): CreateTopicPageInfo {
+        return v2exService.createTopicPageInfo()
+    }
+
+    override suspend fun getTopicNodes(): List<TopicNode> {
+        return v2exService.topicNodes()
+    }
+
+    override suspend fun createTopic(
+        title: String,
+        content: String,
+        nodeId: String,
+        once: String
+    ): CreateTopicPageInfo {
+        //syntax, default:v2ex原生格式，markdown:Markdown格式
+        val params =
+            mapOf(
+                "title" to title,
+                "content" to content,
+                "node_name" to nodeId,
+                "once" to once,
+                "syntax" to "default",
+            )
+        return v2exService.createTopic(params)
     }
 }

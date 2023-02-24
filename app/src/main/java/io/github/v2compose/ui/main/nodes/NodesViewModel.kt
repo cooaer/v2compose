@@ -1,5 +1,6 @@
 package io.github.v2compose.ui.main.nodes
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,6 +35,7 @@ class NodesViewModel @Inject constructor(private val nodeRepository: NodeReposit
     )
 }
 
+@Stable
 sealed interface NodesUiState {
     data class Success(val nodesNavInfo: NodesNavInfo) : NodesUiState
     object Loading : NodesUiState

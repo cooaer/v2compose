@@ -45,6 +45,11 @@ interface V2exService {
     @GET("/api/nodes/s2.json")
     suspend fun nodes(): NodesInfo
 
+    //https://www.v2ex.com/api/nodes/list.json?fields=name,title,topics,aliases&sort_by=topics&reverse=1
+    @Json
+    @GET("api/nodes/list.json?fields=name,title,topics,aliases&sort_by=topics&reverse=1")
+    suspend fun topicNodes(): List<TopicNode>
+
     @Json
     @GET("/api/members/show.json")
     suspend fun userInfo(@Query("username") username: String): UserInfo
@@ -122,13 +127,13 @@ interface V2exService {
     suspend fun bingSearch(@Url url: String): BingSearchResultInfo
 
     @Html
-    @GET("/new")
+    @GET("/write")
     suspend fun createTopicPageInfo(): CreateTopicPageInfo
 
     @Html
     @FormUrlEncoded
-    @POST("/new")
-    suspend fun createTopic(@FieldMap postParams: Map<String, String>): TopicInfo
+    @POST("/write")
+    suspend fun createTopic(@FieldMap postParams: Map<String, String>): CreateTopicPageInfo
 
     @Html
     @GET("/append/topic/{id}")

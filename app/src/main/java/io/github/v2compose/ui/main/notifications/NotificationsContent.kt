@@ -1,12 +1,12 @@
 package io.github.v2compose.ui.main.notifications
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ContentAlpha
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -27,6 +28,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
+import io.github.v2compose.R
 import io.github.v2compose.network.bean.NotificationInfo
 import io.github.v2compose.ui.common.*
 
@@ -34,25 +36,33 @@ private const val TAG = "NotificationsContent"
 
 @Composable
 fun NotificationsContent(
+    onLoginClick: () -> Unit,
     onUriClick: (String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
     viewModel: NotificationViewModel = hiltViewModel()
 ) {
-    val unreadNotifications by viewModel.unreadNotifications.collectAsStateWithLifecycle()
-    val notifications = viewModel.notifications.collectAsLazyPagingItems()
-
-    LaunchedEffect(unreadNotifications) {
-        if (unreadNotifications > 0) {
-            notifications.refresh()
-        }
-    }
+    val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        NotificationList(
-            notifications = notifications,
-            onUriClick = onUriClick,
-            onUserAvatarClick = onUserAvatarClick
-        )
+        if (isLoggedIn) {
+            val unreadNotifications by viewModel.unreadNotifications.collectAsStateWithLifecycle()
+            val notifications = viewModel.notifications.collectAsLazyPagingItems()
+
+            LaunchedEffect(unreadNotifications) {
+                if (unreadNotifications > 0) {
+                    notifications.refresh()
+                }
+            }
+            NotificationList(
+                notifications = notifications,
+                onUriClick = onUriClick,
+                onUserAvatarClick = onUserAvatarClick
+            )
+        } else {
+            ElevatedButton(onClick = onLoginClick, modifier = Modifier.align(Alignment.Center)) {
+                Text(stringResource(id = R.string.login))
+            }
+        }
     }
 }
 
@@ -69,7 +79,7 @@ private fun NotificationList(
     }
 
     PullToRefresh(refreshing = refreshing, onRefresh = { notifications.refresh() }) {
-        LazyColumn {
+        LazyColumn() {
 //            pagingRefreshItem(lazyPagingItems = notifications)
             itemsIndexed(items = notifications, key = { _, item -> item.id }) { _, item ->
                 item?.let {

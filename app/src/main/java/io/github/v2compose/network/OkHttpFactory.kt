@@ -16,6 +16,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
+import okio.IOException
 import org.greenrobot.eventbus.EventBus
 import java.util.concurrent.TimeUnit
 
@@ -40,8 +41,10 @@ object OkHttpFactory {
 
     private fun createHttpClient(): OkHttpClient {
         val builder: OkHttpClient.Builder =
-            OkHttpClient.Builder().connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .cookieJar(cookieJar).retryOnConnectionFailure(true)
+            OkHttpClient.Builder()
+                .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .cookieJar(cookieJar)
+                .retryOnConnectionFailure(true)
                 .addInterceptor(ConfigInterceptor())
                 .addInterceptor(RedirectInterceptor())
                 .followRedirects(false)
@@ -57,8 +60,10 @@ object OkHttpFactory {
 
     private fun createImageHttpClient(): OkHttpClient {
         val builder: OkHttpClient.Builder =
-            OkHttpClient.Builder().connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .cookieJar(cookieJar).retryOnConnectionFailure(true)
+            OkHttpClient.Builder()
+                .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .cookieJar(cookieJar)
+                .retryOnConnectionFailure(true)
                 .addInterceptor(ConfigInterceptor())
         if (BuildConfig.DEBUG) {
             builder.addInterceptor(
@@ -74,6 +79,7 @@ object OkHttpFactory {
     }
 
     private class ConfigInterceptor : Interceptor {
+        @Throws(IOException::class)
         override fun intercept(chain: Interceptor.Chain): Response {
             var request: Request = chain.request()
             val ua = request.header(keyUserAgent)
@@ -85,6 +91,7 @@ object OkHttpFactory {
     }
 
     private class RedirectInterceptor : Interceptor {
+        @Throws(IOException::class)
         override fun intercept(chain: Interceptor.Chain): Response {
             val resp = chain.proceed(chain.request())
             if (resp.isRedirect && chain.request().url.host.contains(Constants.host)) {

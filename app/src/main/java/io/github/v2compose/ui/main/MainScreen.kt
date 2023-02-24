@@ -20,6 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.v2compose.R
 import io.github.v2compose.network.bean.NewsInfo
+import io.github.v2compose.ui.HandleSnackbarMessage
 import io.github.v2compose.ui.common.NewReleaseDialog
 import io.github.v2compose.ui.main.home.HomeContent
 import io.github.v2compose.ui.main.mine.MineContent
@@ -41,8 +42,11 @@ fun MainScreenRoute(
     onSettingsClick: () -> Unit,
     openUri: (String) -> Unit,
     viewModel: MainViewModel = hiltViewModel(),
+    screenState: MainScreenState = rememberMainScreenState()
 ) {
     val unreadNotifications by viewModel.unreadNotifications.collectAsStateWithLifecycle()
+
+    HandleSnackbarMessage(viewModel, screenState)
 
     val newRelease by viewModel.newRelease.collectAsStateWithLifecycle()
     if (newRelease.isValid()) {
@@ -191,6 +195,7 @@ fun MainContent(
             )
             1 -> NodesContent(onNodeClick = onNodeClick)
             2 -> NotificationsContent(
+                onLoginClick = onLoginClick,
                 onUriClick = onUriClick,
                 onUserAvatarClick = onUserAvatarClick
             )

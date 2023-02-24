@@ -1,6 +1,7 @@
 package io.github.v2compose.usecase
 
-import io.github.v2compose.datasource.AppPreferences
+import android.net.Uri
+import io.github.v2compose.datasource.AccountPreferences
 import io.github.v2compose.network.OkHttpFactory
 import io.github.v2compose.network.bean.LoginResultInfo
 import io.github.v2compose.network.bean.NewsInfo
@@ -10,7 +11,7 @@ import retrofit2.HttpException
 import javax.inject.Inject
 
 class UpdateAccountUseCase @Inject constructor(
-    private val appPreferences: AppPreferences,
+    private val accountPreferences: AccountPreferences,
     private val accountRepository: AccountRepository
 ) {
 
@@ -23,19 +24,20 @@ class UpdateAccountUseCase @Inject constructor(
         if (loginResultInfo == null || !loginResultInfo.isValid) {
             return
         }
-        appPreferences.updateAccount(
+        accountPreferences.updateAccount(
             userName = loginResultInfo.userName,
             userAvatar = loginResultInfo.avatar,
         )
     }
 
     suspend fun updateWithException(e: Exception, userName: String) {
-        if (e !is HttpException) {
-            return
-        }
-        val resp = e.response()?.raw()
-        if (resp != null && resp.isRedirect && resp.headers("location").firstOrNull() == "/") {
-            appPreferences.updateAccount(userName = userName)
+        if (e !is HttpException) return
+        val resp = e.response()?.raw() ?: return
+        if (!resp.isRedirect) return
+        val location = resp.header("location") ?: return
+        val uri = Uri.parse(location) ?: return
+        if (uri.path == "/") {
+            accountPreferences.updateAccount(userName = userName)
         }
     }
 

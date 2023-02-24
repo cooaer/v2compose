@@ -8,7 +8,7 @@ import kotlin.math.ceil
 
 class NotificationPagingSource(
     private val v2exService: V2exService,
-    private val appPreferences: AppPreferences
+    private val accountPreferences: AccountPreferences,
 ) :
     PagingSource<Int, NotificationInfo.Reply>() {
 
@@ -35,7 +35,7 @@ class NotificationPagingSource(
         val page = params.key ?: FirstPageIndex
         return try {
             val result = v2exService.notifications(page)
-            appPreferences.updateAccount(unreadNotifications = result.unreadCount)
+            accountPreferences.unreadNotifications(result.unreadCount)
 
             val pageCount = ceil(result.total.toFloat() / ItemCountOfPage).toInt()
             val prevKey = if (page > FirstPageIndex) page - 1 else null

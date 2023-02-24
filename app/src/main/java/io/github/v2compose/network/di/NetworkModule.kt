@@ -8,6 +8,7 @@ import dagger.hilt.components.SingletonComponent
 import io.github.v2compose.network.GithubService
 import io.github.v2compose.network.OkHttpFactory
 import io.github.v2compose.network.V2exService
+import io.github.v2compose.network.WebkitCookieManagerProxy
 import me.ghui.fruit.Fruit
 import okhttp3.CookieJar
 import okhttp3.OkHttpClient
@@ -43,6 +44,9 @@ object NetworkModule {
 
     @Provides
     fun provideCookieJar(): CookieJar = OkHttpFactory.cookieJar
+
+    @Provides
+    fun provideCookieManager(): WebkitCookieManagerProxy = OkHttpFactory.cookieJar
 
     @Provides
     @CommonOkHttpClient

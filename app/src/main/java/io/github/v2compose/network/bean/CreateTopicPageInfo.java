@@ -1,8 +1,11 @@
 package io.github.v2compose.network.bean;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -18,12 +21,15 @@ import me.ghui.fruit.annotations.Pick;
 public class CreateTopicPageInfo extends BaseInfo {
     @Pick(value = "input[name=once]", attr = "value")
     private String once;
-    @Pick(value = "a.node")
-    private List<HotTitle> hotNodesText;
+
     @Pick("div.problem")
     private Problem problem;
-    private LinkedHashSet<String> hotIds;
 
+    public String getOnce() {
+        return once;
+    }
+
+    @Nullable
     public Problem getProblem() {
         return problem;
     }
@@ -38,46 +44,34 @@ public class CreateTopicPageInfo extends BaseInfo {
     }
 
     @Override
-    public String toString() {
-        return "CreateTopicPageInfo{" +
-                "once='" + once + '\'' +
-                ", hotNodes=" + hotNodesText +
-                '}';
-    }
-
-    @Override
     public boolean isValid() {
         return Check.notEmpty(once);
     }
 
-    public LinkedHashSet<String> getHotNodeIds() {
-        if (hotIds != null) return hotIds;
-        hotIds = new LinkedHashSet<>();
-        for (HotTitle hotTitle : hotNodesText) {
-            String idText = hotTitle.href;
-            String id = idText.substring(idText.indexOf("'") + 1, idText.lastIndexOf("'"));
-            hotIds.add(id);
-        }
-        return hotIds;
-    }
-
-    public static class HotTitle implements Serializable {
-        @Pick(attr = Attrs.HREF)
-        public String href;
+    @NonNull
+    @Override
+    public String toString() {
+        return "CreateTopicPageInfo{" +
+                "once='" + once + '\'' +
+                ", problem=" + problem +
+                '}';
     }
 
     public static class Problem implements Serializable {
+        @Pick(attr = Attrs.HTML)
+        private String html;
+
         @Pick(attr = Attrs.OWN_TEXT)
         private String title;
         @Pick("ul li")
         private List<String> tips;
 
-        public boolean isEmpty() {
-            return Check.isEmpty(tips) && Check.isEmpty(title);
+        public String getHtml() {
+            return html;
         }
 
         public List<String> getTips() {
-            return tips;
+            return tips != null ? tips : Collections.emptyList();
         }
 
         public String getTitle() {
@@ -87,9 +81,14 @@ public class CreateTopicPageInfo extends BaseInfo {
         @Override
         public String toString() {
             return "Problem{" +
-                    "title='" + title + '\'' +
+                    "html='" + html + '\'' +
+                    ", title='" + title + '\'' +
                     ", tips=" + tips +
                     '}';
+        }
+
+        public boolean isEmpty() {
+            return Check.isEmpty(tips) && Check.isEmpty(title);
         }
     }
 }

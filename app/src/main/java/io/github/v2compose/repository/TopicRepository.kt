@@ -1,10 +1,8 @@
 package io.github.v2compose.repository
 
 import androidx.paging.PagingData
-import io.github.v2compose.network.bean.ReplyTopicResultInfo
-import io.github.v2compose.network.bean.SoV2EXSearchResultInfo
-import io.github.v2compose.network.bean.TopicInfo
-import io.github.v2compose.network.bean.V2exResult
+import io.github.v2compose.bean.DraftTopic
+import io.github.v2compose.network.bean.*
 import kotlinx.coroutines.flow.Flow
 
 interface TopicRepository {
@@ -19,14 +17,14 @@ interface TopicRepository {
 
     val topicTitleOverview: Flow<Boolean>
 
-    suspend fun topicAction(
+    suspend fun doTopicAction(
         action: String,
         method: ActionMethod,
         topicId: String,
         once: String
     ): V2exResult
 
-    suspend fun replyAction(
+    suspend fun doReplyAction(
         action: String,
         method: ActionMethod,
         topicId: String,
@@ -37,6 +35,21 @@ interface TopicRepository {
     suspend fun ignoreReply(topicId: String, replyId: String, once: String): Boolean
 
     suspend fun replyTopic(topicId: String, content: String, once: String): ReplyTopicResultInfo
+
+    val draftTopic: Flow<DraftTopic>
+
+    suspend fun saveDraftTopic(title: String, content: String, node: TopicNode?)
+
+    suspend fun getCreateTopicPageInfo(): CreateTopicPageInfo
+
+    suspend fun getTopicNodes(): List<TopicNode>
+
+    suspend fun createTopic(
+        title: String,
+        content: String,
+        nodeId: String,
+        once: String
+    ): CreateTopicPageInfo
 }
 
 enum class ActionMethod {

@@ -10,7 +10,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -20,7 +19,7 @@ import io.github.v2compose.bean.DarkMode
 import io.github.v2compose.ui.common.keyboardAsState
 import io.github.v2compose.ui.theme.V2composeTheme
 
-val LocalSnackbarHostStateHolder =
+val LocalSnackbarHostState =
     compositionLocalOf<SnackbarHostState> { error("LocalSnackbar not provided") }
 private val BottomAppBarHeight = 72.dp
 
@@ -43,7 +42,7 @@ fun V2App(viewModel: V2AppViewModel = viewModel()) {
         val navController = rememberAnimatedNavController()
         val appState = rememberV2AppState(navHostController = navController)
 
-        CompositionLocalProvider(LocalSnackbarHostStateHolder provides appState.snackbarHostState) {
+        CompositionLocalProvider(LocalSnackbarHostState provides appState.snackbarHostState) {
             Box(modifier = Modifier.fillMaxSize()) {
                 V2AppNavGraph(
                     navController = navController,

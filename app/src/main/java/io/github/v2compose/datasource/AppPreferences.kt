@@ -2,21 +2,22 @@ package io.github.v2compose.datasource
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.squareup.moshi.Moshi
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.v2compose.bean.DarkMode
-import io.github.v2compose.network.OkHttpFactory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 private const val TAG = "AppSettingsDataSource"
 
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
-
+private val Context.appDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 data class AppSettings(
     val topicRepliesReversed: Boolean = true,
@@ -24,53 +25,28 @@ data class AppSettings(
     val darkMode: DarkMode = DarkMode.FollowSystem,
     val topicTitleOverview: Boolean = true,
     val ignoredReleaseName: String? = null,
+    val autoCheckIn: Boolean = false,
 ) {
     companion object {
         val Default = AppSettings()
     }
 }
 
-data class Account(
-    val userName: String = "",
-    val userAvatar: String = "",
-    val description: String = "",
-    val nodes: Int = 0,
-    val topics: Int = 0,
-    val following: Int = 0,
-    val unreadNotifications: Int = 0,
+class AppPreferences @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val moshi: Moshi,
 ) {
-    companion object {
-        val Empty = Account()
-
-        fun fromJson(json: String): Account {
-            return OkHttpFactory.gson.fromJson(json, Account::class.java)
-        }
-    }
-
-    fun toJson(): String {
-        return OkHttpFactory.gson.toJson(this)
-    }
-
-    fun isValid(): Boolean {
-        return userName.isNotEmpty()
-    }
-}
-
-
-class AppPreferences @Inject constructor(@ApplicationContext private val context: Context) {
 
     companion object {
         private val KeyTopicRepliesReversed = booleanPreferencesKey("topic_replies_reversed")
         private val KeyOpenInInternalBrowser = booleanPreferencesKey("open_in_internal_browser")
         private val KeyDarkMode = stringPreferencesKey("dark_mode")
         private val KeyTopicTitleOverview = booleanPreferencesKey("topic_title_overview")
-
         private val KeyIgnoredReleaseName = stringPreferencesKey("ignored_release_name")
-
-        private val KeyAccount = stringPreferencesKey("account")
+        private val KeyAutoCheckIn = booleanPreferencesKey("auto_check_in")
     }
 
-    val appSettings: Flow<AppSettings> = context.dataStore.data.map {
+    val appSettings: Flow<AppSettings> = context.appDataStore.data.map {
         AppSettings(
             topicRepliesReversed = it[KeyTopicRepliesReversed] ?: true,
             openInInternalBrowser = it[KeyOpenInInternalBrowser] ?: true,
@@ -78,72 +54,43 @@ class AppPreferences @Inject constructor(@ApplicationContext private val context
                 ?: DarkMode.FollowSystem,
             topicTitleOverview = it[KeyTopicTitleOverview] ?: true,
             ignoredReleaseName = it[KeyIgnoredReleaseName],
+            autoCheckIn = it[KeyAutoCheckIn] ?: false,
         )
     }.distinctUntilChanged()
 
-    val account: Flow<Account> = context.dataStore.data.map { preferences ->
-        with(preferences[KeyAccount]) {
-            if (isNullOrEmpty()) Account.Empty else Account.fromJson(this)
-        }
-    }.distinctUntilChanged()
-
     suspend fun toggleTopicRepliesOrder() {
-        context.dataStore.edit {
+        context.appDataStore.edit {
             it[KeyTopicRepliesReversed] = !(it[KeyTopicRepliesReversed] ?: true)
         }
     }
 
     suspend fun openInInternalBrowser(value: Boolean) {
-        context.dataStore.edit {
+        context.appDataStore.edit {
             it[KeyOpenInInternalBrowser] = value
         }
     }
 
     suspend fun darkMode(value: DarkMode) {
-        context.dataStore.edit {
+        context.appDataStore.edit {
             it[KeyDarkMode] = value.name
         }
     }
 
     suspend fun topicTitleOverview(value: Boolean) {
-        context.dataStore.edit {
+        context.appDataStore.edit {
             it[KeyTopicTitleOverview] = value
         }
     }
 
     suspend fun ignoredReleaseName(value: String) {
-        context.dataStore.edit {
+        context.appDataStore.edit {
             it[KeyIgnoredReleaseName] = value
         }
     }
 
-    suspend fun account(value: Account) {
-        context.dataStore.edit {
-            it[KeyAccount] = value.toJson()
+    suspend fun autoCheckIn(value: Boolean) {
+        context.appDataStore.edit {
+            it[KeyAutoCheckIn] = value
         }
     }
-
-    suspend fun updateAccount(
-        userName: String? = null,
-        userAvatar: String? = null,
-        description: String? = null,
-        nodes: Int? = null,
-        topics: Int? = null,
-        following: Int? = null,
-        unreadNotifications:Int? = null,
-    ) {
-        val current = account.first()
-        account(
-            current.copy(
-                userName = userName ?: current.userName,
-                userAvatar = userAvatar ?: current.userAvatar,
-                description = description ?: current.description,
-                nodes = nodes ?: current.nodes,
-                topics = topics ?: current.topics,
-                following = following ?: current.following,
-                unreadNotifications = unreadNotifications ?: current.unreadNotifications,
-            )
-        )
-    }
-
 }

@@ -1,11 +1,8 @@
 package io.github.v2compose.repository
 
 import androidx.paging.PagingData
-import io.github.v2compose.datasource.Account
-import io.github.v2compose.network.bean.HomePageInfo
-import io.github.v2compose.network.bean.LoginParam
-import io.github.v2compose.network.bean.NotificationInfo
-import io.github.v2compose.network.bean.TwoStepLoginInfo
+import io.github.v2compose.bean.Account
+import io.github.v2compose.network.bean.*
 import kotlinx.coroutines.flow.Flow
 
 interface AccountRepository {
@@ -37,6 +34,15 @@ interface AccountRepository {
     suspend fun refreshAccount()
 
     //签到
-    suspend fun signIn()
+
+    val hasCheckingInTips: Flow<Boolean>
+
+    val autoCheckIn:Flow<Boolean>
+
+    val lastCheckInTime: Flow<Long>
+
+    suspend fun dailyInfo(): DailyInfo
+
+    suspend fun checkIn(once: String): DailyInfo
 
 }

@@ -1,5 +1,6 @@
 package io.github.v2compose.ui.user
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -59,7 +60,7 @@ class UserViewModel @Inject constructor(
 
 }
 
-
+@Stable
 sealed interface UserUiState {
     data class Success(val userPageInfo: UserPageInfo) : UserUiState
     object Loading : UserUiState

@@ -24,9 +24,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -40,6 +38,7 @@ import io.github.v2compose.R
 import io.github.v2compose.network.bean.TopicInfo
 import io.github.v2compose.network.bean.TopicInfo.ContentInfo.Supplement
 import io.github.v2compose.network.bean.TopicInfo.Reply
+import io.github.v2compose.ui.HandleSnackbarMessage
 import io.github.v2compose.ui.common.*
 import io.github.v2compose.ui.topic.composables.*
 import kotlinx.coroutines.launch
@@ -55,15 +54,6 @@ fun TopicScreenRoute(
     viewModel: TopicViewModel = hiltViewModel(),
     screenState: TopicScreenState = rememberTopicScreenState(),
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val uiMessage by viewModel.uiMessage.collectAsStateWithLifecycle()
-    LaunchedEffect(uiMessage) {
-        uiMessage?.let {
-            snackbarHostState.showSnackbar(message = it, duration = SnackbarDuration.Short)
-            viewModel.resetUiMessage()
-        }
-    }
-
     val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
     val repliesReversed by viewModel.repliesReversed.collectAsStateWithLifecycle(initialValue = true)
     val topicItems = viewModel.topicItems.collectAsLazyPagingItems()
@@ -80,13 +70,15 @@ fun TopicScreenRoute(
 
     HandleReplyTopicState(replyTopicState, topicItems, openUri)
 
+    HandleSnackbarMessage(viewModel, screenState)
+
     TopicScreen(
         isLoggedIn = isLoggedIn,
         topicInfo = topicInfoWrapper,
         repliesOrder = if (repliesReversed) RepliesOrder.Negative else RepliesOrder.Positive,
         topicItems = topicItems,
         htmlImageSizes = viewModel.htmlImageSizes,
-        snackbarHostState = snackbarHostState,
+        snackbarHostState = screenState.snackbarHostState,
         replyWrappers = replyWrappers,
         replyTopicState = replyTopicState,
         onBackClick = onBackClick,
@@ -416,7 +408,8 @@ private fun UserRepliesDialog(
                     contentPadding = PaddingValues(bottom = 8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    itemsIndexed(items = userReplies,
+                    itemsIndexed(
+                        items = userReplies,
                         key = { _, item -> item.replyId }) { index, item ->
                         UserTopicReply(index, reply = item, onUriClick = onUriClick)
                     }
@@ -461,7 +454,6 @@ private fun TopicContent(
         content = content,
         htmlImageSizes = htmlImageSizes,
         selectable = false,
-        textStyle = TextStyle.Default.copy(fontSize = 15.sp),
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
         onUriClick = openUri,
     )
@@ -494,7 +486,6 @@ private fun TopicSupplement(
                 content = supplement.content,
                 htmlImageSizes = htmlImageSizes,
                 selectable = false,
-                textStyle = TextStyle.Default.copy(fontSize = 15.sp),
                 modifier = Modifier.fillMaxWidth(),
                 onUriClick = openUri,
             )
@@ -568,9 +559,7 @@ private fun FabButton(
                     FabType.Send -> Icon(Icons.Rounded.Send, type.name, tint = contentColor)
                     FabType.Reply -> Icon(Icons.Rounded.Comment, type.name, tint = contentColor)
                     FabType.Loading -> CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = contentColor,
-                        strokeWidth = 2.dp
+                        modifier = Modifier.size(24.dp), color = contentColor, strokeWidth = 2.dp
                     )
                 }
             }

@@ -6,7 +6,6 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
-import io.github.v2compose.datasource.AppSettings
 import io.github.v2compose.ui.login.google.googleLoginScreen
 import io.github.v2compose.ui.login.google.navigateToGoogleLogin
 import io.github.v2compose.ui.login.loginScreen
@@ -26,6 +25,8 @@ import io.github.v2compose.ui.topic.topicScreen
 import io.github.v2compose.ui.user.navigateToUser
 import io.github.v2compose.ui.user.userScreen
 import io.github.v2compose.ui.webview.webViewScreen
+import io.github.v2compose.ui.write.navigateToWriteTopic
+import io.github.v2compose.ui.write.writeTopicScreen
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -54,7 +55,7 @@ fun V2AppNavGraph(
             onMyNodesClick = {},
             onMyTopicsClick = {},
             onMyFollowingClick = {},
-            onCreateTopicClick = {},
+            onCreateTopicClick = navController::navigateToWriteTopic,
             onSettingsClick = navController::navigateToSettings,
             openUri = appState::openUri,
         )
@@ -97,6 +98,11 @@ fun V2AppNavGraph(
         )
         webViewScreen(
             onCloseClick = appState::back,
+        )
+        writeTopicScreen(
+            onCloseClick = appState::back,
+            openUri = appState::openUri,
+            onCreateTopicSuccess = { navController.navigateToTopic(it) },
         )
     }
 }

@@ -3,15 +3,14 @@ package io.github.v2compose.repository.def
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import io.github.v2compose.datasource.Account
+import io.github.v2compose.bean.Account
+import io.github.v2compose.datasource.AccountPreferences
 import io.github.v2compose.datasource.AppPreferences
+import io.github.v2compose.datasource.AppStateStore
 import io.github.v2compose.datasource.NotificationPagingSource
-import io.github.v2compose.network.OkHttpFactory
 import io.github.v2compose.network.V2exService
-import io.github.v2compose.network.bean.HomePageInfo
-import io.github.v2compose.network.bean.LoginParam
-import io.github.v2compose.network.bean.NotificationInfo
-import io.github.v2compose.network.bean.TwoStepLoginInfo
+import io.github.v2compose.network.WebkitCookieManagerProxy
+import io.github.v2compose.network.bean.*
 import io.github.v2compose.repository.AccountRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -21,6 +20,9 @@ import javax.inject.Inject
 class DefaultAccountRepository @Inject constructor(
     private val v2exService: V2exService,
     private val appPreferences: AppPreferences,
+    private val accountPreferences: AccountPreferences,
+    private val cookieManager: WebkitCookieManagerProxy,
+    private val appStateStore: AppStateStore,
 ) : AccountRepository {
 
     companion object {
@@ -28,22 +30,22 @@ class DefaultAccountRepository @Inject constructor(
     }
 
     override val account: Flow<Account>
-        get() = appPreferences.account
+        get() = accountPreferences.account
 
     override val isLoggedIn: Flow<Boolean>
-        get() = appPreferences.account.map { it.isValid() }
+        get() = accountPreferences.account.map { it.isValid() }
 
     override val unreadNotifications: Flow<Int>
-        get() = appPreferences.account.map { it.unreadNotifications }
+        get() = accountPreferences.unreadNotifications
 
     override fun getNotifications(): Flow<PagingData<NotificationInfo.Reply>> {
         return Pager(
             PagingConfig(pageSize = 20, enablePlaceholders = false)
-        ) { NotificationPagingSource(v2exService, appPreferences) }.flow
+        ) { NotificationPagingSource(v2exService, accountPreferences) }.flow
     }
 
     override suspend fun resetNotificationCount() {
-        return appPreferences.updateAccount(unreadNotifications = 0)
+        return accountPreferences.unreadNotifications(0)
     }
 
     override suspend fun getLoginParam(): LoginParam {
@@ -63,8 +65,8 @@ class DefaultAccountRepository @Inject constructor(
     }
 
     override suspend fun logout(): Boolean {
-        appPreferences.account(Account.Empty)
-        OkHttpFactory.cookieJar.clearCookies()
+        accountPreferences.clear()
+        cookieManager.clearCookies()
         return true
     }
 
@@ -75,7 +77,7 @@ class DefaultAccountRepository @Inject constructor(
     override suspend fun fetchUserInfo() {
         val dailyInfo = v2exService.dailyInfo()
         if (dailyInfo.isValid) {
-            appPreferences.updateAccount(
+            accountPreferences.updateAccount(
                 userName = dailyInfo.userName,
                 userAvatar = dailyInfo.avatar
             )
@@ -86,7 +88,7 @@ class DefaultAccountRepository @Inject constructor(
         val userName = account.first().userName
         val homePageInfo = v2exService.homePageInfo(userName)
         val userInfo = v2exService.userInfo(userName)
-        appPreferences.updateAccount(
+        accountPreferences.updateAccount(
             userName = homePageInfo.userName,
             userAvatar = userInfo.largestAvatar,
             description = homePageInfo.desc,
@@ -96,8 +98,26 @@ class DefaultAccountRepository @Inject constructor(
         )
     }
 
-    override suspend fun signIn() {
+    override val hasCheckingInTips: Flow<Boolean> = appStateStore.hasCheckingInTips
 
+    override val autoCheckIn: Flow<Boolean> = appPreferences.appSettings.map { it.autoCheckIn }
+
+    override val lastCheckInTime: Flow<Long> = accountPreferences.lastCheckInTime
+
+    override suspend fun dailyInfo(): DailyInfo {
+        return v2exService.dailyInfo().also {
+            appStateStore.updateHasCheckingInTips(!it.hadCheckedIn())
+            if (it.hadCheckedIn()) {
+                accountPreferences.lastCheckInTime(System.currentTimeMillis())
+            }
+        }
+    }
+
+    override suspend fun checkIn(once: String): DailyInfo {
+        return v2exService.checkIn(once).also {
+            appStateStore.updateHasCheckingInTips(!it.hadCheckedIn())
+            accountPreferences.lastCheckInTime(System.currentTimeMillis())
+        }
     }
 
 }

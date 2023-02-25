@@ -15,6 +15,7 @@ import io.github.v2compose.core.share
 import io.github.v2compose.network.bean.TopicInfo
 import io.github.v2compose.ui.BaseScreenState
 import io.github.v2compose.ui.topic.composables.TopicMenuItem
+import io.github.v2compose.util.V2exUri
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -48,11 +49,11 @@ class TopicScreenState(
             TopicMenuItem.Share -> {
                 share(
                     topicInfo.headerInfo.title,
-                    Constants.topicUrl(topicArgs.topicId)
+                    V2exUri.topicUrl(topicArgs.topicId)
                 )
             }
             TopicMenuItem.OpenInBrowser -> {
-                openInBrowser(Constants.topicUrl(topicArgs.topicId))
+                openInBrowser(V2exUri.topicUrl(topicArgs.topicId))
             }
             else -> {}
         }

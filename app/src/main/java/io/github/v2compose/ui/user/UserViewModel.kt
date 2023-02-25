@@ -1,31 +1,34 @@
 package io.github.v2compose.ui.user
 
+import android.app.Application
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.v2compose.R
 import io.github.v2compose.core.StringDecoder
 import io.github.v2compose.network.bean.UserPageInfo
 import io.github.v2compose.repository.TopicRepository
 import io.github.v2compose.repository.UserRepository
+import io.github.v2compose.ui.BaseViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class UserViewModel @Inject constructor(
+    application: Application,
     savedStateHandle: SavedStateHandle,
     stringDecoder: StringDecoder,
     private val userRepository: UserRepository,
     private val topicRepository: TopicRepository,
-) : ViewModel() {
+) : BaseViewModel(application) {
 
     val userArgs = UserArgs(savedStateHandle, stringDecoder)
 
-    private val _userPageInfo = MutableStateFlow<UserUiState>(UserUiState.Loading)
-    val userPageInfo = _userPageInfo.asStateFlow()
+    private val _userUiState = MutableStateFlow<UserUiState>(UserUiState.Loading)
+    val userUiState = _userUiState.asStateFlow()
 
     val userTopics = userRepository.getUserTopics(userArgs.userName).cachedIn(viewModelScope)
 
@@ -47,13 +50,38 @@ class UserViewModel @Inject constructor(
 
     private fun loadUserPageInfo() {
         viewModelScope.launch {
-            _userPageInfo.emit(UserUiState.Loading)
+            _userUiState.emit(UserUiState.Loading)
             try {
                 val result = userRepository.getUserPageInfo(userArgs.userName)
-                _userPageInfo.emit(UserUiState.Success(result))
+                _userUiState.emit(UserUiState.Success(result))
             } catch (e: Exception) {
                 e.printStackTrace()
-                _userPageInfo.emit(UserUiState.Error(e))
+                _userUiState.emit(UserUiState.Error(e))
+            }
+        }
+    }
+
+    fun followUser() {
+        doUserAction { it.followUrl }
+    }
+
+    fun blockUser() {
+        doUserAction { it.blockUrl }
+    }
+
+    private fun doUserAction(actionUrl: (UserPageInfo) -> String) {
+        if (userUiState.value !is UserUiState.Success) {
+            return
+        }
+        val userPageInfo = (userUiState.value as UserUiState.Success).userPageInfo
+        val url = actionUrl(userPageInfo)
+        viewModelScope.launch {
+            try {
+                val result = userRepository.doUserAction(userPageInfo.userName, url)
+                _userUiState.emit(UserUiState.Success(result))
+            } catch (e: Exception) {
+                e.printStackTrace()
+                updateSnackbarMessage(e.message ?: context.getString(R.string.action_failure))
             }
         }
     }

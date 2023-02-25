@@ -1,7 +1,6 @@
 package io.github.v2compose.network
 
 import io.github.v2compose.network.bean.*
-import io.github.v2compose.util.RefererUtils
 import me.ghui.fruit.converter.retrofit.FruitConverterFactory
 import me.ghui.retrofit.converter.GlobalConverterFactory
 import me.ghui.retrofit.converter.annotations.Html
@@ -68,10 +67,6 @@ interface V2exService {
     suspend fun homeNews(@Query("tab") tab: String): NewsInfo
 
     @Html
-    @GET("/recent")
-    suspend fun recentNews(@Query("p") page: Int): NewsInfo
-
-    @Html
     @GET("/signin")
     suspend fun loginParam(): LoginParam
 
@@ -92,15 +87,15 @@ interface V2exService {
 
     @Html
     @GET("/my/following")
-    suspend fun specialCareInfo(@Query("p") page: Int): CareInfo
+    suspend fun myFollowingInfo(@Query("p") page: Int): MyFollowingInfo
 
     @Html
     @GET("/my/topics")
-    suspend fun topicStarInfo(@Query("p") page: Int): TopicStarInfo
+    suspend fun myTopicsInfo(@Query("p") page: Int): MyTopicsInfo
 
     @Html
     @GET("/my/nodes")
-    suspend fun nodeStarInfo(): NodeStarInfo
+    suspend fun myNodesInfo(): MyNodesInfo
 
     @Html
     @GET("/")
@@ -199,22 +194,6 @@ interface V2exService {
     ): Response<ResponseBody>
 
     @Html
-    @GET("/settings/ignore/node/{id}")
-    suspend fun ignoreNode(@Path("id") nodeId: String, @Query("once") once: String): NodeTopicInfo
-
-    @Html
-    @GET("/settings/unignore/node/{id}")
-    suspend fun unIgnoreNode(@Path("id") nodeId: String, @Query("once") once: String): NodeTopicInfo
-
-    @Html
-    @POST("/up/topic/{id}")
-    suspend fun upTopic(@Path("id") id: String, @Query("t") string: String): SimpleInfo
-
-    @Html
-    @POST("/down/topic/{id}")
-    suspend fun downTopic(@Path("id") id: String, @Query("t") string: String): SimpleInfo
-
-    @Html
     @FormUrlEncoded
     @POST("/t/{id}")
     suspend fun replyTopic(
@@ -226,14 +205,17 @@ interface V2exService {
     @GET
     suspend fun blockUser(@Url url: String): SimpleInfo
 
+    // https://www.v2ex.com/follow/264541?once=87883
+    // https://www.v2ex.com/unfollow/264541?once=86758
     @Html
     @GET
-    suspend fun followUser(@Header("Referer") referer: String, @Url url: String): UserPageInfo
+    suspend fun userAction(@Header("Referer") referer: String, @Url url: String): UserPageInfo
 
+    //Request URL: https://www.v2ex.com/unfavorite/node/770?once=18542
+    //Request URL: https://www.v2ex.com/favorite/node/770?once=18542
     @Html
     @GET
-    @Headers("Referer: " + RefererUtils.TINY_REFER)
-    suspend fun starNode(@Url url: String): SimpleInfo
+    suspend fun nodeAction(@Header("Referer") referer: String, @Url url: String): NodeTopicInfo
 
     @Html
     @GET("/mission/daily")
@@ -254,19 +236,6 @@ interface V2exService {
     @Headers("Referer: " + NetConstants.BASE_URL)
     @POST("/2fa")
     suspend fun signInTwoStep(@FieldMap map: Map<String, String>): TwoStepLoginInfo
-
-    @Html
-    @Headers("Referer: " + RefererUtils.TINY_REFER)
-    @GET
-    suspend fun requestByUrl(@Url url: String): DailyInfo
-
-    @Html
-    @GET
-    suspend fun fadeTopic(@Url url: String): TopicInfo
-
-    @Html
-    @GET
-    suspend fun stickyTopic(@Url url: String): TopicInfo
 
     @Html
     @GET("/member/{user}")

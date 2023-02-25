@@ -10,20 +10,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ContentAlpha
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -33,16 +27,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
-import coil.compose.AsyncImage
 import io.github.v2compose.Constants
 import io.github.v2compose.R
-import io.github.v2compose.core.extension.castOrNull
 import io.github.v2compose.core.share
-import io.github.v2compose.network.bean.UserPageInfo
 import io.github.v2compose.network.bean.UserReplies
 import io.github.v2compose.network.bean.UserTopics
+import io.github.v2compose.ui.HandleSnackbarMessage
 import io.github.v2compose.ui.common.*
+import io.github.v2compose.ui.user.composables.UserToolbar
+import io.github.v2compose.util.V2exUri
 import kotlinx.coroutines.launch
+import me.onebone.toolbar.*
 
 @Composable
 fun UserScreenRoute(
@@ -50,15 +45,18 @@ fun UserScreenRoute(
     onTopicClick: (String) -> Unit,
     onNodeClick: (String, String) -> Unit,
     openUri: (String) -> Unit,
-    viewModel: UserViewModel = hiltViewModel()
+    viewModel: UserViewModel = hiltViewModel(),
+    screenState: UserScreenState = rememberUserScreenState(),
 ) {
     val context = LocalContext.current
 
     val userArgs = viewModel.userArgs
     val topicTitleOverview by viewModel.topicTitleOverview.collectAsStateWithLifecycle()
-    val userUiState by viewModel.userPageInfo.collectAsStateWithLifecycle()
+    val userUiState by viewModel.userUiState.collectAsStateWithLifecycle()
     val userTopics = viewModel.userTopics.collectAsLazyPagingItems()
     val userReplies = viewModel.userReplies.collectAsLazyPagingItems()
+
+    HandleSnackbarMessage(viewModel, screenState)
 
     UserScreen(
         userUiState = userUiState,
@@ -67,16 +65,17 @@ fun UserScreenRoute(
         topicTitleOverview = topicTitleOverview,
         onBackClick = onBackClick,
         onShareClick = {
-            context.share(userArgs.userName, Constants.userUrl(userArgs.userName))
+            context.share(userArgs.userName, V2exUri.userUrl(userArgs.userName))
         },
         onRetryClick = { viewModel.retry() },
+        onFollowClick = { viewModel.followUser() },
+        onBlockClick = { viewModel.blockUser() },
         onTopicClick = onTopicClick,
         onNodeClick = onNodeClick,
         openUri = openUri,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun UserScreen(
     userUiState: UserUiState,
@@ -86,22 +85,33 @@ private fun UserScreen(
     onBackClick: () -> Unit,
     onShareClick: () -> Unit,
     onRetryClick: () -> Unit,
+    onFollowClick: (Boolean) -> Unit,
+    onBlockClick: (Boolean) -> Unit,
     onTopicClick: (String) -> Unit,
     onNodeClick: (String, String) -> Unit,
     openUri: (String) -> Unit,
 ) {
+    val scaffoldState = rememberCollapsingToolbarScaffoldState()
 
-    Scaffold(topBar = {
-        UserTopBar(
-            title = "",
-            userPageInfo = userUiState.castOrNull<UserUiState.Success>()?.userPageInfo,
-            onBackClick = onBackClick,
-            onShareClick = onShareClick
-        )
-    }) {
-        Box(
-            modifier = Modifier.padding(it)
-        ) {
+    Surface(
+        modifier = Modifier
+            .background(color = MaterialTheme.colorScheme.background)
+            .systemBarsPadding(),
+    ) {
+        CollapsingToolbarScaffold(modifier = Modifier.fillMaxSize(),
+            state = scaffoldState,
+            scrollStrategy = ScrollStrategy.ExitUntilCollapsed,
+            enabled = true,
+            toolbar = {
+                UserToolbar(
+                    userUiState = userUiState,
+                    scaffoldState = scaffoldState,
+                    onBackClick = onBackClick,
+                    onShareClick = onShareClick,
+                    onFollowClick = onFollowClick,
+                    onBlockClick = onBlockClick,
+                )
+            }) {
             UserContent(
                 userUiState = userUiState,
                 userTopics = userTopics,
@@ -117,73 +127,6 @@ private fun UserScreen(
 
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun UserTopBar(
-    title: String,
-    userPageInfo: UserPageInfo?,
-    onBackClick: () -> Unit,
-    onShareClick: () -> Unit
-) {
-    TopAppBar(
-        title = {
-            if (userPageInfo != null) {
-                UserTopAppBarTitle(userPageInfo = userPageInfo)
-            } else {
-                Text(
-                    title,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        },
-        navigationIcon = { BackIcon(onBackClick = onBackClick) },
-        actions = {
-            IconButton(onClick = onShareClick) {
-                Icon(Icons.Rounded.Share, "share user")
-            }
-        }
-    )
-}
-
-@Composable
-fun UserTopAppBarTitle(userPageInfo: UserPageInfo) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        TopicUserAvatar(userName = userPageInfo.userName, userAvatar = userPageInfo.avatar)
-        Spacer(modifier = Modifier.width(8.dp))
-        Column {
-            Text(
-                userPageInfo.userName,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            if (userPageInfo.isOnline) {
-                Text(
-                    text = stringResource(id = R.string.user_online),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier
-                        .height(16.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(color = MaterialTheme.colorScheme.primaryContainer)
-                        .padding(horizontal = 6.dp)
-                )
-            } else {
-                Text(
-                    text = stringResource(id = R.string.user_offline),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .height(16.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(color = MaterialTheme.colorScheme.surfaceVariant)
-                        .padding(horizontal = 6.dp)
-                )
-            }
-        }
-    }
-}
 
 @Composable
 private fun UserContent(
@@ -195,22 +138,17 @@ private fun UserContent(
     onTopicClick: (String) -> Unit,
     onNodeClick: (String, String) -> Unit,
     openUri: (String) -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     when (userUiState) {
         is UserUiState.Success -> {
-            Column(modifier = modifier.fillMaxSize()) {
-//                UserHeader(userPageInfo = userUiState.userPageInfo)
-                UserDescription(userPageInfo = userUiState.userPageInfo)
-                UserPager(
-                    userTopics = userTopics,
-                    userReplies = userReplies,
-                    topicTitleOverview = topicTitleOverview,
-                    onTopicClick = onTopicClick,
-                    onNodeClick = onNodeClick,
-                    openUri = openUri,
-                )
-            }
+            UserPager(
+                userTopics = userTopics,
+                userReplies = userReplies,
+                topicTitleOverview = topicTitleOverview,
+                onTopicClick = onTopicClick,
+                onNodeClick = onNodeClick,
+                openUri = openUri,
+            )
         }
         is UserUiState.Loading -> {
             Loading()
@@ -218,67 +156,6 @@ private fun UserContent(
         is UserUiState.Error -> {
             LoadError(error = userUiState.error, onRetryClick = onRetryClick)
         }
-        else -> {}
-    }
-}
-
-@Composable
-private fun UserHeader(userPageInfo: UserPageInfo) {
-    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-        AsyncImage(
-            model = userPageInfo.avatar,
-            contentDescription = "${userPageInfo.userName}'s avatar",
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)),
-            contentScale = ContentScale.Crop,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(userPageInfo.userName, style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.width(4.dp))
-            if (userPageInfo.isOnline) {
-                Text(
-                    text = stringResource(id = R.string.user_online),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier
-                        .height(16.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(color = MaterialTheme.colorScheme.primaryContainer)
-                        .padding(horizontal = 6.dp)
-                )
-            } else {
-                Text(
-                    text = stringResource(id = R.string.user_offline),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .height(16.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(color = MaterialTheme.colorScheme.surfaceVariant)
-                        .padding(horizontal = 6.dp)
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            userPageInfo.desc,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = ContentAlpha.medium)
-        )
-    }
-}
-
-@Composable
-private fun UserDescription(userPageInfo: UserPageInfo) {
-    Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-        Text(
-            userPageInfo.desc,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = ContentAlpha.medium)
-        )
     }
 }
 
@@ -296,46 +173,45 @@ fun UserPager(
     val pagerState = rememberPagerState()
     val tabNames = listOf(stringResource(R.string.user_topic), stringResource(R.string.user_reply))
 
-    TabRow(
-        selectedTabIndex = pagerState.currentPage,
-        indicator = { tabPositions: List<TabPosition> ->
-            UserTabIndicator(tabPosition = tabPositions[pagerState.currentPage])
-        }) {
-        tabNames.forEachIndexed { index, name ->
-            val selected = pagerState.currentPage == index
-            Tab(
-                selected = selected,
-                onClick = {
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(page = index)
-                    }
-                }, modifier = Modifier.height(32.dp)
-            ) {
-                Text(
-                    name,
-                    color = if (selected) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onBackground
-                    },
-                )
+    Column(modifier = Modifier.fillMaxSize()) {
+        TabRow(
+            selectedTabIndex = pagerState.currentPage,
+            indicator = { tabPositions: List<TabPosition> ->
+                UserTabIndicator(tabPosition = tabPositions[pagerState.currentPage])
+            }) {
+            tabNames.forEachIndexed { index, name ->
+                val selected = pagerState.currentPage == index
+                Tab(
+                    selected = selected, onClick = {
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(page = index)
+                        }
+                    }, modifier = Modifier.height(32.dp)
+                ) {
+                    Text(
+                        name,
+                        color = if (selected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onBackground
+                        },
+                    )
+                }
             }
         }
-    }
 
-    HorizontalPager(pageCount = 2, state = pagerState) {
-        when (it) {
-            0 -> UserTopicsList(
-                items = userTopics,
-                topicTitleOverview = topicTitleOverview,
-                onTopicClick = onTopicClick,
-                onNodeClick = onNodeClick
-            )
-            1 -> UserRepliesList(
-                items = userReplies,
-                onTopicClick = onTopicClick,
-                openUri = openUri
-            )
+        HorizontalPager(pageCount = 2, state = pagerState) {
+            when (it) {
+                0 -> UserTopicsList(
+                    items = userTopics,
+                    topicTitleOverview = topicTitleOverview,
+                    onTopicClick = onTopicClick,
+                    onNodeClick = onNodeClick
+                )
+                1 -> UserRepliesList(
+                    items = userReplies, onTopicClick = onTopicClick, openUri = openUri
+                )
+            }
         }
     }
 }
@@ -371,10 +247,9 @@ fun UserTopicItem(
     onTopicClick: (String) -> Unit,
     onNodeClick: (String, String) -> Unit,
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onTopicClick(topic.link) }) {
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .clickable { onTopicClick(topic.link) }) {
         Column(Modifier.padding(16.dp)) {
             Row {
                 Text(
@@ -386,9 +261,7 @@ fun UserTopicItem(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 NodeTag(
-                    nodeName = topic.nodeName,
-                    nodeId = topic.nodeLink,
-                    onItemClick = onNodeClick
+                    nodeName = topic.nodeName, nodeId = topic.nodeLink, onItemClick = onNodeClick
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -430,9 +303,7 @@ private fun UserRepliesList(
 
 @Composable
 fun UserReplyItem(
-    reply: UserReplies.Item,
-    onTopicClick: (String) -> Unit,
-    openUri: (String) -> Unit
+    reply: UserReplies.Item, onTopicClick: (String) -> Unit, openUri: (String) -> Unit
 ) {
     val contentColor = LocalContentColor.current
     Box(modifier = Modifier
@@ -455,20 +326,17 @@ fun UserReplyItem(
 
             val backgroundColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)
             val leftBorderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f)
-            HtmlContent(
-                content = reply.content.content,
+            HtmlContent(content = reply.content.content,
                 modifier = Modifier
                     .fillMaxWidth()
                     .drawBehind {
                         drawRect(color = backgroundColor)
                         drawRect(
-                            color = leftBorderColor,
-                            size = size.copy(width = 4.dp.toPx())
+                            color = leftBorderColor, size = size.copy(width = 4.dp.toPx())
                         )
                     }
                     .padding(start = 8.dp),
-                onUriClick = openUri
-            )
+                onUriClick = openUri)
         }
         ListDivider(modifier = Modifier.align(Alignment.BottomCenter))
     }

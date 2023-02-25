@@ -75,6 +75,13 @@
     <string name="user_reply">回复</string>
     <string name="user_online">Online</string>
     <string name="user_offline">Offline</string>
+    <string name="user_follow">加入特别关注</string>
+    <string name="user_unfollow">已关注</string>
+    <string name="user_block">屏蔽</string>
+    <string name="user_unblock">已屏蔽</string>
+    <string name="user_action_failure">操作失败，请重试</string>
+    <string name="user_unfollow_tips">确定要取消特特别关注吗？</string>
+    <string name="user_block_tips">确定要屏蔽%s吗？</string>
     <!-- User Screen End -->
 
     <!-- Settings Screen Start -->

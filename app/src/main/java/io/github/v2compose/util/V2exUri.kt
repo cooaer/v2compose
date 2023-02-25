@@ -6,4 +6,5 @@ object V2exUri {
 
     fun topicUrl(topicId: String) = "${Constants.baseUrl}/t/$topicId"
 
+    fun userUrl(userName: String) = "${Constants.baseUrl}/member/$userName"
 }

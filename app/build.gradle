@@ -128,6 +128,7 @@ dependencies {
 
     //ui composables
     implementation 'com.github.SimformSolutionsPvtLtd:SSJetPackComposeProgressButton:1.0.7'
+    implementation "me.onebone:toolbar-compose:2.3.5"
 
     implementation("org.greenrobot:eventbus:3.3.1")
 

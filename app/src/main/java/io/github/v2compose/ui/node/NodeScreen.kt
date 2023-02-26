@@ -6,22 +6,21 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
@@ -33,7 +32,9 @@ import io.github.v2compose.R
 import io.github.v2compose.core.extension.castOrNull
 import io.github.v2compose.network.bean.NodeInfo
 import io.github.v2compose.network.bean.NodeTopicInfo
+import io.github.v2compose.ui.HandleSnackbarMessage
 import io.github.v2compose.ui.common.*
+import me.onebone.toolbar.*
 
 private const val TAG = "NodeScreen"
 
@@ -47,17 +48,31 @@ fun NodeRoute(
     nodeScreenState: NodeScreenState = rememberNodeScreenState(),
 ) {
     val nodeArgs = viewModel.nodeArgs
-    val nodeUiState by viewModel.nodeInfoFlow.collectAsStateWithLifecycle()
-    val lazyPagingItems = viewModel.nodeTopicInfoFlow.collectAsLazyPagingItems()
+    val nodeUiState by viewModel.nodeInfo.collectAsStateWithLifecycle()
+    val nodeTopicItems = viewModel.nodeTopicItems.collectAsLazyPagingItems()
     val topicTitleOverview by viewModel.topicTitleOverview.collectAsStateWithLifecycle()
+
+    val pagingNodeTopicInfo = if (nodeTopicItems.itemCount > 0) {
+        nodeTopicItems.peek(0).castOrNull<NodeTopicInfo>()
+    } else null
+
+    LaunchedEffect(pagingNodeTopicInfo) {
+        viewModel.updateNodeTopicInfo(pagingNodeTopicInfo)
+    }
+    val nodeTopicInfo by viewModel.nodeTopicInfo.collectAsStateWithLifecycle()
+
+    HandleSnackbarMessage(viewModel, nodeScreenState)
 
     NodeScreen(
         nodeArgs = nodeArgs,
         nodeUiState = nodeUiState,
-        lazyPagingItems = lazyPagingItems,
+        nodeTopicInfo = nodeTopicInfo,
+        nodeTopicItems = nodeTopicItems,
         topicTitleOverview = topicTitleOverview,
+        snackbarHostState = nodeScreenState.snackbarHostState,
         onBackClick = onBackClick,
-        onRetryNodeClick = { viewModel.retryNode() },
+        onFavoriteClick = viewModel::follow,
+        onRetryNodeClick = viewModel::retryNode,
         onTopicClick = onTopicClick,
         onUserAvatarClick = onUserAvatarClick,
         onShareClick = { nodeScreenState.share(nodeArgs, nodeUiState) },
@@ -70,9 +85,12 @@ fun NodeRoute(
 private fun NodeScreen(
     nodeArgs: NodeArgs,
     nodeUiState: NodeUiState,
-    lazyPagingItems: LazyPagingItems<Any>,
+    nodeTopicInfo: NodeTopicInfo?,
+    nodeTopicItems: LazyPagingItems<Any>,
     topicTitleOverview: Boolean,
+    snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
+    onFavoriteClick: () -> Unit,
     onRetryNodeClick: () -> Unit,
     onTopicClick: (NodeTopicInfo.Item) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
@@ -81,71 +99,170 @@ private fun NodeScreen(
 ) {
 
     val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    val nodeTopicInfo = if (lazyPagingItems.itemCount > 0) {
-        lazyPagingItems.peek(0).castOrNull<NodeTopicInfo>()
-    } else null
 
-    Scaffold(
-        topBar = {
-            NodeTopBar(
-                nodeArgs = nodeArgs,
-                nodeUiState = nodeUiState,
-                nodeTopicInfo = nodeTopicInfo,
-                onBackClick = onBackClick,
-                onShareClick = onShareClick,
-                scrollBehavior = topAppBarScrollBehavior,
-            )
-        },
+    val scaffoldState = rememberCollapsingToolbarScaffoldState()
+
+    Surface(
+        modifier = Modifier
+            .background(color = MaterialTheme.colorScheme.background)
+            .systemBarsPadding(),
     ) {
-        NodeContent(
-            nodeUiState = nodeUiState,
-            lazyPagingItems = lazyPagingItems,
-            topicTitleOverview = topicTitleOverview,
-            modifier = Modifier
-                .padding(it)
-                .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
-            onTopicClick = onTopicClick,
-            onUserAvatarClick = onUserAvatarClick,
-            onRetryNodeClick = onRetryNodeClick,
-            openUri = openUri,
-        )
+        Box {
+            CollapsingToolbarScaffold(
+                modifier = Modifier.fillMaxSize(),
+                state = scaffoldState,
+                scrollStrategy = ScrollStrategy.ExitUntilCollapsed,
+                toolbar = {
+                    NodeTopBar(
+                        scaffoldState = scaffoldState,
+                        nodeArgs = nodeArgs,
+                        nodeUiState = nodeUiState,
+                        nodeTopicInfo = nodeTopicInfo,
+                        onBackClick = onBackClick,
+                        onFavoriteClick = onFavoriteClick,
+                        onShareClick = onShareClick,
+                    )
+                },
+            ) {
+                NodeContent(
+                    nodeUiState = nodeUiState,
+                    lazyPagingItems = nodeTopicItems,
+                    topicTitleOverview = topicTitleOverview,
+                    modifier = Modifier
+                        .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
+                    onTopicClick = onTopicClick,
+                    onUserAvatarClick = onUserAvatarClick,
+                    onRetryNodeClick = onRetryNodeClick,
+                    openUri = openUri,
+                )
+
+            }
+
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter),
+            )
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun NodeTopBar(
+private fun CollapsingToolbarScope.NodeTopBar(
+    scaffoldState: CollapsingToolbarScaffoldState,
     nodeArgs: NodeArgs,
     nodeUiState: NodeUiState,
     nodeTopicInfo: NodeTopicInfo?,
     onBackClick: () -> Unit,
+    onFavoriteClick: () -> Unit,
     onShareClick: () -> Unit,
-    scrollBehavior: TopAppBarScrollBehavior,
 ) {
+    val topBarHeight = 64.dp
+
+    var favorited by remember(nodeTopicInfo) { mutableStateOf(nodeTopicInfo?.hasStared()) }
+    var showUnfollowDialog by remember { mutableStateOf(false) }
+    val onFavoriteClickInternal = {
+        nodeTopicInfo?.let {
+            val stared = it.hasStared()
+            if (favorited == stared) {
+                if (stared) {
+                    showUnfollowDialog = true
+                } else {
+                    favorited = true
+                    onFavoriteClick()
+                }
+            }
+        }
+    }
+
+    if (showUnfollowDialog) {
+        TextAlertDialog(
+            message = stringResource(R.string.node_unfavorite_tips),
+            onConfirm = {
+                favorited = false
+                onFavoriteClick()
+            },
+            onDismiss = { showUnfollowDialog = false },
+        )
+    }
+
     TopAppBar(
         title = {
             NodeTitle(
                 nodeArgs = nodeArgs,
                 nodeUiState = nodeUiState,
-                nodeTopicInfo = nodeTopicInfo
+                modifier = Modifier
+                    .graphicsLayer(alpha = (1 - scaffoldState.toolbarState.progress)),
             )
         },
         navigationIcon = { BackIcon(onBackClick = onBackClick) },
         actions = {
+            favorited?.let {
+                IconButton(
+                    onClick = { onFavoriteClickInternal() },
+                    modifier = Modifier.graphicsLayer(alpha = 1 - scaffoldState.toolbarState.progress)
+                ) {
+                    Icon(
+                        if (it) Icons.Rounded.BookmarkAdded else Icons.Rounded.BookmarkAdd,
+                        "favorite"
+                    )
+                }
+            }
+
             IconButton(onClick = onShareClick) {
                 Icon(Icons.Rounded.Share, "share node")
             }
         },
-        scrollBehavior = scrollBehavior
     )
+
+    Box(
+        modifier = Modifier
+            .padding(start = 16.dp, top = topBarHeight, end = 16.dp)
+            .parallax(0.5f)
+            .graphicsLayer(alpha = scaffoldState.toolbarState.progress)
+    ) {
+        NodeTitle(
+            nodeArgs = nodeArgs,
+            nodeUiState = nodeUiState,
+        )
+
+        favorited?.let {
+            val contentColor =
+                LocalContentColor.current.copy(alpha = if (it) ContentAlpha.medium else ContentAlpha.high)
+
+            AssistChip(
+                modifier = Modifier.align(Alignment.CenterEnd),
+                onClick = { onFavoriteClickInternal() },
+                leadingIcon = {
+                    Icon(
+                        if (it) Icons.Rounded.BookmarkAdded else Icons.Rounded.BookmarkAdd,
+                        "favorite",
+                    )
+                },
+                label = {
+                    Text(
+                        stringResource(if (it) R.string.node_favorited else R.string.node_favorite),
+                        color = contentColor
+                    )
+                },
+                shape = RoundedCornerShape(16.dp),
+            )
+        }
+    }
+
+
 }
 
 @Composable
-private fun NodeTitle(nodeArgs: NodeArgs, nodeUiState: NodeUiState, nodeTopicInfo: NodeTopicInfo?) {
+private fun NodeTitle(
+    nodeArgs: NodeArgs,
+    nodeUiState: NodeUiState,
+    modifier: Modifier = Modifier,
+) {
     val nodeInfo =
         remember(nodeUiState) { if (nodeUiState is NodeUiState.Success) nodeUiState.nodeInfo else null }
-    val nodeName = nodeInfo?.name ?: nodeArgs.nodeName
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    val nodeName = nodeInfo?.title ?: nodeArgs.nodeName
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
         AsyncImage(
             model = nodeInfo?.avatar,
             contentDescription = nodeName,
@@ -155,7 +272,7 @@ private fun NodeTitle(nodeArgs: NodeArgs, nodeUiState: NodeUiState, nodeTopicInf
                 .background(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f))
         )
         Spacer(modifier = Modifier.width(8.dp))
-        Column {
+        Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
             Text(
                 nodeName ?: stringResource(id = R.string.node),
                 style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
@@ -170,6 +287,7 @@ private fun NodeTitle(nodeArgs: NodeArgs, nodeUiState: NodeUiState, nodeTopicInf
                 )
             }
         }
+
     }
 }
 
@@ -251,9 +369,13 @@ private fun TopicList(
 }
 
 @Composable
-private fun NodeDescription(desc: String, openUri: (String) -> Unit) {
+private fun NodeDescription(
+    desc: String,
+    openUri: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .background(color = MaterialTheme.colorScheme.background)
     ) {

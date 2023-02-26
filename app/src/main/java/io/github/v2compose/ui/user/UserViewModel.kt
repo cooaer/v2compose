@@ -79,9 +79,10 @@ class UserViewModel @Inject constructor(
             try {
                 val result = userRepository.doUserAction(userPageInfo.userName, url)
                 _userUiState.emit(UserUiState.Success(result))
+//                updateSnackbarMessage(R.string.user_action_success)
             } catch (e: Exception) {
                 e.printStackTrace()
-                updateSnackbarMessage(e.message ?: context.getString(R.string.action_failure))
+                updateSnackbarMessage(e.message ?: context.getString(R.string.user_action_failure))
             }
         }
     }

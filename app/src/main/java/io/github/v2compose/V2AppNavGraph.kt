@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import androidx.navigation.navOptions
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import io.github.v2compose.ui.login.google.googleLoginScreen
 import io.github.v2compose.ui.login.google.navigateToGoogleLogin
@@ -20,6 +21,7 @@ import io.github.v2compose.ui.search.navigateToSearch
 import io.github.v2compose.ui.search.searchScreen
 import io.github.v2compose.ui.settings.navigateToSettings
 import io.github.v2compose.ui.settings.settingsScreen
+import io.github.v2compose.ui.settings.settingsScreenRoute
 import io.github.v2compose.ui.topic.navigateToTopic
 import io.github.v2compose.ui.topic.topicScreen
 import io.github.v2compose.ui.user.navigateToUser
@@ -84,6 +86,13 @@ fun V2AppNavGraph(
         settingsScreen(
             onBackClick = appState::back,
             openUri = appState::openUri,
+            onLogoutSuccess = {
+                navController.navigateToLogin(navOptions = navOptions {
+                    popUpTo(settingsScreenRoute) {
+                        inclusive = true
+                    }
+                })
+            }
         )
         loginScreen(
             onCloseClick = appState::back,

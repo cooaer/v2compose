@@ -201,10 +201,6 @@ interface V2exService {
         @FieldMap replyMap: Map<String, String>
     ): ReplyTopicResultInfo
 
-    @Html
-    @GET
-    suspend fun blockUser(@Url url: String): SimpleInfo
-
     // https://www.v2ex.com/follow/264541?once=87883
     // https://www.v2ex.com/unfollow/264541?once=86758
     @Html

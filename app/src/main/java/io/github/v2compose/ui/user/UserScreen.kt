@@ -63,13 +63,14 @@ fun UserScreenRoute(
         userTopics = userTopics,
         userReplies = userReplies,
         topicTitleOverview = topicTitleOverview,
+        snackbarHostState = screenState.snackbarHostState,
         onBackClick = onBackClick,
         onShareClick = {
             context.share(userArgs.userName, V2exUri.userUrl(userArgs.userName))
         },
         onRetryClick = { viewModel.retry() },
-        onFollowClick = { viewModel.followUser() },
-        onBlockClick = { viewModel.blockUser() },
+        onFollowClick = viewModel::followUser,
+        onBlockClick = viewModel::blockUser,
         onTopicClick = onTopicClick,
         onNodeClick = onNodeClick,
         openUri = openUri,
@@ -82,11 +83,12 @@ private fun UserScreen(
     userTopics: LazyPagingItems<UserTopics.Item>,
     userReplies: LazyPagingItems<UserReplies.Item>,
     topicTitleOverview: Boolean,
+    snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
     onShareClick: () -> Unit,
     onRetryClick: () -> Unit,
-    onFollowClick: (Boolean) -> Unit,
-    onBlockClick: (Boolean) -> Unit,
+    onFollowClick: () -> Unit,
+    onBlockClick: () -> Unit,
     onTopicClick: (String) -> Unit,
     onNodeClick: (String, String) -> Unit,
     openUri: (String) -> Unit,
@@ -98,29 +100,36 @@ private fun UserScreen(
             .background(color = MaterialTheme.colorScheme.background)
             .systemBarsPadding(),
     ) {
-        CollapsingToolbarScaffold(modifier = Modifier.fillMaxSize(),
-            state = scaffoldState,
-            scrollStrategy = ScrollStrategy.ExitUntilCollapsed,
-            enabled = true,
-            toolbar = {
-                UserToolbar(
+        Box {
+            CollapsingToolbarScaffold(modifier = Modifier.fillMaxSize(),
+                state = scaffoldState,
+                scrollStrategy = ScrollStrategy.ExitUntilCollapsed,
+                enabled = true,
+                toolbar = {
+                    UserToolbar(
+                        userUiState = userUiState,
+                        scaffoldState = scaffoldState,
+                        onBackClick = onBackClick,
+                        onShareClick = onShareClick,
+                        onFollowClick = onFollowClick,
+                        onBlockClick = onBlockClick,
+                    )
+                }) {
+                UserContent(
                     userUiState = userUiState,
-                    scaffoldState = scaffoldState,
-                    onBackClick = onBackClick,
-                    onShareClick = onShareClick,
-                    onFollowClick = onFollowClick,
-                    onBlockClick = onBlockClick,
+                    userTopics = userTopics,
+                    userReplies = userReplies,
+                    topicTitleOverview = topicTitleOverview,
+                    onRetryClick = onRetryClick,
+                    onTopicClick = onTopicClick,
+                    onNodeClick = onNodeClick,
+                    openUri = openUri
                 )
-            }) {
-            UserContent(
-                userUiState = userUiState,
-                userTopics = userTopics,
-                userReplies = userReplies,
-                topicTitleOverview = topicTitleOverview,
-                onRetryClick = onRetryClick,
-                onTopicClick = onTopicClick,
-                onNodeClick = onNodeClick,
-                openUri = openUri
+            }
+
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter)
             )
         }
     }

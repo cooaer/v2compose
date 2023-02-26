@@ -2,19 +2,18 @@ package io.github.v2compose.ui.login
 
 import android.net.Uri
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
+import androidx.navigation.*
 import com.google.accompanist.navigation.animation.composable
-import io.github.v2compose.network.bean.DailyInfo
 
 private const val argsNext = "next"
 private const val loginRoute = "/signin?next={$argsNext}"
 
-fun NavController.navigateToLogin(next: String? = null) {
+fun NavController.navigateToLogin(
+    next: String? = null,
+    navOptions: NavOptions? = null,
+) {
     val encodedNext = Uri.encode(next) ?: ""
-    navigate("/signin?next=$encodedNext")
+    navigate("/signin?next=$encodedNext", navOptions = navOptions)
 }
 
 @OptIn(ExperimentalAnimationApi::class)

@@ -58,6 +58,12 @@
     <string name="node">节点</string>
     <string name="node_topics_and_favorites">%d条主题  %d次收藏</string>
     <string name="node_click_times">%d 次点击</string>
+    <string name="node_favorite">加入收藏</string>
+    <string name="node_favorited">已收藏</string>
+    <string name="node_unfavorite_tips">确定要取消收藏吗？</string>
+    <string name="node_action_failure_tips">操作异常，请重试</string>
+    <string name="node_favorite_success_tips">已加入收藏</string>
+    <string name="node_unfavorite_success_tips">已取消收藏</string>
     <!-- Node Screen End -->
 
     <!-- Search Screen Start -->
@@ -79,7 +85,8 @@
     <string name="user_unfollow">已关注</string>
     <string name="user_block">屏蔽</string>
     <string name="user_unblock">已屏蔽</string>
-    <string name="user_action_failure">操作失败，请重试</string>
+    <string name="user_action_success">操作成功</string>
+    <string name="user_action_failure">操作异常，请重试</string>
     <string name="user_unfollow_tips">确定要取消特特别关注吗？</string>
     <string name="user_block_tips">确定要屏蔽%s吗？</string>
     <!-- User Screen End -->

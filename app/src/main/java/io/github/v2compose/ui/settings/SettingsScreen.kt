@@ -34,10 +34,10 @@ import kotlinx.coroutines.launch
 fun SettingsScreenRoute(
     onBackClick: () -> Unit,
     openUri: (String) -> Unit,
+    onLogoutSuccess:() -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
     settingsScreenState: SettingsScreenState = rememberSettingsScreenState()
 ) {
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     var newRelease by rememberSaveable(
@@ -89,7 +89,9 @@ fun SettingsScreenRoute(
         },
         onLogout = {
             coroutineScope.launch {
-                settingsScreenState.logout(logout = viewModel::logout)
+//                settingsScreenState.logout(logout = viewModel::logout)
+                viewModel.logout()
+                onLogoutSuccess()
             }
         }
     )

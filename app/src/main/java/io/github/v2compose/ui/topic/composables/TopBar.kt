@@ -22,8 +22,8 @@ import io.github.v2compose.ui.topic.TopicInfoWrapper
 
 
 enum class TopicMenuItem(val icon: ImageVector, @StringRes val textResId: Int) {
-    Favorite(Icons.Rounded.BookmarkBorder, R.string.topic_menu_item_favorite),
-    Favorited(Icons.Rounded.Bookmark, R.string.topic_menu_item_unfavorite),
+    Favorite(Icons.Rounded.BookmarkAdd, R.string.topic_menu_item_favorite),
+    Favorited(Icons.Rounded.BookmarkAdded, R.string.topic_menu_item_unfavorite),
     More(Icons.Rounded.MoreVert, R.string.topic_menu_item_more),
     Thanks(Icons.Rounded.FavoriteBorder, R.string.menu_item_thank),
     Thanked(Icons.Rounded.Favorite, R.string.menu_item_unthank),

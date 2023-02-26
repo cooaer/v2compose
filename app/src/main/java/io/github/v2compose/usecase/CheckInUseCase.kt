@@ -2,6 +2,7 @@ package io.github.v2compose.usecase
 
 import io.github.v2compose.core.extension.isRedirect
 import io.github.v2compose.repository.AccountRepository
+import io.github.v2compose.util.V2exUri
 import javax.inject.Inject
 
 class CheckInUseCase @Inject constructor(
@@ -18,8 +19,9 @@ class CheckInUseCase @Inject constructor(
             CheckInResult(dailyInfo.hadCheckedIn(), dailyInfo.continuousLoginDays)
         } catch (e: Exception) {
             e.printStackTrace()
-            if (e.isRedirect("/mission/daily")) {
-                CheckInResult(false, null)
+            if (e.isRedirect(V2exUri.missionDailyPath)) {
+                val dailyInfo = accountRepository.dailyInfo()
+                CheckInResult(dailyInfo.hadCheckedIn(), dailyInfo.continuousLoginDays)
             } else {
                 CheckInResult(false, e.message)
             }

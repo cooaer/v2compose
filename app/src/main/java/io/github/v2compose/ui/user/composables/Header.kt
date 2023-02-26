@@ -21,6 +21,7 @@ import io.github.v2compose.R
 import io.github.v2compose.core.extension.castOrNull
 import io.github.v2compose.network.bean.UserPageInfo
 import io.github.v2compose.ui.common.BackIcon
+import io.github.v2compose.ui.common.TextAlertDialog
 import io.github.v2compose.ui.common.TopicUserAvatar
 import io.github.v2compose.ui.user.UserUiState
 import me.onebone.toolbar.CollapsingToolbarScaffoldState
@@ -33,10 +34,11 @@ fun CollapsingToolbarScope.UserToolbar(
     scaffoldState: CollapsingToolbarScaffoldState,
     onBackClick: () -> Unit,
     onShareClick: () -> Unit,
-    onFollowClick: (Boolean) -> Unit,
-    onBlockClick: (Boolean) -> Unit,
+    onFollowClick: () -> Unit,
+    onBlockClick: () -> Unit,
 ) {
     val userPageInfo = userUiState.castOrNull<UserUiState.Success>()?.userPageInfo
+
     TopAppBar(navigationIcon = { BackIcon(onBackClick = onBackClick) }, title = {
         userPageInfo?.let {
             UserTopAppBarTitle(
@@ -46,13 +48,11 @@ fun CollapsingToolbarScope.UserToolbar(
         }
     }, actions = {
         userPageInfo?.let {
-            val followed = userPageInfo.hadFollowed()
-            IconButton(
-                onClick = { onFollowClick(!followed) },
+            FollowIcon(
+                userPageInfo = userPageInfo,
+                onFollowClick = onFollowClick,
                 modifier = Modifier.graphicsLayer(alpha = 1 - scaffoldState.toolbarState.progress),
-            ) {
-                Icon(if (followed) Icons.Rounded.Done else Icons.Rounded.Add, "follow")
-            }
+            )
         }
         IconButton(onClick = onShareClick) {
             Icon(Icons.Rounded.Share, contentDescription = "share")
@@ -70,6 +70,49 @@ fun CollapsingToolbarScope.UserToolbar(
 }
 
 @Composable
+private fun FollowIcon(
+    userPageInfo: UserPageInfo,
+    onFollowClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var followed by remember(userPageInfo) { mutableStateOf(userPageInfo.hadFollowed()) }
+    val followColor =
+        if (followed) LocalContentColor.current.copy(alpha = ContentAlpha.medium) else MaterialTheme.colorScheme.primary
+    var showUnfollowDialog by remember { mutableStateOf(false) }
+    val onFollowClickInternal = {
+        if (followed == userPageInfo.hadFollowed()) {
+            if (followed) {
+                showUnfollowDialog = true
+            } else {
+                followed = true
+                onFollowClick()
+            }
+        }
+    }
+
+    if (showUnfollowDialog) {
+        TextAlertDialog(
+            message = stringResource(R.string.user_unfollow_tips),
+            onConfirm = {
+                followed = false
+                onFollowClick()
+            },
+            onDismiss = { showUnfollowDialog = false },
+        )
+    }
+
+    IconButton(
+        onClick = { onFollowClickInternal() },
+        modifier = modifier,
+    ) {
+        Icon(
+            if (followed) Icons.Rounded.RemoveCircleOutline else Icons.Rounded.AddCircleOutline,
+            "follow", Modifier.size(20.dp), followColor,
+        )
+    }
+}
+
+@Composable
 private fun UserTopAppBarTitle(userPageInfo: UserPageInfo, modifier: Modifier = Modifier) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
         TopicUserAvatar(userName = userPageInfo.userName, userAvatar = userPageInfo.avatar)
@@ -81,29 +124,18 @@ private fun UserTopAppBarTitle(userPageInfo: UserPageInfo, modifier: Modifier = 
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(modifier = Modifier.height(4.dp))
-            if (userPageInfo.isOnline) {
-                Text(
-                    text = stringResource(id = R.string.user_online),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier
-                        .height(16.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(color = MaterialTheme.colorScheme.primaryContainer)
-                        .padding(horizontal = 6.dp)
-                )
-            } else {
-                Text(
-                    text = stringResource(id = R.string.user_offline),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .height(16.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(color = MaterialTheme.colorScheme.surfaceVariant)
-                        .padding(horizontal = 6.dp)
-                )
-            }
+            val online = userPageInfo.isOnline
+            val colorScheme = MaterialTheme.colorScheme
+            Text(
+                text = stringResource(id = if (online) R.string.user_online else R.string.user_offline),
+                style = MaterialTheme.typography.labelSmall,
+                color = if (online) colorScheme.onPrimaryContainer else colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .height(16.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(color = if (online) colorScheme.primaryContainer else colorScheme.surfaceVariant)
+                    .padding(horizontal = 6.dp)
+            )
         }
     }
 }
@@ -111,8 +143,8 @@ private fun UserTopAppBarTitle(userPageInfo: UserPageInfo, modifier: Modifier = 
 @Composable
 private fun UserHeader(
     userPageInfo: UserPageInfo?,
-    onFollowClick: (Boolean) -> Unit,
-    onBlockClick: (Boolean) -> Unit,
+    onFollowClick: () -> Unit,
+    onBlockClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -183,95 +215,113 @@ private fun UserInfo(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun UserActions(
     userPageInfo: UserPageInfo,
-    onFollowClick: (Boolean) -> Unit,
-    onBlockClick: (Boolean) -> Unit,
+    onFollowClick: () -> Unit,
+    onBlockClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val followed = userPageInfo.hadFollowed()
-    val blocked = userPageInfo.hadBlocked()
-    val contentColor = LocalContentColor.current
-
-    var showUnfollowDialog by remember { mutableStateOf(false) }
-    var showBlockDialog by remember { mutableStateOf(false) }
-
-    if (showUnfollowDialog) {
-        TextAlertDialog(
-            message = stringResource(R.string.user_unfollow_tips),
-            onConfirm = { onFollowClick(false) },
-            onDismiss = { showUnfollowDialog = false },
-        )
-    }
-
-    if (showBlockDialog) {
-        TextAlertDialog(
-            message = stringResource(R.string.user_block_tips, userPageInfo.userName),
-            onConfirm = { onBlockClick(true) },
-            onDismiss = { showBlockDialog = false },
-        )
-    }
-
     Column(modifier = modifier, horizontalAlignment = Alignment.End) {
-        AssistChip(
-            onClick = {
-                if (followed) showUnfollowDialog = true else onFollowClick(true)
-            },
-            leadingIcon = {
-                Icon(if (followed) Icons.Rounded.Done else Icons.Rounded.Add, "follow")
-            },
-            label = {
-                Text(
-                    stringResource(if (followed) R.string.user_unfollow else R.string.user_follow),
-                    color = contentColor.copy(alpha = if (followed) ContentAlpha.medium else ContentAlpha.high)
-                )
-            },
-            shape = RoundedCornerShape(16.dp),
-        )
-
-        AssistChip(
-            onClick = {
-                if (blocked) onBlockClick(false) else showBlockDialog = true
-            },
-            leadingIcon = {
-                Icon(
-                    if (blocked) Icons.Rounded.Remove else Icons.Rounded.Block,
-                    "block",
-                    Modifier.size(18.dp)
-                )
-            },
-            label = {
-                Text(
-                    stringResource(if (blocked) R.string.user_unblock else R.string.user_block),
-                    color = contentColor.copy(alpha = if (blocked) ContentAlpha.medium else ContentAlpha.high)
-                )
-            },
-            shape = RoundedCornerShape(16.dp),
-        )
-
+        FollowButton(userPageInfo, onFollowClick)
+        BlockButton(userPageInfo, onBlockClick)
     }
 }
 
 @Composable
-private fun TextAlertDialog(message: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        text = { Text(message) },
-        confirmButton = {
-            TextButton(onClick = {
-                onConfirm()
-                onDismiss()
-            }) {
-                Text(stringResource(id = R.string.ok))
+@OptIn(ExperimentalMaterial3Api::class)
+private fun BlockButton(
+    userPageInfo: UserPageInfo,
+    onBlockClick: () -> Unit
+) {
+    var blocked by remember(userPageInfo) { mutableStateOf(userPageInfo.hadBlocked()) }
+    val blockColor =
+        LocalContentColor.current.copy(alpha = if (blocked) ContentAlpha.high else ContentAlpha.medium)
+    var showBlockDialog by remember { mutableStateOf(false) }
+    val onBlockClickInternal = {
+
+        if (blocked == userPageInfo.hadBlocked()) {
+            if (blocked) {
+                blocked = false
+                onBlockClick()
+            } else {
+                showBlockDialog = true
             }
+        }
+    }
+    if (showBlockDialog) {
+        TextAlertDialog(
+            message = stringResource(R.string.user_block_tips, userPageInfo.userName),
+            onConfirm = {
+                blocked = true
+                onBlockClick()
+            },
+            onDismiss = { showBlockDialog = false },
+        )
+    }
+    AssistChip(
+        onClick = { onBlockClickInternal() },
+        leadingIcon = {
+            Icon(
+                if (blocked) Icons.Rounded.RemoveCircleOutline else Icons.Rounded.Block,
+                "block", Modifier.size(20.dp), blockColor,
+            )
         },
-        dismissButton = {
-            TextButton(onClick = { onDismiss() }) {
-                Text(stringResource(id = R.string.cancel))
+        label = {
+            Text(
+                stringResource(if (blocked) R.string.user_unblock else R.string.user_block),
+                color = blockColor
+            )
+        },
+        shape = RoundedCornerShape(16.dp),
+    )
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun FollowButton(
+    userPageInfo: UserPageInfo,
+    onFollowClick: () -> Unit
+) {
+    var followed by remember(userPageInfo) { mutableStateOf(userPageInfo.hadFollowed()) }
+    val followColor =
+        if (followed) LocalContentColor.current.copy(alpha = ContentAlpha.medium) else MaterialTheme.colorScheme.primary
+    var showUnfollowDialog by remember { mutableStateOf(false) }
+    val onFollowClickInternal = {
+        if (followed == userPageInfo.hadFollowed()) {
+            if (followed) {
+                showUnfollowDialog = true
+            } else {
+                followed = true
+                onFollowClick()
             }
+        }
+    }
+    if (showUnfollowDialog) {
+        TextAlertDialog(
+            message = stringResource(R.string.user_unfollow_tips),
+            onConfirm = {
+                followed = false
+                onFollowClick()
+            },
+            onDismiss = { showUnfollowDialog = false },
+        )
+    }
+    AssistChip(
+        onClick = { onFollowClickInternal() },
+        leadingIcon = {
+            Icon(
+                if (followed) Icons.Rounded.RemoveCircleOutline else Icons.Rounded.AddCircleOutline,
+                "follow", Modifier.size(20.dp), followColor,
+            )
         },
+        label = {
+            Text(
+                stringResource(if (followed) R.string.user_unfollow else R.string.user_follow),
+                color = followColor,
+            )
+        },
+        shape = RoundedCornerShape(16.dp),
     )
 }
 

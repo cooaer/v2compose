@@ -35,7 +35,7 @@ import io.github.v2compose.network.bean.UserTopics
 import io.github.v2compose.ui.HandleSnackbarMessage
 import io.github.v2compose.ui.common.*
 import io.github.v2compose.ui.user.composables.UserToolbar
-import io.github.v2compose.util.V2exUri
+import io.github.v2compose.V2exUri
 import kotlinx.coroutines.launch
 import me.onebone.toolbar.*
 

@@ -11,7 +11,7 @@ import io.github.v2compose.network.bean.NodeTopicInfo
 import io.github.v2compose.network.bean.NodesInfo
 import io.github.v2compose.network.bean.NodesNavInfo
 import io.github.v2compose.repository.NodeRepository
-import io.github.v2compose.util.V2exUri
+import io.github.v2compose.V2exUri
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 

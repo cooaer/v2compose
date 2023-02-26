@@ -12,7 +12,7 @@ import io.github.v2compose.network.V2exService
 import io.github.v2compose.network.bean.*
 import io.github.v2compose.repository.ActionMethod
 import io.github.v2compose.repository.TopicRepository
-import io.github.v2compose.util.V2exUri
+import io.github.v2compose.V2exUri
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject

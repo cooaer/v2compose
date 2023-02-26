@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">V2compose</string>
+    <string name="v2ex">V2EX</string>
 
     <string name="developing">🚧开发中…</string>
 

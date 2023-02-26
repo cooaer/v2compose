@@ -11,7 +11,7 @@ import io.github.v2compose.network.bean.UserPageInfo
 import io.github.v2compose.network.bean.UserReplies
 import io.github.v2compose.network.bean.UserTopics
 import io.github.v2compose.repository.UserRepository
-import io.github.v2compose.util.V2exUri
+import io.github.v2compose.V2exUri
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 

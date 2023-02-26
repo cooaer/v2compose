@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import io.github.v2compose.bean.RedirectEvent
 import io.github.v2compose.core.extension.fullUrl
@@ -54,6 +55,7 @@ class V2AppState @Inject constructor(
     val snackbarHostState: SnackbarHostState,
 ) : DefaultLifecycleObserver {
 
+    //TODO: 在深层页面失效的问题
     override fun onCreate(owner: LifecycleOwner) {
         EventBus.getDefault().register(this)
     }
@@ -72,31 +74,11 @@ class V2AppState @Inject constructor(
 
     fun openUri(uri: String) {
         Log.d(TAG, "openUri, uri = $uri")
-        if (!innerOpenUri(uri)) {
+        if (!navHostController.innerOpenUri(uri)) {
             context.openInBrowser(uri, true)
         }
     }
 
-    private fun innerOpenUri(uri: String): Boolean {
-        if (uri.isEmpty()) {
-            Log.e(TAG, "can't parse uri, uri = $uri")
-            return false
-        }
-        val uriObj = uri.tryParse() ?: return false
-        val host = uriObj.host
-        if (!host.isNullOrEmpty() && !host.endsWith(Constants.host)) {
-            return false
-        }
-        val screenType = uriObj.pathSegments.getOrNull(0) ?: ""
-        val screenId = uriObj.pathSegments.getOrNull(1) ?: ""
-        when (screenType) {
-            "t" -> navHostController.navigateToTopic(screenId)
-            "go" -> navHostController.navigateToNode(screenId)
-            "member" -> navHostController.navigateToUser(userName = screenId)
-            else -> navHostController.navigateToWebView(uri.fullUrl(Constants.baseUrl))
-        }
-        return true
-    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onRedirectEvent(event: RedirectEvent) {
@@ -116,7 +98,25 @@ class V2AppState @Inject constructor(
 
 }
 
-
-
+fun NavController.innerOpenUri(uri: String): Boolean {
+    if (uri.isEmpty()) {
+        Log.e(TAG, "can't parse uri, uri = $uri")
+        return false
+    }
+    val uriObj = uri.tryParse() ?: return false
+    val host = uriObj.host
+    if (!host.isNullOrEmpty() && !host.endsWith(Constants.host)) {
+        return false
+    }
+    val screenType = uriObj.pathSegments.getOrNull(0) ?: ""
+    val screenId = uriObj.pathSegments.getOrNull(1) ?: ""
+    when (screenType) {
+        "t" -> navigateToTopic(screenId)
+        "go" -> navigateToNode(screenId)
+        "member" -> navigateToUser(userName = screenId)
+        else -> navigateToWebView(uri.fullUrl(Constants.baseUrl))
+    }
+    return true
+}
 
 

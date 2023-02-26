@@ -53,16 +53,10 @@ fun MineContent(
         onLoginClick = onLoginClick,
         onMyHomePageClick = onMyHomePageClick,
         onCheckInClick = viewModel::doCheckIn,
-        onCreateTopicClick = {
-            if (account.isValid()) {
-                onCreateTopicClick()
-            } else {
-                mineContentState.showMessage(R.string.login_first)
-            }
-        },
-        onMyNodesClick = mineContentState::notImplemented,
-        onMyTopicsClick = mineContentState::notImplemented,
-        onMyFollowingClick = mineContentState::notImplemented,
+        onCreateTopicClick = { mineContentState.doActionIfLoggedIn(account) { onCreateTopicClick() } },
+        onMyNodesClick = { mineContentState.doActionIfLoggedIn(account) { onMyNodesClick() } },
+        onMyTopicsClick = { mineContentState.doActionIfLoggedIn(account) { onMyTopicsClick() } },
+        onMyFollowingClick = { mineContentState.doActionIfLoggedIn(account) { onMyFollowingClick() } },
         onSettingsClick = onSettingsClick
     )
 }
@@ -191,7 +185,7 @@ private fun MineHeader(
                         )
                     },
                     leadingIcon = {
-                        if (!canCheckIn){
+                        if (!canCheckIn) {
                             Icon(
                                 Icons.Rounded.Check,
                                 "daily mission",

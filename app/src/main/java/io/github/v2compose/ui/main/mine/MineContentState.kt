@@ -8,6 +8,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import io.github.v2compose.LocalSnackbarHostState
 import io.github.v2compose.R
+import io.github.v2compose.bean.Account
 import io.github.v2compose.ui.BaseScreenState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -33,6 +34,14 @@ class MineContentState(
         coroutineScope.launch {
             val message = context.getString(R.string.function_not_implemented)
             snackbarHostState.showSnackbar(message = message)
+        }
+    }
+
+    fun doActionIfLoggedIn(account: Account, action:() -> Unit){
+        if (account.isValid()) {
+            action()
+        } else {
+            showMessage(R.string.login_first)
         }
     }
 

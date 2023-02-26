@@ -26,6 +26,7 @@ import io.github.v2compose.ui.topic.navigateToTopic
 import io.github.v2compose.ui.topic.topicScreen
 import io.github.v2compose.ui.user.navigateToUser
 import io.github.v2compose.ui.user.userScreen
+import io.github.v2compose.ui.webview.navigateToWebView
 import io.github.v2compose.ui.webview.webViewScreen
 import io.github.v2compose.ui.write.navigateToWriteTopic
 import io.github.v2compose.ui.write.writeTopicScreen
@@ -54,9 +55,9 @@ fun V2AppNavGraph(
                     )
                 }
             },
-            onMyNodesClick = {},
-            onMyTopicsClick = {},
-            onMyFollowingClick = {},
+            onMyNodesClick = { navController.navigateToWebView(V2exUri.myNodesUrl) },
+            onMyTopicsClick = { navController.navigateToWebView(V2exUri.myTopicsUrl) },
+            onMyFollowingClick = { navController.navigateToWebView(V2exUri.myFollowingUrl) },
             onCreateTopicClick = navController::navigateToWriteTopic,
             onSettingsClick = navController::navigateToSettings,
             openUri = appState::openUri,
@@ -107,6 +108,7 @@ fun V2AppNavGraph(
         )
         webViewScreen(
             onCloseClick = appState::back,
+            openUri = appState::openUri
         )
         writeTopicScreen(
             onCloseClick = appState::back,

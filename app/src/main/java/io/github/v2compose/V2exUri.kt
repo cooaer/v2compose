@@ -1,8 +1,10 @@
-package io.github.v2compose.util
-
-import io.github.v2compose.Constants
+package io.github.v2compose
 
 object V2exUri {
+
+    const val myTopicsUrl= "https://v2ex.com/my/topics"
+    const val myNodesUrl = "https://v2ex.com/my/nodes"
+    const val myFollowingUrl = "https://v2ex.com/my/following"
 
     const val missionDailyPath = "/mission/daily"
 

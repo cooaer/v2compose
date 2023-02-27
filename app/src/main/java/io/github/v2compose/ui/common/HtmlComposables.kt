@@ -3,10 +3,7 @@ package io.github.v2compose.ui.common
 import android.util.Log
 import android.util.Size
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
@@ -15,6 +12,7 @@ import io.github.v2compose.Constants
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
+import org.jsoup.select.Elements
 import kotlin.experimental.xor
 
 private const val TAG = "HtmlComposables"
@@ -36,9 +34,9 @@ fun HtmlContent(
 ) {
     val document = remember(content) { Jsoup.parse(content) }
 
-    val encodedEmails = remember(document) { document.select("a.__cf_email__") }
+    var encodedEmails by remember(content) { mutableStateOf<Elements?>(document.select("a.__cf_email__")) }
 
-    val imgElements = remember(document) { document.select("img") }
+    val imgElements = remember(content) { document.select("img") }
     val changedImgElements by remember(htmlImageSizes) {
         derivedStateOf {
             imgElements.associateBy { it.attr("src") }
@@ -46,11 +44,12 @@ fun HtmlContent(
         }
     }
 
-    val newHtml = if (changedImgElements.isNotEmpty() || encodedEmails.isNotEmpty()) {
+    val newHtml = if (changedImgElements.isNotEmpty() || !encodedEmails.isNullOrEmpty()) {
         changedImgElements.forEach { (src, ele) ->
             htmlImageSizes[src]?.let { resetImgSize(ele, it) }
         }
-        encodedEmails.forEach { fixEmailProtected(it) }
+        encodedEmails?.forEach { fixEmailProtected(it) }
+        encodedEmails = null
         document.outerHtml()
     } else content
 
@@ -78,11 +77,14 @@ private fun fixEmailProtected(ele: Element) {
         if (email.isNotEmpty()) {
             val parent = ele.parent()
             val siblingIndex = ele.siblingIndex()
-            ele.remove()
-            parent?.insertChildren(siblingIndex, TextNode(email))
+            if (parent != null) {
+                ele.remove()
+                parent.insertChildren(siblingIndex, TextNode(email))
+            }
         }
     } catch (e: IllegalArgumentException) {
         e.printStackTrace()
+        Log.d(TAG, "fixEmailProtected, encodedEmail = ${ele.outerHtml()}")
     }
 }
 

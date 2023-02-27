@@ -24,7 +24,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -35,7 +34,6 @@ import androidx.compose.ui.unit.*
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import coil.size.Dimension
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -119,6 +117,7 @@ private fun HtmlElementsScope.BlockToInlineNodes(
         val node = iterator.next()
         if (node is Element) {
             if (node.isBlock || node.onlyContainsImgs() || node.isIframe()) {
+//            if (node.isBlock || node.isIframe()) {
                 if (tempNodes.isNotEmpty()) {
                     InlineNodes(tempNodes.toList(), prevNode, node, textStyle)
                     tempNodes.clear()
@@ -528,7 +527,8 @@ private fun HtmlElementsScope.InlineImage(
 
     SubcomposeAsyncImage(
         model = ImageRequest.Builder(context).data(img.src.fullUrl(baseUrl))
-            .size(coil.size.Size(screenWidth, Dimension.Undefined))
+//            .size(coil.size.Size(screenWidth, Dimension.Undefined))
+            .size(coil.size.Size.ORIGINAL)
             .setParameter("retryTimes", retryTimes)
             .build(),
         contentDescription = img.alt,

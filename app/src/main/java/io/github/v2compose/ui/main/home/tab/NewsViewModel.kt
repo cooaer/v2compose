@@ -27,8 +27,8 @@ class NewsViewModel @Inject constructor(
 
     val tab: String = savedStateHandle[KEY_TAB] ?: ""
 
-    private val _refreshingFlow = MutableStateFlow(false)
-    val refreshingFlow = _refreshingFlow.asStateFlow()
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
 
     private val _newsInfoFlow = MutableStateFlow<NewsUiState>(NewsUiState.Loading)
     val newsInfoFlow = _newsInfoFlow.asStateFlow()
@@ -45,9 +45,9 @@ class NewsViewModel @Inject constructor(
 
     fun refresh() {
         viewModelScope.launch {
-            _refreshingFlow.emit(true)
+            _isRefreshing.emit(true)
             loadInternal()
-            _refreshingFlow.emit(false)
+            _isRefreshing.emit(false)
         }
     }
 

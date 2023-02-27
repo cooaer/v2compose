@@ -38,7 +38,7 @@ fun NewsTab(
     val topicTitleOverview by viewModel.topicTitleOverview.collectAsStateWithLifecycle()
 
     val newsUiState by viewModel.newsInfoFlow.collectAsStateWithLifecycle()
-    val refreshing by viewModel.refreshingFlow.collectAsStateWithLifecycle()
+    val refreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     NewsContent(
         refreshing = refreshing,

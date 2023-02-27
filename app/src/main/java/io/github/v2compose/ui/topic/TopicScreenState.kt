@@ -9,12 +9,13 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import io.github.v2compose.R
+import io.github.v2compose.V2exUri
 import io.github.v2compose.core.openInBrowser
 import io.github.v2compose.core.share
 import io.github.v2compose.network.bean.TopicInfo
 import io.github.v2compose.ui.BaseScreenState
 import io.github.v2compose.ui.topic.composables.TopicMenuItem
-import io.github.v2compose.V2exUri
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
@@ -67,6 +68,7 @@ class TopicScreenState(
                 reply.replyContent
             )
         )
+        showMessage(R.string.copy_comment_success_tips)
     }
 
 

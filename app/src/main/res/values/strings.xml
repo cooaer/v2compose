@@ -53,6 +53,7 @@
     <string name="copy_comment">复制评论</string>
     <string name="ignore_comment">忽略评论</string>
     <string name="user_home_page">他的主页</string>
+    <string name="copy_comment_success_tips">已复制评论至剪切板</string>
 
     <!-- Topic Screen End -->
 

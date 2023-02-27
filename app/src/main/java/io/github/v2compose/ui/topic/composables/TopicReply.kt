@@ -26,6 +26,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import io.github.v2compose.R
 import io.github.v2compose.network.bean.TopicInfo
+import io.github.v2compose.network.bean.TopicInfo.Reply
 import io.github.v2compose.ui.common.HtmlContent
 import io.github.v2compose.ui.common.ListDivider
 import io.github.v2compose.ui.common.TopicUserAvatar
@@ -45,8 +46,6 @@ fun TopicReply(
     onMenuItemClick: (ReplyMenuItem) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var bottomSheetVisible by remember { mutableStateOf(false) }
-    val thanksCount = reply.thanksCount + (if (replyWrapper?.thanked == true) 1 else 0)
 
     Row(
         modifier = modifier
@@ -99,48 +98,66 @@ fun TopicReply(
                     .align(Alignment.BottomCenter),
             )
 
-            val actionContentColor =
-                MaterialTheme.colorScheme.secondary.copy(alpha = ContentAlpha.medium)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(end = 4.dp)
-            ) {
-                Row {
-                    if (isLoggedIn) {
-                        val menuItem = remember(reply) {
-                            if (reply.hadThanked()) ReplyMenuItem.Thanked else ReplyMenuItem.Thank
-                        }
+            TopicReplyActions(
+                isLoggedIn = isLoggedIn,
+                reply = reply,
+                replyWrapper = replyWrapper,
+                onMenuItemClick = onMenuItemClick,
+                modifier = Modifier.align(Alignment.TopEnd),
+            )
+        }
+    }
 
-                        IconButton(
-                            onClick = { onMenuItemClick(menuItem) }) {
-                            Icon(
-                                imageVector = menuItem.icon,
-                                contentDescription = menuItem.name,
-                                tint = actionContentColor
-                            )
-                        }
-                    }
-                    IconButton(
-                        onClick = { bottomSheetVisible = true }) {
-                        Icon(
-                            imageVector = Icons.Rounded.MoreVert,
-                            contentDescription = "more",
-                            tint = actionContentColor
-                        )
-                    }
+
+}
+
+@Composable
+private fun TopicReplyActions(
+    isLoggedIn: Boolean,
+    reply: Reply,
+    replyWrapper: ReplyWrapper?,
+    onMenuItemClick: (ReplyMenuItem) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val thanksCount = reply.thanksCount + (if (replyWrapper?.thanked == true) 1 else 0)
+    var bottomSheetVisible by remember { mutableStateOf(false) }
+
+    val actionContentColor =
+        MaterialTheme.colorScheme.secondary.copy(alpha = ContentAlpha.medium)
+    Box(modifier = modifier.padding(end = 4.dp)) {
+        Row {
+            if (isLoggedIn) {
+                val menuItem = remember(reply) {
+                    if (reply.hadThanked()) ReplyMenuItem.Thanked else ReplyMenuItem.Thank
                 }
-                if (thanksCount > 0) {
-                    Text(
-                        thanksCount.toString(),
-                        color = actionContentColor,
-                        style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .padding(start = 36.dp)
+
+                IconButton(
+                    onClick = { onMenuItemClick(menuItem) }) {
+                    Icon(
+                        imageVector = menuItem.icon,
+                        contentDescription = menuItem.name,
+                        tint = actionContentColor
                     )
                 }
             }
+            IconButton(
+                onClick = { bottomSheetVisible = true }) {
+                Icon(
+                    imageVector = Icons.Rounded.MoreVert,
+                    contentDescription = "more",
+                    tint = actionContentColor
+                )
+            }
+        }
+        if (thanksCount > 0) {
+            Text(
+                thanksCount.toString(),
+                color = actionContentColor,
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = 36.dp)
+            )
         }
     }
 

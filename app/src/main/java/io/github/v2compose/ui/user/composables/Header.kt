@@ -31,6 +31,7 @@ import me.onebone.toolbar.CollapsingToolbarScope
 @Composable
 fun CollapsingToolbarScope.UserToolbar(
     userUiState: UserUiState,
+    isLoggedIn: Boolean,
     scaffoldState: CollapsingToolbarScaffoldState,
     onBackClick: () -> Unit,
     onShareClick: () -> Unit,
@@ -47,12 +48,14 @@ fun CollapsingToolbarScope.UserToolbar(
             )
         }
     }, actions = {
-        userPageInfo?.let {
-            FollowIcon(
-                userPageInfo = userPageInfo,
-                onFollowClick = onFollowClick,
-                modifier = Modifier.graphicsLayer(alpha = 1 - scaffoldState.toolbarState.progress),
-            )
+        if(isLoggedIn){
+            userPageInfo?.let {
+                FollowIcon(
+                    userPageInfo = userPageInfo,
+                    onFollowClick = onFollowClick,
+                    modifier = Modifier.graphicsLayer(alpha = 1 - scaffoldState.toolbarState.progress),
+                )
+            }
         }
         IconButton(onClick = onShareClick) {
             Icon(Icons.Rounded.Share, contentDescription = "share")
@@ -61,6 +64,7 @@ fun CollapsingToolbarScope.UserToolbar(
 
     UserHeader(
         userPageInfo = userPageInfo,
+        isLoggedIn = isLoggedIn,
         onFollowClick = onFollowClick,
         onBlockClick = onBlockClick,
         modifier = Modifier
@@ -143,6 +147,7 @@ private fun UserTopAppBarTitle(userPageInfo: UserPageInfo, modifier: Modifier = 
 @Composable
 private fun UserHeader(
     userPageInfo: UserPageInfo?,
+    isLoggedIn: Boolean,
     onFollowClick: () -> Unit,
     onBlockClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -157,15 +162,17 @@ private fun UserHeader(
             ),
         )
 
-        userPageInfo?.let {
-            UserActions(
-                userPageInfo = it,
-                onFollowClick = onFollowClick,
-                onBlockClick = onBlockClick,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = topBarHeight, end = 16.dp),
-            )
+        if(isLoggedIn){
+            userPageInfo?.let {
+                UserActions(
+                    userPageInfo = it,
+                    onFollowClick = onFollowClick,
+                    onBlockClick = onBlockClick,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = topBarHeight, end = 16.dp),
+                )
+            }
         }
     }
 }

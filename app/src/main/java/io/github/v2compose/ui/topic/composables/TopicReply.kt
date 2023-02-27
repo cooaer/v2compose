@@ -20,10 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import io.github.v2compose.R
@@ -40,6 +38,7 @@ fun TopicReply(
     replyWrapper: ReplyWrapper?,
     opName: String,
     htmlImageSizes: Map<String, Size>,
+    isLoggedIn: Boolean,
     onUserAvatarClick: (String, String) -> Unit,
     onUriClick: (String, TopicInfo.Reply) -> Unit,
     onClick: (TopicInfo.Reply) -> Unit,
@@ -52,7 +51,7 @@ fun TopicReply(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onClick(reply) }
+            .clickable(enabled = isLoggedIn) { onClick(reply) }
             .padding(start = 16.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -108,16 +107,19 @@ fun TopicReply(
                     .padding(end = 4.dp)
             ) {
                 Row {
-                    val menuItem = remember(reply) {
-                        if (reply.hadThanked()) ReplyMenuItem.Thanked else ReplyMenuItem.Thank
-                    }
-                    IconButton(
-                        onClick = { onMenuItemClick(menuItem) }) {
-                        Icon(
-                            imageVector = menuItem.icon,
-                            contentDescription = menuItem.name,
-                            tint = actionContentColor
-                        )
+                    if (isLoggedIn) {
+                        val menuItem = remember(reply) {
+                            if (reply.hadThanked()) ReplyMenuItem.Thanked else ReplyMenuItem.Thank
+                        }
+
+                        IconButton(
+                            onClick = { onMenuItemClick(menuItem) }) {
+                            Icon(
+                                imageVector = menuItem.icon,
+                                contentDescription = menuItem.name,
+                                tint = actionContentColor
+                            )
+                        }
                     }
                     IconButton(
                         onClick = { bottomSheetVisible = true }) {
@@ -143,10 +145,13 @@ fun TopicReply(
     }
 
     if (bottomSheetVisible) {
-        ReplyBottomSheet(onDismiss = { bottomSheetVisible = false }, onItemClick = {
-            bottomSheetVisible = false
-            onMenuItemClick(it)
-        })
+        ReplyBottomSheet(
+            isLoggedIn = isLoggedIn,
+            onDismiss = { bottomSheetVisible = false },
+            onItemClick = {
+                bottomSheetVisible = false
+                onMenuItemClick(it)
+            })
     }
 }
 
@@ -232,16 +237,25 @@ enum class ReplyMenuItem(val icon: ImageVector, @StringRes val labelResId: Int) 
 }
 
 @Composable
-fun ReplyBottomSheet(onDismiss: () -> Unit, onItemClick: (ReplyMenuItem) -> Unit) {
-    val menuItems by remember {
-        mutableStateOf(
+fun ReplyBottomSheet(
+    isLoggedIn: Boolean,
+    onDismiss: () -> Unit,
+    onItemClick: (ReplyMenuItem) -> Unit
+) {
+    val menuItems = remember {
+        if (isLoggedIn) {
             listOf(
                 ReplyMenuItem.Reply,
                 ReplyMenuItem.Copy,
                 ReplyMenuItem.Ignore,
                 ReplyMenuItem.HomePage,
             )
-        )
+        } else {
+            listOf(
+                ReplyMenuItem.Copy,
+                ReplyMenuItem.HomePage,
+            )
+        }
     }
 
     val transitionState = remember {

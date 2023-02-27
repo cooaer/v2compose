@@ -11,6 +11,7 @@ import io.github.v2compose.R
 import io.github.v2compose.core.StringDecoder
 import io.github.v2compose.network.bean.NodeInfo
 import io.github.v2compose.network.bean.NodeTopicInfo
+import io.github.v2compose.repository.AccountRepository
 import io.github.v2compose.repository.NodeRepository
 import io.github.v2compose.repository.TopicRepository
 import io.github.v2compose.ui.BaseViewModel
@@ -27,6 +28,7 @@ class NodeViewModel @Inject constructor(
     stringDecoder: StringDecoder,
     private val nodeRepository: NodeRepository,
     private val topicRepository: TopicRepository,
+    private val accountRepository: AccountRepository,
 ) : BaseViewModel(application) {
 
     val nodeArgs = NodeArgs(savedStateHandle, stringDecoder)
@@ -41,11 +43,11 @@ class NodeViewModel @Inject constructor(
         nodeRepository.getNodeTopicInfoFlow(nodeArgs.nodeId).cachedIn(viewModelScope)
 
     //标题概览
-    val topicTitleOverview: StateFlow<Boolean> = topicRepository.topicTitleOverview.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(),
-        initialValue = true,
-    )
+    val topicTitleOverview: StateFlow<Boolean> = topicRepository.topicTitleOverview
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), true)
+
+    val isLoggedIn = accountRepository.isLoggedIn
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
 
     init {
         loadNodeInternal()
@@ -91,7 +93,9 @@ class NodeViewModel @Inject constructor(
 //                updateSnackbarMessage(context.getString(successTips))
             } catch (e: Exception) {
                 e.printStackTrace()
-                updateSnackbarMessage(e.message ?: context.getString(R.string.node_action_failure_tips))
+                updateSnackbarMessage(
+                    e.message ?: context.getString(R.string.node_action_failure_tips)
+                )
             }
         }
     }

@@ -51,6 +51,7 @@ fun NodeRoute(
     val nodeUiState by viewModel.nodeInfo.collectAsStateWithLifecycle()
     val nodeTopicItems = viewModel.nodeTopicItems.collectAsLazyPagingItems()
     val topicTitleOverview by viewModel.topicTitleOverview.collectAsStateWithLifecycle()
+    val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
 
     val pagingNodeTopicInfo = if (nodeTopicItems.itemCount > 0) {
         nodeTopicItems.peek(0).castOrNull<NodeTopicInfo>()
@@ -69,6 +70,7 @@ fun NodeRoute(
         nodeTopicInfo = nodeTopicInfo,
         nodeTopicItems = nodeTopicItems,
         topicTitleOverview = topicTitleOverview,
+        isLoggedIn = isLoggedIn,
         snackbarHostState = nodeScreenState.snackbarHostState,
         onBackClick = onBackClick,
         onFavoriteClick = viewModel::follow,
@@ -88,6 +90,7 @@ private fun NodeScreen(
     nodeTopicInfo: NodeTopicInfo?,
     nodeTopicItems: LazyPagingItems<Any>,
     topicTitleOverview: Boolean,
+    isLoggedIn: Boolean,
     snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
     onFavoriteClick: () -> Unit,
@@ -118,6 +121,7 @@ private fun NodeScreen(
                         nodeArgs = nodeArgs,
                         nodeUiState = nodeUiState,
                         nodeTopicInfo = nodeTopicInfo,
+                        isLoggedIn = isLoggedIn,
                         onBackClick = onBackClick,
                         onFavoriteClick = onFavoriteClick,
                         onShareClick = onShareClick,
@@ -153,6 +157,7 @@ private fun CollapsingToolbarScope.NodeTopBar(
     nodeArgs: NodeArgs,
     nodeUiState: NodeUiState,
     nodeTopicInfo: NodeTopicInfo?,
+    isLoggedIn: Boolean,
     onBackClick: () -> Unit,
     onFavoriteClick: () -> Unit,
     onShareClick: () -> Unit,
@@ -197,15 +202,17 @@ private fun CollapsingToolbarScope.NodeTopBar(
         },
         navigationIcon = { BackIcon(onBackClick = onBackClick) },
         actions = {
-            favorited?.let {
-                IconButton(
-                    onClick = { onFavoriteClickInternal() },
-                    modifier = Modifier.graphicsLayer(alpha = 1 - scaffoldState.toolbarState.progress)
-                ) {
-                    Icon(
-                        if (it) Icons.Rounded.BookmarkAdded else Icons.Rounded.BookmarkAdd,
-                        "favorite"
-                    )
+            if(isLoggedIn){
+                favorited?.let {
+                    IconButton(
+                        onClick = { onFavoriteClickInternal() },
+                        modifier = Modifier.graphicsLayer(alpha = 1 - scaffoldState.toolbarState.progress)
+                    ) {
+                        Icon(
+                            if (it) Icons.Rounded.BookmarkAdded else Icons.Rounded.BookmarkAdd,
+                            "favorite"
+                        )
+                    }
                 }
             }
 
@@ -226,27 +233,29 @@ private fun CollapsingToolbarScope.NodeTopBar(
             nodeUiState = nodeUiState,
         )
 
-        favorited?.let {
-            val contentColor =
-                LocalContentColor.current.copy(alpha = if (it) ContentAlpha.medium else ContentAlpha.high)
+        if(isLoggedIn){
+            favorited?.let {
+                val contentColor =
+                    LocalContentColor.current.copy(alpha = if (it) ContentAlpha.medium else ContentAlpha.high)
 
-            AssistChip(
-                modifier = Modifier.align(Alignment.CenterEnd),
-                onClick = { onFavoriteClickInternal() },
-                leadingIcon = {
-                    Icon(
-                        if (it) Icons.Rounded.BookmarkAdded else Icons.Rounded.BookmarkAdd,
-                        "favorite",
-                    )
-                },
-                label = {
-                    Text(
-                        stringResource(if (it) R.string.node_favorited else R.string.node_favorite),
-                        color = contentColor
-                    )
-                },
-                shape = RoundedCornerShape(16.dp),
-            )
+                AssistChip(
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                    onClick = { onFavoriteClickInternal() },
+                    leadingIcon = {
+                        Icon(
+                            if (it) Icons.Rounded.BookmarkAdded else Icons.Rounded.BookmarkAdd,
+                            "favorite",
+                        )
+                    },
+                    label = {
+                        Text(
+                            stringResource(if (it) R.string.node_favorited else R.string.node_favorite),
+                            color = contentColor
+                        )
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                )
+            }
         }
     }
 

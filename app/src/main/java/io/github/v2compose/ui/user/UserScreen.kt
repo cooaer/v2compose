@@ -55,6 +55,7 @@ fun UserScreenRoute(
     val userUiState by viewModel.userUiState.collectAsStateWithLifecycle()
     val userTopics = viewModel.userTopics.collectAsLazyPagingItems()
     val userReplies = viewModel.userReplies.collectAsLazyPagingItems()
+    val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
 
     HandleSnackbarMessage(viewModel, screenState)
 
@@ -63,6 +64,7 @@ fun UserScreenRoute(
         userTopics = userTopics,
         userReplies = userReplies,
         topicTitleOverview = topicTitleOverview,
+        isLoggedIn = isLoggedIn,
         snackbarHostState = screenState.snackbarHostState,
         onBackClick = onBackClick,
         onShareClick = {
@@ -83,6 +85,7 @@ private fun UserScreen(
     userTopics: LazyPagingItems<UserTopics.Item>,
     userReplies: LazyPagingItems<UserReplies.Item>,
     topicTitleOverview: Boolean,
+    isLoggedIn : Boolean,
     snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
     onShareClick: () -> Unit,
@@ -108,6 +111,7 @@ private fun UserScreen(
                 toolbar = {
                     UserToolbar(
                         userUiState = userUiState,
+                        isLoggedIn = isLoggedIn,
                         scaffoldState = scaffoldState,
                         onBackClick = onBackClick,
                         onShareClick = onShareClick,

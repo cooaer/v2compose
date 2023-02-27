@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.v2compose.R
 import io.github.v2compose.core.StringDecoder
 import io.github.v2compose.network.bean.UserPageInfo
+import io.github.v2compose.repository.AccountRepository
 import io.github.v2compose.repository.TopicRepository
 import io.github.v2compose.repository.UserRepository
 import io.github.v2compose.ui.BaseViewModel
@@ -23,6 +24,7 @@ class UserViewModel @Inject constructor(
     stringDecoder: StringDecoder,
     private val userRepository: UserRepository,
     private val topicRepository: TopicRepository,
+    private val accountRepository: AccountRepository,
 ) : BaseViewModel(application) {
 
     val userArgs = UserArgs(savedStateHandle, stringDecoder)
@@ -39,6 +41,9 @@ class UserViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(),
         initialValue = true,
     )
+    
+    val isLoggedIn = accountRepository.isLoggedIn
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
 
     init {
         loadUserPageInfo()

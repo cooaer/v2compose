@@ -324,9 +324,7 @@ private fun TopicNodeField(
     retryLoadingNodes: () -> Unit,
 ) {
     var showNodes by remember { mutableStateOf(false) }
-    val hasNodes = remember(loadNodesState) {
-        loadNodesState is LoadNodesState.Success && loadNodesState.data.isNotEmpty()
-    }
+    val hasNodes = loadNodesState is LoadNodesState.Success && loadNodesState.data.isNotEmpty()
 
     if (showNodes && hasNodes) {
         val nodes = (loadNodesState as LoadNodesState.Success).data

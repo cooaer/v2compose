@@ -16,12 +16,12 @@ class CheckInUseCase @Inject constructor(
             if (!dailyInfo.hadCheckedIn()) {
                 dailyInfo = accountRepository.checkIn(dailyInfo.once())
             }
-            CheckInResult(dailyInfo.hadCheckedIn(), dailyInfo.continuousLoginDays)
+            CheckInResult(dailyInfo.hadCheckedIn(), dailyInfo.continuousLoginDaysText)
         } catch (e: Exception) {
             e.printStackTrace()
             if (e.isRedirect(V2exUri.missionDailyPath)) {
                 val dailyInfo = accountRepository.dailyInfo()
-                CheckInResult(dailyInfo.hadCheckedIn(), dailyInfo.continuousLoginDays)
+                CheckInResult(dailyInfo.hadCheckedIn(), dailyInfo.continuousLoginDaysText)
             } else {
                 CheckInResult(false, e.message)
             }

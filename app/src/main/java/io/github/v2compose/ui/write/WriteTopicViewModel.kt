@@ -12,6 +12,7 @@ import io.github.v2compose.core.extension.isRedirect
 import io.github.v2compose.network.bean.CreateTopicPageInfo
 import io.github.v2compose.network.bean.TopicNode
 import io.github.v2compose.repository.TopicRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first

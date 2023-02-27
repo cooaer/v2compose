@@ -3,7 +3,9 @@ package io.github.v2compose.repository.def
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import io.github.v2compose.V2exUri
 import io.github.v2compose.bean.DraftTopic
+import io.github.v2compose.core.extension.isRedirect
 import io.github.v2compose.datasource.AccountPreferences
 import io.github.v2compose.datasource.AppPreferences
 import io.github.v2compose.datasource.SearchPagingSource
@@ -12,7 +14,6 @@ import io.github.v2compose.network.V2exService
 import io.github.v2compose.network.bean.*
 import io.github.v2compose.repository.ActionMethod
 import io.github.v2compose.repository.TopicRepository
-import io.github.v2compose.V2exUri
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -127,5 +128,19 @@ class DefaultTopicRepository @Inject constructor(
                 "syntax" to "default",
             )
         return v2exService.createTopic(params)
+    }
+
+    override suspend fun getAppendTopicPageInfo(topicId: String): AppendTopicPageInfo {
+        val topicUrl = V2exUri.topicUrl(topicId)
+        return v2exService.appendTopicPageInfo(topicUrl, topicId)
+    }
+
+    override suspend fun addSupplement(
+        topicId: String,
+        supplement: String,
+        once: String
+    ): AppendTopicPageInfo {
+        val params = mapOf("once" to once, "content" to supplement)
+        return v2exService.appendTopic(topicId, params)
     }
 }

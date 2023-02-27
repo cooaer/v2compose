@@ -26,6 +26,7 @@ class AccountPreferences @Inject constructor(
     companion object {
         private val KeyAccount = stringPreferencesKey("account")
         private val KeyDraftTopic = stringPreferencesKey("draft_topic")
+        private val KeyDraftSupplement = stringPreferencesKey("draft_supplement")
 
         private val KeyUnreadNotificationsCount = intPreferencesKey("unread_notifications_count")
         private val KeyLastCheckInTime = longPreferencesKey("last_check_in_time")
@@ -49,6 +50,10 @@ class AccountPreferences @Inject constructor(
 
     val lastCheckInTime = context.accountDataStore.data.map {
         it[KeyLastCheckInTime] ?: 0L
+    }
+
+    val draftSupplement = context.accountDataStore.data.map {
+        it[KeyDraftSupplement] ?: ""
     }
 
     suspend fun account(value: Account) {
@@ -93,6 +98,12 @@ class AccountPreferences @Inject constructor(
     suspend fun lastCheckInTime(value: Long) {
         context.accountDataStore.edit {
             it[KeyLastCheckInTime] = value
+        }
+    }
+
+    suspend fun draftSupplement(value: String) {
+        context.accountDataStore.edit {
+            it[KeyDraftSupplement] = value
         }
     }
 

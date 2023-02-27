@@ -143,7 +143,7 @@ interface V2exService {
     suspend fun appendTopic(
         @Path("id") topicId: String,
         @FieldMap postParams: Map<String, String>
-    ): TopicInfo
+    ): AppendTopicPageInfo
 
     @Html
     @POST("/ajax/money")

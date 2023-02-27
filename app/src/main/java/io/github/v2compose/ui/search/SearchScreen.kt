@@ -1,11 +1,9 @@
 package io.github.v2compose.ui.search
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -47,7 +45,6 @@ import io.github.v2compose.network.bean.SoV2EXSearchResultInfo
 import io.github.v2compose.ui.common.pagingAppendMoreItem
 import io.github.v2compose.ui.common.pagingRefreshItem
 import io.github.v2compose.ui.common.rememberLazyListState
-import kotlinx.coroutines.delay
 
 private const val TAG = "SearchScreen"
 
@@ -89,7 +86,7 @@ private fun SearchScreen(
 //    } else {
 //        MaterialTheme.colorScheme.background
 //    }
-    val backgroundColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f)
+    val backgroundColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)
 
     Scaffold(modifier = Modifier.background(color = backgroundColor)) {
         Box(
@@ -137,43 +134,52 @@ private fun SearchBar(keyword: String?, onCloseClick: () -> Unit, onSearchClick:
         }
     }
 
-    OutlinedTextField(
-        value = currentKeyword,
-        onValueChange = { currentKeyword = it },
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .background(
-                color = MaterialTheme.colorScheme.background,
-                shape = RoundedCornerShape(12.dp),
-            )
-            .focusRequester(focusRequester)
-            .onFocusChanged { },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Text, imeAction = ImeAction.Search
-        ),
-        keyboardActions = KeyboardActions(onSearch = { onSearchAction() }),
-        singleLine = true,
-        placeholder = {
+    ) {
+        OutlinedTextField(
+            value = currentKeyword,
+            onValueChange = { currentKeyword = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = MaterialTheme.colorScheme.background,
+                    shape = RoundedCornerShape(12.dp),
+                )
+                .focusRequester(focusRequester)
+                .onFocusChanged { },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text, imeAction = ImeAction.Search
+            ),
+            keyboardActions = KeyboardActions(onSearch = { onSearchAction() }),
+            singleLine = true,
+            placeholder = {
+                Icon(
+                    painter = painterResource(id = R.drawable.logo_sov2ex),
+                    contentDescription = "sov2ex logo",
+                    tint = MaterialTheme.colorScheme.onBackground.copy(alpha = ContentAlpha.disabled)
+                )
+            },
+            shape = RoundedCornerShape(12.dp),
+        )
+        IconButton(
+            onClick = {
+                if (currentKeyword.text.isNotEmpty()) {
+                    currentKeyword = TextFieldValue("")
+                } else {
+                    onCloseClick()
+                }
+            },
+            modifier = Modifier.align(Alignment.CenterEnd),
+        ) {
             Icon(
-                painter = painterResource(id = R.drawable.logo_sov2ex),
-                contentDescription = "sov2ex logo",
-                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = ContentAlpha.disabled)
-            )
-        },
-        trailingIcon = {
-            Icon(imageVector = Icons.Rounded.Close,
+                imageVector = Icons.Rounded.Close,
                 contentDescription = "close",
-                modifier = Modifier.clickable {
-                    if (currentKeyword.text.isNotEmpty()) {
-                        currentKeyword = TextFieldValue("")
-                    } else {
-                        onCloseClick()
-                    }
-                })
-        },
-        shape = RoundedCornerShape(12.dp),
-    )
+            )
+        }
+    }
 
     LaunchedEffect(focusRequester) {
         if (autoShowKeyboard) {

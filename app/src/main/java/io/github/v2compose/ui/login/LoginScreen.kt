@@ -78,7 +78,7 @@ private fun LoginScreen(
     val problem = rememberSaveable(loginParamState) {
         if (loginParamState is LoginParamState.Success) loginParamState.data.problem else ""
     }
-    HtmlAlertDialog(problem)
+    HtmlAlertDialog(content = problem)
 
     Scaffold(
         topBar = { LoginTopBar(onCloseClick = onCloseClick) },

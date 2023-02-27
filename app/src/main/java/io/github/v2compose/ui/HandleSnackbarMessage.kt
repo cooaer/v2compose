@@ -14,6 +14,7 @@ fun HandleSnackbarMessage(
     if (!snackbarMessage.isNullOrEmpty()) {
         LaunchedEffect(snackbarMessage) {
             screenState.showMessage(snackbarMessage!!)
+            viewModel.updateSnackbarMessage(null)
         }
     }
 }

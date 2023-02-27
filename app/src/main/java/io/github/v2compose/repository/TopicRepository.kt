@@ -50,6 +50,14 @@ interface TopicRepository {
         nodeId: String,
         once: String
     ): CreateTopicPageInfo
+
+    suspend fun getAppendTopicPageInfo(topicId: String): AppendTopicPageInfo
+
+    suspend fun addSupplement(
+        topicId: String,
+        supplement: String,
+        once: String
+    ): AppendTopicPageInfo
 }
 
 enum class ActionMethod {

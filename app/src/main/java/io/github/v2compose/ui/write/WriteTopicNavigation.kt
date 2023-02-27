@@ -12,7 +12,7 @@ import io.github.v2compose.core.StringDecoder
 
 private const val argsNode = "node"
 private const val argsNodeName = "node_name"
-private const val argsCreateTopicRoute =
+private const val createTopicRoute =
     "/write?$argsNode={$argsNode}&$argsNodeName={$argsNodeName}"
 
 data class WriteTopicArgs(val nodeId: String?, val nodeName: String?) {
@@ -35,7 +35,7 @@ fun NavGraphBuilder.writeTopicScreen(
     onCreateTopicSuccess: (topicId: String) -> Unit,
 ) {
     composable(
-        route = argsCreateTopicRoute,
+        route = createTopicRoute,
         arguments = listOf(
             navArgument(argsNode) { type = NavType.StringType },
             navArgument(argsNodeName) { type = NavType.StringType },

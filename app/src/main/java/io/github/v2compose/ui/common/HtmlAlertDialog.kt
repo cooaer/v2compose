@@ -9,16 +9,23 @@ import io.github.v2compose.R
 
 
 @Composable
-fun HtmlAlertDialog(initialContent: String, onUriClick: ((uri: String) -> Unit)? = null) {
-    var content by remember(initialContent) { mutableStateOf(initialContent) }
+fun HtmlAlertDialog(
+    title: String? = null,
+    content: String,
+    onUriClick: ((uri: String) -> Unit)? = null
+) {
+    var showDialog by remember(content) { mutableStateOf(true) }
 
-    if (content.isNotEmpty()) {
-        AlertDialog(onDismissRequest = { content = "" }, title = {
-            HtmlContent(content = content, onUriClick = onUriClick)
-        }, confirmButton = {
-            TextButton(onClick = { content = "" }) {
-                Text(stringResource(id = R.string.ok))
-            }
-        })
+    if (showDialog) {
+        AlertDialog(onDismissRequest = { showDialog = false },
+            title = { title?.let { Text(title) } },
+            text = {
+                HtmlContent(content = content, onUriClick = onUriClick)
+            },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(stringResource(id = R.string.ok))
+                }
+            })
     }
 }

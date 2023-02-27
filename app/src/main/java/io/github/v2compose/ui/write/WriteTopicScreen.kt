@@ -238,7 +238,7 @@ private fun TopBar(
 ) {
     CenterAlignedTopAppBar(
         title = { Text(stringResource(id = R.string.create_topic)) },
-        navigationIcon = { CloseButton(onclick = onCloseClick) },
+        navigationIcon = { CloseButton(onClick = onCloseClick) },
         actions = {
             SendButton(
                 inProgress = createTopicState is CreateTopicState.Loading,
@@ -305,7 +305,7 @@ private fun HandleCreateTopicState(
         is CreateTopicState.Failure -> {
             val problem: CreateTopicPageInfo.Problem = createTopicState.pageInfo.problem ?: return
             if (problem.isEmpty) return
-            HtmlAlertDialog(initialContent = problem.html, onUriClick = onUriClick)
+            HtmlAlertDialog(content = problem.html, onUriClick = onUriClick)
         }
         is CreateTopicState.Success -> {
             LaunchedEffect(createTopicState) {

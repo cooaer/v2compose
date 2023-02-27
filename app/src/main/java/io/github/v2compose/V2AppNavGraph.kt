@@ -22,6 +22,8 @@ import io.github.v2compose.ui.search.searchScreen
 import io.github.v2compose.ui.settings.navigateToSettings
 import io.github.v2compose.ui.settings.settingsScreen
 import io.github.v2compose.ui.settings.settingsScreenRoute
+import io.github.v2compose.ui.supplement.addSupplementScreen
+import io.github.v2compose.ui.supplement.navigateToAddSupplement
 import io.github.v2compose.ui.topic.navigateToTopic
 import io.github.v2compose.ui.topic.topicScreen
 import io.github.v2compose.ui.user.navigateToUser
@@ -66,7 +68,8 @@ fun V2AppNavGraph(
             onBackClick = appState::back,
             onNodeClick = navController::navigateToNode,
             onUserAvatarClick = navController::navigateToUser,
-            openUri = appState::openUri
+            openUri = appState::openUri,
+            onAddSupplementClick = navController::navigateToAddSupplement
         )
         nodeScreen(
             onBackClick = appState::back,
@@ -113,7 +116,21 @@ fun V2AppNavGraph(
         writeTopicScreen(
             onCloseClick = appState::back,
             openUri = appState::openUri,
-            onCreateTopicSuccess = { navController.navigateToTopic(it) },
+            onCreateTopicSuccess = {
+                navController.popBackStack()
+                navController.navigateToTopic(it)
+            },
+        )
+        addSupplementScreen(
+            onCloseClick = appState::back,
+            onAddSupplementSuccess = {
+                navController.navigateToTopic(it, navOptions {
+                    popUpTo(V2exUri.topicPath(it)) {
+                        inclusive = true
+                    }
+                })
+            },
+            openUri = appState::openUri,
         )
     }
 }

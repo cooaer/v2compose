@@ -10,6 +10,7 @@ import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,6 +27,7 @@ import io.github.v2compose.bean.Account
 import io.github.v2compose.core.extension.isBeforeTodayByUTC
 import io.github.v2compose.ui.HandleSnackbarMessage
 import io.github.v2compose.ui.common.ListDivider
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -43,6 +45,7 @@ fun MineContent(
     val account by viewModel.account.collectAsStateWithLifecycle()
     val lastCheckInTime by viewModel.lastCheckInTime.collectAsStateWithLifecycle()
     val hasCheckingInTips by viewModel.hasCheckingInTips.collectAsStateWithLifecycle()
+    val coroutineScope = rememberCoroutineScope()
 
     HandleSnackbarMessage(viewModel, mineContentState)
 

@@ -50,10 +50,12 @@ fun TopicScreenRoute(
     onBackClick: () -> Unit,
     onNodeClick: (String, String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
+    onAddSupplementClick:(String) -> Unit,
     openUri: (String) -> Unit,
     viewModel: TopicViewModel = hiltViewModel(),
     screenState: TopicScreenState = rememberTopicScreenState(),
 ) {
+    val args = viewModel.topicArgs
     val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
     val repliesReversed by viewModel.repliesReversed.collectAsStateWithLifecycle(initialValue = true)
     val topicItems = viewModel.topicItems.collectAsLazyPagingItems()
@@ -86,6 +88,7 @@ fun TopicScreenRoute(
             when (it) {
                 TopicMenuItem.Favorite -> viewModel.favoriteTopic()
                 TopicMenuItem.Favorited -> viewModel.unFavoriteTopic()
+                TopicMenuItem.Append -> onAddSupplementClick(args.topicId)
                 TopicMenuItem.Thanks -> viewModel.thanksTopic()
                 TopicMenuItem.Thanked -> viewModel.unThanksTopic()
                 TopicMenuItem.Ignore -> viewModel.ignoreTopic()
@@ -582,7 +585,7 @@ private fun HandleReplyTopicState(
         }
     } else if (replyTopicState is ReplyTopicState.Failure) {
         val problem = rememberSaveable(replyTopicState) { replyTopicState.result.problem }
-        HtmlAlertDialog(problem, onUriClick = onUriClick)
+        HtmlAlertDialog(content = problem, onUriClick = onUriClick)
     }
 }
 

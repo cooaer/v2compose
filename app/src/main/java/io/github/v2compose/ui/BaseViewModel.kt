@@ -16,11 +16,11 @@ open class BaseViewModel(application: Application) : AndroidViewModel(applicatio
     private val _snackbarMessage = MutableStateFlow<String?>(null)
     val snackbarMessage: StateFlow<String?> = _snackbarMessage
 
-    protected suspend fun updateSnackbarMessage(value: String?) {
+    suspend fun updateSnackbarMessage(value: String?) {
         _snackbarMessage.emit(value)
     }
 
-    protected suspend fun updateSnackbarMessage(@StringRes valueResId: Int) {
+    suspend fun updateSnackbarMessage(@StringRes valueResId: Int) {
         _snackbarMessage.emit(context.getString(valueResId))
     }
 

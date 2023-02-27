@@ -22,6 +22,7 @@ import io.github.v2compose.ui.topic.TopicInfoWrapper
 
 
 enum class TopicMenuItem(val icon: ImageVector, @StringRes val textResId: Int) {
+    Append(Icons.Rounded.NoteAdd, R.string.topic_menu_item_append),
     Favorite(Icons.Rounded.BookmarkAdd, R.string.topic_menu_item_favorite),
     Favorited(Icons.Rounded.BookmarkAdded, R.string.topic_menu_item_unfavorite),
     More(Icons.Rounded.MoreVert, R.string.topic_menu_item_more),
@@ -115,6 +116,9 @@ private fun TopicTopBarActions(
         mutableListOf<TopicMenuItem>().apply {
             if (isLoggedIn) {
                 if (topicInfo.topic != null) {
+                    if (topicInfo.topic.headerInfo.canAppend()) {
+                        add(TopicMenuItem.Append)
+                    }
                     add(if (topicInfo.isThanked) TopicMenuItem.Thanked else TopicMenuItem.Thanks)
                 }
                 add(if (topicInfo.isIgnored) TopicMenuItem.Ignored else TopicMenuItem.Ignore)

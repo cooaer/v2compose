@@ -12,10 +12,12 @@ object V2exUri {
 
     fun userUrl(userName: String) = Constants.baseUrl + userPath(userName)
 
-    fun userPath(userName: String) = "/member/$userName"
-
     fun nodeUrl(nodeId: String) = Constants.baseUrl + nodePath(nodeId)
 
+    fun topicPath(topicId: String) = "/t/$topicId"
+
     fun nodePath(nodeId: String) = "/go/$nodeId"
+
+    fun userPath(userName: String) = "/member/$userName"
 
 }

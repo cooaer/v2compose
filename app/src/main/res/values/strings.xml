@@ -75,6 +75,7 @@
     <string name="n_minutes_ago">%d分钟前</string>
     <string name="just_now">刚刚</string>
 
+    <string name="history_keywords">历史搜索</string>
     <!-- Search Screen End -->
 
     <!-- User Screen Start -->

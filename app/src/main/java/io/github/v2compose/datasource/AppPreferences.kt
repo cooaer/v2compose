@@ -10,6 +10,8 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.squareup.moshi.Moshi
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.v2compose.bean.DarkMode
+import io.github.v2compose.core.extension.toJson
+import io.github.v2compose.core.extension.toStringList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -26,6 +28,7 @@ data class AppSettings(
     val topicTitleOverview: Boolean = true,
     val ignoredReleaseName: String? = null,
     val autoCheckIn: Boolean = false,
+    val searchKeywords: List<String> = listOf(),
 ) {
     companion object {
         val Default = AppSettings()
@@ -44,6 +47,7 @@ class AppPreferences @Inject constructor(
         private val KeyTopicTitleOverview = booleanPreferencesKey("topic_title_overview")
         private val KeyIgnoredReleaseName = stringPreferencesKey("ignored_release_name")
         private val KeyAutoCheckIn = booleanPreferencesKey("auto_check_in")
+        private val KeySearchKeywords = stringPreferencesKey("search_keywords")
     }
 
     val appSettings: Flow<AppSettings> = context.appDataStore.data.map {
@@ -55,6 +59,7 @@ class AppPreferences @Inject constructor(
             topicTitleOverview = it[KeyTopicTitleOverview] ?: true,
             ignoredReleaseName = it[KeyIgnoredReleaseName],
             autoCheckIn = it[KeyAutoCheckIn] ?: false,
+            searchKeywords = it[KeySearchKeywords]?.toStringList(moshi) ?: listOf()
         )
     }.distinctUntilChanged()
 
@@ -93,4 +98,12 @@ class AppPreferences @Inject constructor(
             it[KeyAutoCheckIn] = value
         }
     }
+
+    suspend fun searchKeywords(value: List<String>) {
+        context.appDataStore.edit {
+            it[KeySearchKeywords] = value.toJson(moshi)
+        }
+    }
+
 }
+

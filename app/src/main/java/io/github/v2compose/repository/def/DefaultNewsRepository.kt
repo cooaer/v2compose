@@ -17,6 +17,7 @@ class DefaultNewsRepository @Inject constructor(
         return v2exService.homeNews(tab).also {
             accountPreferences.unreadNotifications(it.unreadCount)
             appStateStore.updateHasCheckingInTips(it.hasCheckingInTips())
+            appStateStore.updateNodesNavInfoWithNewsInfo(it)
         }
     }
 

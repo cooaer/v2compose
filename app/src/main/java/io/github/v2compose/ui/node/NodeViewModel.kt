@@ -40,7 +40,7 @@ class NodeViewModel @Inject constructor(
     val nodeInfo = _nodeInfo.asStateFlow()
 
     val nodeTopicItems =
-        nodeRepository.getNodeTopicInfoFlow(nodeArgs.nodeId).cachedIn(viewModelScope)
+        nodeRepository.getNodeTopicInfo(nodeArgs.nodeId).cachedIn(viewModelScope)
 
     //标题概览
     val topicTitleOverview: StateFlow<Boolean> = topicRepository.topicTitleOverview

@@ -15,7 +15,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.AutofillType
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.painter.ColorPainter
@@ -41,6 +43,9 @@ import io.github.v2compose.Constants
 import io.github.v2compose.R
 import io.github.v2compose.ui.common.CloseButton
 import io.github.v2compose.ui.common.HtmlAlertDialog
+import io.github.v2compose.ui.common.autofill
+
+private const val TAG = "LoginScreen"
 
 @Composable
 fun LoginScreenRoute(
@@ -103,10 +108,8 @@ private fun LoginScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LoginTopBar(onCloseClick: () -> Unit) {
-    CenterAlignedTopAppBar(
-        title = { Text(stringResource(id = R.string.login)) },
-        navigationIcon = { CloseButton { onCloseClick() } }
-    )
+    CenterAlignedTopAppBar(title = { Text(stringResource(id = R.string.login)) },
+        navigationIcon = { CloseButton { onCloseClick() } })
 }
 
 @Composable
@@ -177,9 +180,7 @@ private fun LoginContent(
         )
         Spacer(modifier = Modifier.height(8.dp))
         LoginButton(
-            loginState = loginState,
-            enabled = loginButtonEnabled,
-            onLoginClick = onLoginClick
+            loginState = loginState, enabled = loginButtonEnabled, onLoginClick = onLoginClick
         )
         Spacer(modifier = Modifier.height(16.dp))
         SignInWithGoogle(
@@ -194,7 +195,7 @@ private fun LoginContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun UserName(
     userName: String,
@@ -213,17 +214,18 @@ private fun UserName(
             }
         },
         keyboardOptions = KeyboardOptions(
-            imeAction = ImeAction.Next,
-            keyboardType = KeyboardType.Text
+            imeAction = ImeAction.Next, keyboardType = KeyboardType.Text
         ),
         keyboardActions = KeyboardActions(onNext = { onNextClick() }),
         isError = !error.isNullOrEmpty(),
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .autofill(autofillTypes = listOf(AutofillType.Username), onFill = onValueChanged),
         singleLine = true,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun Password(
     password: String,
@@ -248,7 +250,9 @@ private fun Password(
         ),
         keyboardActions = KeyboardActions(onNext = { onNextClick() }),
         isError = !error.isNullOrEmpty(),
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .autofill(autofillTypes = listOf(AutofillType.Password), onFill = onValueChanged),
         singleLine = true,
         visualTransformation = visualTransformation,
     )
@@ -376,9 +380,7 @@ private fun LoginButton(loginState: LoginState, enabled: Boolean, onLoginClick: 
 
 @Composable
 private fun SignInWithGoogle(
-    loginParamState: LoginParamState,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    loginParamState: LoginParamState, onClick: () -> Unit, modifier: Modifier = Modifier
 ) {
     OutlinedButton(
         enabled = loginParamState is LoginParamState.Success,

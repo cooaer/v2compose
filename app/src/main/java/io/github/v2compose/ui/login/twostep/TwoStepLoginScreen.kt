@@ -142,7 +142,7 @@ private fun LoginContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            if (twoStepLoginInfo.title.isNullOrEmpty()) stringResource(id = R.string.two_step_login_desc) else twoStepLoginInfo.title,
+            twoStepLoginInfo.title.ifEmpty { stringResource(id = R.string.two_step_login_desc) },
             style = MaterialTheme.typography.bodyMedium,
             color = contentColor.copy(alpha = ContentAlpha.high),
         )
@@ -195,10 +195,10 @@ private fun TfaCode(
             }
         },
         keyboardOptions = KeyboardOptions(
-            imeAction = ImeAction.Go,
+            imeAction = ImeAction.Done,
             keyboardType = KeyboardType.Number,
         ),
-        keyboardActions = KeyboardActions(onNext = { onNextClick() }),
+        keyboardActions = KeyboardActions(onDone = { onNextClick() }),
         isError = !error.isNullOrEmpty(),
         modifier = modifier.fillMaxWidth(),
         singleLine = true,

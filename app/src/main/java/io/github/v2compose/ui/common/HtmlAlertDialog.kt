@@ -14,7 +14,7 @@ fun HtmlAlertDialog(
     content: String,
     onUriClick: ((uri: String) -> Unit)? = null
 ) {
-    var showDialog by remember(content) { mutableStateOf(true) }
+    var showDialog by remember(content) { mutableStateOf(content.isNotEmpty()) }
 
     if (showDialog) {
         AlertDialog(onDismissRequest = { showDialog = false },

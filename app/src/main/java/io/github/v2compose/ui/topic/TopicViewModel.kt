@@ -169,7 +169,6 @@ class TopicViewModel @Inject constructor(
                         )
                     }
                 }
-
             } catch (e: Exception) {
                 e.printStackTrace()
                 if (e is HttpException && e.code().isRedirect) {

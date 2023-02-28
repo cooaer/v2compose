@@ -45,7 +45,6 @@ fun MineContent(
     val account by viewModel.account.collectAsStateWithLifecycle()
     val lastCheckInTime by viewModel.lastCheckInTime.collectAsStateWithLifecycle()
     val hasCheckingInTips by viewModel.hasCheckingInTips.collectAsStateWithLifecycle()
-    val coroutineScope = rememberCoroutineScope()
 
     HandleSnackbarMessage(viewModel, mineContentState)
 

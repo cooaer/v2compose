@@ -42,7 +42,11 @@ class MineViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .collectLatest {
                     if (it.isNotEmpty()) {
-                        accountRepository.refreshAccount()
+                        try {
+                            accountRepository.refreshAccount()
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                     }
                 }
         }

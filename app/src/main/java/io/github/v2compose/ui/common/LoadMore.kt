@@ -1,6 +1,5 @@
 package io.github.v2compose.ui.common
 
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.Button
@@ -88,7 +87,6 @@ fun LoadError(error: Throwable?, onRetryClick: () -> Unit, modifier: Modifier = 
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier.then(LoadModifier),
     ) {
-        Log.d("LoadMore", "error message = ${error?.message}")
         Text(error?.message ?: stringResource(R.string.load_failed))
         Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = onRetryClick) {

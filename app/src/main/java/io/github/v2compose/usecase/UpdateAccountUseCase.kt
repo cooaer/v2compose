@@ -2,17 +2,18 @@ package io.github.v2compose.usecase
 
 import android.net.Uri
 import io.github.v2compose.datasource.AccountPreferences
-import io.github.v2compose.network.OkHttpFactory
 import io.github.v2compose.network.bean.LoginResultInfo
 import io.github.v2compose.network.bean.NewsInfo
 import io.github.v2compose.repository.AccountRepository
 import kotlinx.coroutines.flow.first
+import me.ghui.fruit.Fruit
 import retrofit2.HttpException
 import javax.inject.Inject
 
 class UpdateAccountUseCase @Inject constructor(
+    private val fruit: Fruit,
     private val accountPreferences: AccountPreferences,
-    private val accountRepository: AccountRepository
+    private val accountRepository: AccountRepository,
 ) {
 
     suspend fun updateWithNewsInfo(newsInfo: NewsInfo) {
@@ -20,7 +21,7 @@ class UpdateAccountUseCase @Inject constructor(
             return
         }
         val loginResultInfo: LoginResultInfo? =
-            OkHttpFactory.fruit.fromHtml(newsInfo.rawResponse, LoginResultInfo::class.java)
+            fruit.fromHtml(newsInfo.rawResponse, LoginResultInfo::class.java)
         if (loginResultInfo == null || !loginResultInfo.isValid) {
             return
         }

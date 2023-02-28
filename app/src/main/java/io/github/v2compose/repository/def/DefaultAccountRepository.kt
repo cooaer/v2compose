@@ -9,7 +9,7 @@ import io.github.v2compose.datasource.AppPreferences
 import io.github.v2compose.datasource.AppStateStore
 import io.github.v2compose.datasource.NotificationPagingSource
 import io.github.v2compose.network.V2exService
-import io.github.v2compose.network.WebkitCookieManagerProxy
+import io.github.v2compose.network.WebkitCookieManager
 import io.github.v2compose.network.bean.*
 import io.github.v2compose.repository.AccountRepository
 import kotlinx.coroutines.flow.Flow
@@ -21,7 +21,7 @@ class DefaultAccountRepository @Inject constructor(
     private val v2exService: V2exService,
     private val appPreferences: AppPreferences,
     private val accountPreferences: AccountPreferences,
-    private val cookieManager: WebkitCookieManagerProxy,
+    private val cookieManager: WebkitCookieManager,
     private val appStateStore: AppStateStore,
 ) : AccountRepository {
 

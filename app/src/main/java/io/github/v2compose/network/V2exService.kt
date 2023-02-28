@@ -1,10 +1,13 @@
 package io.github.v2compose.network
 
+import com.google.gson.Gson
 import io.github.v2compose.network.bean.*
+import me.ghui.fruit.Fruit
 import me.ghui.fruit.converter.retrofit.FruitConverterFactory
 import me.ghui.retrofit.converter.GlobalConverterFactory
 import me.ghui.retrofit.converter.annotations.Html
 import me.ghui.retrofit.converter.annotations.Json
+import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -17,14 +20,13 @@ import retrofit2.http.*
 interface V2exService {
 
     companion object {
-        val instance: V2exService by lazy { createV2exService() }
-        private fun createV2exService(): V2exService {
+        fun createV2exService(httpClient: OkHttpClient, fruit: Fruit, gson: Gson): V2exService {
             val retrofit = Retrofit.Builder()
-                .client(OkHttpFactory.httpClient)
+                .client(httpClient)
                 .addConverterFactory(
                     GlobalConverterFactory.create()
-                        .add(FruitConverterFactory.create(OkHttpFactory.fruit), Html::class.java)
-                        .add(GsonConverterFactory.create(OkHttpFactory.gson), Json::class.java)
+                        .add(FruitConverterFactory.create(fruit), Html::class.java)
+                        .add(GsonConverterFactory.create(gson), Json::class.java)
                 )
                 .baseUrl(NetConstants.BASE_URL)
                 .build()

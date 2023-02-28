@@ -1,6 +1,8 @@
 package io.github.v2compose.network
 
+import com.google.gson.Gson
 import io.github.v2compose.network.bean.Release
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
@@ -11,12 +13,10 @@ interface GithubService {
     companion object {
         private const val BaseUrl = "https://api.github.com/"
 
-        val instance: GithubService by lazy { createGithubApi() }
-
-        private fun createGithubApi(): GithubService {
+        fun createGithubApi(httpClient: OkHttpClient, gson: Gson): GithubService {
             val retrofit = Retrofit.Builder()
-                .client(OkHttpFactory.httpClient)
-                .addConverterFactory(GsonConverterFactory.create(OkHttpFactory.gson))
+                .client(httpClient)
+                .addConverterFactory(GsonConverterFactory.create(gson))
                 .baseUrl(BaseUrl)
                 .build()
             return retrofit.create(GithubService::class.java)

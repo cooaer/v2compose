@@ -48,13 +48,15 @@ fun CollapsingToolbarScope.UserToolbar(
             )
         }
     }, actions = {
-        if(isLoggedIn){
+        if (isLoggedIn) {
             userPageInfo?.let {
-                FollowIcon(
-                    userPageInfo = userPageInfo,
-                    onFollowClick = onFollowClick,
-                    modifier = Modifier.graphicsLayer(alpha = 1 - scaffoldState.toolbarState.progress),
-                )
+                if (userPageInfo.followUrl != null) {
+                    FollowIcon(
+                        userPageInfo.hadFollowed(),
+                        onFollowClick = onFollowClick,
+                        modifier = Modifier.graphicsLayer(alpha = 1 - scaffoldState.toolbarState.progress),
+                    )
+                }
             }
         }
         IconButton(onClick = onShareClick) {
@@ -75,20 +77,20 @@ fun CollapsingToolbarScope.UserToolbar(
 
 @Composable
 private fun FollowIcon(
-    userPageInfo: UserPageInfo,
+    followed: Boolean,
     onFollowClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var followed by remember(userPageInfo) { mutableStateOf(userPageInfo.hadFollowed()) }
+    var currentFollowed by remember(followed) { mutableStateOf(followed) }
     val followColor =
-        if (followed) LocalContentColor.current.copy(alpha = ContentAlpha.medium) else MaterialTheme.colorScheme.primary
+        if (currentFollowed) LocalContentColor.current.copy(alpha = ContentAlpha.medium) else MaterialTheme.colorScheme.primary
     var showUnfollowDialog by remember { mutableStateOf(false) }
     val onFollowClickInternal = {
-        if (followed == userPageInfo.hadFollowed()) {
-            if (followed) {
+        if (currentFollowed == followed) {
+            if (currentFollowed) {
                 showUnfollowDialog = true
             } else {
-                followed = true
+                currentFollowed = true
                 onFollowClick()
             }
         }
@@ -98,7 +100,7 @@ private fun FollowIcon(
         TextAlertDialog(
             message = stringResource(R.string.user_unfollow_tips),
             onConfirm = {
-                followed = false
+                currentFollowed = false
                 onFollowClick()
             },
             onDismiss = { showUnfollowDialog = false },
@@ -110,7 +112,7 @@ private fun FollowIcon(
         modifier = modifier,
     ) {
         Icon(
-            if (followed) Icons.Rounded.RemoveCircleOutline else Icons.Rounded.AddCircleOutline,
+            if (currentFollowed) Icons.Rounded.RemoveCircleOutline else Icons.Rounded.AddCircleOutline,
             "follow", Modifier.size(20.dp), followColor,
         )
     }
@@ -162,7 +164,7 @@ private fun UserHeader(
             ),
         )
 
-        if(isLoggedIn){
+        if (isLoggedIn) {
             userPageInfo?.let {
                 UserActions(
                     userPageInfo = it,
@@ -230,8 +232,12 @@ private fun UserActions(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier, horizontalAlignment = Alignment.End) {
-        FollowButton(userPageInfo, onFollowClick)
-        BlockButton(userPageInfo, onBlockClick)
+        userPageInfo.followUrl?.let {
+            FollowButton(userPageInfo, onFollowClick)
+        }
+        userPageInfo.blockUrl?.let {
+            BlockButton(userPageInfo, onBlockClick)
+        }
     }
 }
 

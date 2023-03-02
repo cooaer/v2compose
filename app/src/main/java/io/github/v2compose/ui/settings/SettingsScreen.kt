@@ -13,7 +13,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -34,7 +33,7 @@ import kotlinx.coroutines.launch
 fun SettingsScreenRoute(
     onBackClick: () -> Unit,
     openUri: (String) -> Unit,
-    onLogoutSuccess:() -> Unit,
+    onLogoutSuccess: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
     settingsScreenState: SettingsScreenState = rememberSettingsScreenState()
 ) {
@@ -291,9 +290,13 @@ private fun SwitchPreference(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    Box {
+    Box(modifier = Modifier.clickable { onCheckedChange(!checked) }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            PreferenceContent(title = title, summary = summary, modifier = Modifier.weight(1.0f))
+            PreferenceContent(
+                title = title,
+                summary = summary,
+                modifier = Modifier.weight(1.0f)
+            )
             Switch(checked = checked, onCheckedChange = onCheckedChange)
             Spacer(Modifier.width(16.dp))
         }

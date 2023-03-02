@@ -1,7 +1,6 @@
 package io.github.v2compose.ui.topic
 
 import android.app.Application
-import android.util.Size
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
@@ -15,6 +14,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.v2compose.R
 import io.github.v2compose.core.StringDecoder
 import io.github.v2compose.core.extension.isRedirect
+import io.github.v2compose.core.extension.redirectLocation
 import io.github.v2compose.network.bean.ReplyTopicResultInfo
 import io.github.v2compose.network.bean.TopicInfo
 import io.github.v2compose.network.bean.TopicInfo.Reply
@@ -22,12 +22,15 @@ import io.github.v2compose.repository.AccountRepository
 import io.github.v2compose.repository.ActionMethod
 import io.github.v2compose.repository.TopicRepository
 import io.github.v2compose.ui.BaseViewModel
+import io.github.v2compose.usecase.FixedHtmlImageUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import retrofit2.HttpException
 import javax.inject.Inject
+
+private const val TAG = "TopicViewModel"
 
 @HiltViewModel
 class TopicViewModel @Inject constructor(
@@ -36,6 +39,7 @@ class TopicViewModel @Inject constructor(
     stringDecoder: StringDecoder,
     private val topicRepository: TopicRepository,
     private val accountRepository: AccountRepository,
+    private val fixedHtmlImage: FixedHtmlImageUseCase,
 ) : BaseViewModel(application) {
 
     val topicArgs = TopicArgs(savedStateHandle, stringDecoder)
@@ -215,12 +219,12 @@ class TopicViewModel @Inject constructor(
         }
     }
 
-    private val _htmlImageSizes = mutableStateMapOf<String, Size>()
-    val htmlImageSizes: Map<String, Size>
-        get() = _htmlImageSizes.toMap()
+    val sizedHtmls = mutableStateMapOf<String, String>()
 
-    fun saveHtmlImageSize(src: String, size: Size) {
-        _htmlImageSizes[src] = size
+    fun loadHtmlImage(tag: String, html: String, imageSrc: String?) {
+        viewModelScope.launch {
+            fixedHtmlImage.loadHtmlImages(html, imageSrc).collectLatest { sizedHtmls[tag] = it }
+        }
     }
 
     //缓存回复的感谢、忽略等状态
@@ -320,7 +324,7 @@ class TopicViewModel @Inject constructor(
 
             } catch (e: Exception) {
                 e.printStackTrace()
-                if (e is HttpException && e.code().isRedirect) {
+                if (e.isRedirect) {
                     onSuccess?.invoke()
                     updateSnackbarMessage(context.getString(R.string.action_success, actionName))
                 } else {
@@ -370,8 +374,8 @@ class TopicViewModel @Inject constructor(
                 _replyTopicState.emit(ReplyTopicState.Failure(result))
             } catch (e: Exception) {
                 e.printStackTrace()
-                if (e is HttpException && e.code().isRedirect) {
-                    val location = e.response()?.raw()?.headers?.get("location") ?: ""
+                if (e.isRedirect) {
+                    val location = e.redirectLocation ?: ""
                     _replyTopicState.emit(ReplyTopicState.Success(location))
                     updateSnackbarMessage(context.getString(R.string.action_success, actionName))
                 } else {

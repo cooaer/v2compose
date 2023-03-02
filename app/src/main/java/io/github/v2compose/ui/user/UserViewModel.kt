@@ -2,6 +2,7 @@ package io.github.v2compose.ui.user
 
 import android.app.Application
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
@@ -13,6 +14,7 @@ import io.github.v2compose.repository.AccountRepository
 import io.github.v2compose.repository.TopicRepository
 import io.github.v2compose.repository.UserRepository
 import io.github.v2compose.ui.BaseViewModel
+import io.github.v2compose.usecase.FixedHtmlImageUseCase
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,6 +27,7 @@ class UserViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val topicRepository: TopicRepository,
     private val accountRepository: AccountRepository,
+    private val fixedHtmlImage: FixedHtmlImageUseCase,
 ) : BaseViewModel(application) {
 
     val userArgs = UserArgs(savedStateHandle, stringDecoder)
@@ -41,7 +44,7 @@ class UserViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(),
         initialValue = true,
     )
-    
+
     val isLoggedIn = accountRepository.isLoggedIn
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
 
@@ -89,6 +92,14 @@ class UserViewModel @Inject constructor(
                 e.printStackTrace()
                 updateSnackbarMessage(e.message ?: context.getString(R.string.user_action_failure))
             }
+        }
+    }
+
+    val sizedHtmls = mutableStateMapOf<String, String>()
+
+    fun loadHtmlImage(tag: String, html: String, imageSrc: String?) {
+        viewModelScope.launch {
+            fixedHtmlImage.loadHtmlImages(html, imageSrc).collectLatest { sizedHtmls[tag] = it }
         }
     }
 

@@ -1,6 +1,5 @@
 package io.github.v2compose.ui.topic.composables
 
-import android.util.Size
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
@@ -16,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -38,12 +38,13 @@ fun TopicReply(
     reply: TopicInfo.Reply,
     replyWrapper: ReplyWrapper?,
     opName: String,
-    htmlImageSizes: Map<String, Size>,
     isLoggedIn: Boolean,
+    content:String,
     onUserAvatarClick: (String, String) -> Unit,
     onUriClick: (String, TopicInfo.Reply) -> Unit,
     onClick: (TopicInfo.Reply) -> Unit,
     onMenuItemClick: (ReplyMenuItem) -> Unit,
+    loadHtmlImage: (String, String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -83,11 +84,11 @@ fun TopicReply(
                 )
 
                 HtmlContent(
-                    content = reply.replyContent,
-                    htmlImageSizes = htmlImageSizes,
+                    content = content,
                     selectable = false,
                     onUriClick = { onUriClick(it, reply) },
                     onClick = { onClick(reply) },
+                    loadImage = loadHtmlImage,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -193,14 +194,20 @@ private fun OpLabel() {
 fun UserTopicReply(
     index: Int,
     reply: TopicInfo.Reply,
-    onUriClick: (String, TopicInfo.Reply) -> Unit
+    content: String,
+    onUriClick: (String, TopicInfo.Reply) -> Unit,
+    loadHtmlImage: (String, String?) -> Unit,
 ) {
     Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp)) {
         if (index != 0) {
             ListDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = ContentAlpha.disabled))
         }
         Spacer(Modifier.height(8.dp))
-        HtmlContent(content = reply.replyContent, onUriClick = { onUriClick(it, reply) })
+        HtmlContent(
+            content = content,
+            onUriClick = { onUriClick(it, reply) },
+            loadImage = loadHtmlImage,
+        )
         Row {
             ReplyFloor(floor = reply.floor)
             Spacer(modifier = Modifier.width(8.dp))

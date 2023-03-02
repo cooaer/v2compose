@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -55,8 +56,10 @@ fun NotificationsContent(
             }
             NotificationList(
                 notifications = notifications,
+                sizedHtmls = viewModel.sizedHtmls,
                 onUriClick = onUriClick,
-                onUserAvatarClick = onUserAvatarClick
+                onUserAvatarClick = onUserAvatarClick,
+                loadHtmlImage = viewModel::loadHtmlImage,
             )
         } else {
             ElevatedButton(onClick = onLoginClick, modifier = Modifier.align(Alignment.Center)) {
@@ -69,8 +72,10 @@ fun NotificationsContent(
 @Composable
 private fun NotificationList(
     notifications: LazyPagingItems<NotificationInfo.Reply>,
+    sizedHtmls: SnapshotStateMap<String, String>,
     onUriClick: (String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
+    loadHtmlImage: (String, String, String?) -> Unit,
 ) {
     val refreshing = remember(notifications.loadState.refresh) {
         with(notifications.loadState.refresh) {
@@ -80,13 +85,16 @@ private fun NotificationList(
 
     PullToRefresh(refreshing = refreshing, onRefresh = { notifications.refresh() }) {
         LazyColumn() {
-//            pagingRefreshItem(lazyPagingItems = notifications)
+            //pagingRefreshItem(lazyPagingItems = notifications)
             itemsIndexed(items = notifications, key = { _, item -> item.id }) { _, item ->
                 item?.let {
+                    val tag = "notification#${item.id}"
                     NotificationItem(
                         item = item,
+                        content = sizedHtmls[tag] ?: item.content,
                         onUriClick = onUriClick,
-                        onUserAvatarClick = onUserAvatarClick
+                        onUserAvatarClick = onUserAvatarClick,
+                        loadHtmlImage = { html, src -> loadHtmlImage(tag, html, src) },
                     )
                 }
             }
@@ -98,8 +106,10 @@ private fun NotificationList(
 @Composable
 private fun NotificationItem(
     item: NotificationInfo.Reply,
+    content: String,
     onUriClick: (String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
+    loadHtmlImage: (String, String?) -> Unit,
 ) {
     val contentColor = LocalContentColor.current
     val titleText = remember(item) {
@@ -136,14 +146,15 @@ private fun NotificationItem(
                 if (item.content.isNotEmpty()) {
                     Spacer(Modifier.height(4.dp))
                     HtmlContent(
-                        content = item.content,
+                        content = content,
                         onUriClick = onUriClick,
+                        loadImage = loadHtmlImage,
                         modifier = Modifier
                             .background(
                                 color = MaterialTheme.colorScheme.surfaceVariant,
                                 shape = RoundedCornerShape(4.dp)
                             )
-                            .padding(horizontal = 8.dp)
+                            .padding(start = 8.dp, end = 8.dp, bottom = 4.dp),
                     )
                 }
             }

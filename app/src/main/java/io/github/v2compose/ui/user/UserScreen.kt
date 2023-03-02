@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -29,13 +30,13 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import io.github.v2compose.Constants
 import io.github.v2compose.R
+import io.github.v2compose.V2exUri
 import io.github.v2compose.core.share
 import io.github.v2compose.network.bean.UserReplies
 import io.github.v2compose.network.bean.UserTopics
 import io.github.v2compose.ui.HandleSnackbarMessage
 import io.github.v2compose.ui.common.*
 import io.github.v2compose.ui.user.composables.UserToolbar
-import io.github.v2compose.V2exUri
 import kotlinx.coroutines.launch
 import me.onebone.toolbar.*
 
@@ -65,6 +66,7 @@ fun UserScreenRoute(
         userReplies = userReplies,
         topicTitleOverview = topicTitleOverview,
         isLoggedIn = isLoggedIn,
+        sizedHtmls = viewModel.sizedHtmls,
         snackbarHostState = screenState.snackbarHostState,
         onBackClick = onBackClick,
         onShareClick = {
@@ -76,6 +78,7 @@ fun UserScreenRoute(
         onTopicClick = onTopicClick,
         onNodeClick = onNodeClick,
         openUri = openUri,
+        loadHtmlImage = viewModel::loadHtmlImage,
     )
 }
 
@@ -85,7 +88,8 @@ private fun UserScreen(
     userTopics: LazyPagingItems<UserTopics.Item>,
     userReplies: LazyPagingItems<UserReplies.Item>,
     topicTitleOverview: Boolean,
-    isLoggedIn : Boolean,
+    isLoggedIn: Boolean,
+    sizedHtmls: SnapshotStateMap<String, String>,
     snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
     onShareClick: () -> Unit,
@@ -95,6 +99,7 @@ private fun UserScreen(
     onTopicClick: (String) -> Unit,
     onNodeClick: (String, String) -> Unit,
     openUri: (String) -> Unit,
+    loadHtmlImage: (String, String, String?) -> Unit,
 ) {
     val scaffoldState = rememberCollapsingToolbarScaffoldState()
 
@@ -123,11 +128,13 @@ private fun UserScreen(
                     userUiState = userUiState,
                     userTopics = userTopics,
                     userReplies = userReplies,
+                    sizedHtmls = sizedHtmls,
                     topicTitleOverview = topicTitleOverview,
                     onRetryClick = onRetryClick,
                     onTopicClick = onTopicClick,
                     onNodeClick = onNodeClick,
-                    openUri = openUri
+                    openUri = openUri,
+                    loadHtmlImage = loadHtmlImage,
                 )
             }
 
@@ -147,10 +154,12 @@ private fun UserContent(
     userTopics: LazyPagingItems<UserTopics.Item>,
     userReplies: LazyPagingItems<UserReplies.Item>,
     topicTitleOverview: Boolean,
+    sizedHtmls: SnapshotStateMap<String, String>,
     onRetryClick: () -> Unit,
     onTopicClick: (String) -> Unit,
     onNodeClick: (String, String) -> Unit,
     openUri: (String) -> Unit,
+    loadHtmlImage: (String, String, String?) -> Unit,
 ) {
     when (userUiState) {
         is UserUiState.Success -> {
@@ -158,9 +167,11 @@ private fun UserContent(
                 userTopics = userTopics,
                 userReplies = userReplies,
                 topicTitleOverview = topicTitleOverview,
+                sizedHtmls = sizedHtmls,
                 onTopicClick = onTopicClick,
                 onNodeClick = onNodeClick,
                 openUri = openUri,
+                loadHtmlImage = loadHtmlImage,
             )
         }
         is UserUiState.Loading -> {
@@ -178,9 +189,11 @@ fun UserPager(
     userTopics: LazyPagingItems<UserTopics.Item>,
     userReplies: LazyPagingItems<UserReplies.Item>,
     topicTitleOverview: Boolean,
+    sizedHtmls: SnapshotStateMap<String, String>,
     onTopicClick: (String) -> Unit,
     onNodeClick: (String, String) -> Unit,
     openUri: (String) -> Unit,
+    loadHtmlImage: (String, String, String?) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState()
@@ -222,7 +235,11 @@ fun UserPager(
                     onNodeClick = onNodeClick
                 )
                 1 -> UserRepliesList(
-                    items = userReplies, onTopicClick = onTopicClick, openUri = openUri
+                    items = userReplies,
+                    sizedHtmls = sizedHtmls,
+                    onTopicClick = onTopicClick,
+                    openUri = openUri,
+                    loadHtmlImage = loadHtmlImage,
                 )
             }
         }
@@ -293,8 +310,10 @@ fun UserTopicItem(
 @Composable
 private fun UserRepliesList(
     items: LazyPagingItems<UserReplies.Item>,
+    sizedHtmls: SnapshotStateMap<String, String>,
     onTopicClick: (String) -> Unit,
     openUri: (String) -> Unit,
+    loadHtmlImage: (String, String, String?) -> Unit,
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item(key = "refresh", contentType = "loadState") {
@@ -303,9 +322,16 @@ private fun UserRepliesList(
 
         itemsIndexed(
             items = items,
-            key = { index, item -> item.dock.link + item.content.content }) { index, item ->
+            key = { index, item -> "${item.dock.link}#${item.dock.time}#${item.content.content}" }) { index, item ->
             if (item == null) return@itemsIndexed
-            UserReplyItem(reply = item, onTopicClick = onTopicClick, openUri = openUri)
+            val tag = "${item.dock.link}#${item.dock.time}#${item.content.content}"
+            UserReplyItem(
+                reply = item,
+                content = sizedHtmls[tag] ?: item.content.content,
+                onTopicClick = onTopicClick,
+                openUri = openUri,
+                loadHtmlImage = { html, src -> loadHtmlImage(tag, html, src) }
+            )
         }
 
         item(key = "append", contentType = "loadState") {
@@ -316,7 +342,11 @@ private fun UserRepliesList(
 
 @Composable
 fun UserReplyItem(
-    reply: UserReplies.Item, onTopicClick: (String) -> Unit, openUri: (String) -> Unit
+    reply: UserReplies.Item,
+    content: String,
+    onTopicClick: (String) -> Unit,
+    openUri: (String) -> Unit,
+    loadHtmlImage: (String, String?) -> Unit,
 ) {
     val contentColor = LocalContentColor.current
     Box(modifier = Modifier
@@ -339,7 +369,10 @@ fun UserReplyItem(
 
             val backgroundColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)
             val leftBorderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f)
-            HtmlContent(content = reply.content.content,
+            HtmlContent(
+                content = content,
+                onUriClick = openUri,
+                loadImage = loadHtmlImage,
                 modifier = Modifier
                     .fillMaxWidth()
                     .drawBehind {
@@ -349,7 +382,7 @@ fun UserReplyItem(
                         )
                     }
                     .padding(start = 8.dp),
-                onUriClick = openUri)
+            )
         }
         ListDivider(modifier = Modifier.align(Alignment.BottomCenter))
     }

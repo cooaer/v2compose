@@ -1,7 +1,6 @@
 package io.github.v2compose.ui.common
 
 import android.util.Log
-import android.util.Size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -21,7 +20,6 @@ private const val TAG = "HtmlComposables"
 fun HtmlContent(
     content: String,
     modifier: Modifier = Modifier,
-    htmlImageSizes: Map<String, Size> = emptyMap(),
     selectable: Boolean = false,
     textStyle: TextStyle = MaterialTheme.typography.bodyMedium.copy(
         fontSize = 15.sp,
@@ -31,43 +29,35 @@ fun HtmlContent(
     baseUrl: String = Constants.baseUrl,
     onUriClick: ((uri: String) -> Unit)? = null,
     onClick: (() -> Unit)? = null,
+    loadImage: ((String, String?) -> Unit)? = null,
 ) {
-    val document = remember(content) { Jsoup.parse(content) }
-
-    var encodedEmails by remember(content) { mutableStateOf<Elements?>(document.select("a.__cf_email__")) }
-
-    val imgElements = remember(content) { document.select("img") }
-    val changedImgElements by remember(htmlImageSizes) {
-        derivedStateOf {
-            imgElements.associateBy { it.attr("src") }
-                .filter { htmlImageSizes.containsKey(it.key) }
-        }
-    }
-
-    val newHtml = if (changedImgElements.isNotEmpty() || !encodedEmails.isNullOrEmpty()) {
-        changedImgElements.forEach { (src, ele) ->
-            htmlImageSizes[src]?.let { resetImgSize(ele, it) }
-        }
-        encodedEmails?.forEach { fixEmailProtected(it) }
-        encodedEmails = null
-        document.outerHtml()
-    } else content
+    val fixedHtml = rememberFixedHtml(content = content)
 
     HtmlText(
-        html = newHtml,
+        html = fixedHtml,
         modifier = modifier,
         selectable = selectable,
         textStyle = textStyle,
         baseUrl = baseUrl,
         onLinkClick = onUriClick,
-        onClick = onClick
+        onClick = onClick,
+        loadImage = { src -> loadImage?.invoke(fixedHtml, src) }
     )
+
+    LaunchedEffect(true) {
+        loadImage?.invoke(content, null)
+    }
 }
 
-private fun resetImgSize(ele: Element, it: Size) {
-    ele.attr("width", it.width.toString())
-    ele.attr("height", it.height.toString())
-    Log.d(TAG, "resetImage, newImg = $ele")
+@Composable
+private fun rememberFixedHtml(content: String): String {
+    val document = remember(content) { Jsoup.parse(content) }
+    var encodedEmails by remember(content) { mutableStateOf<Elements?>(document.select("a.__cf_email__")) }
+    return if (!encodedEmails.isNullOrEmpty()) {
+        encodedEmails?.forEach { fixEmailProtected(it) }
+        encodedEmails = null
+        document.outerHtml()
+    } else content
 }
 
 private fun fixEmailProtected(ele: Element) {

@@ -17,11 +17,7 @@ class NodesViewModel @Inject constructor(private val nodeRepository: NodeReposit
     val nodesUiState = _nodesUiState.asStateFlow()
 
     val nodesNavInfo: StateFlow<NodesNavInfo?> = nodeRepository.nodesNavInfo
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(),
-            null
-        )
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
 
     fun refresh() {
         viewModelScope.launch {

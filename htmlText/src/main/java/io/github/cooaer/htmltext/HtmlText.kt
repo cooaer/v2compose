@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.*
@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.*
+import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -53,7 +54,8 @@ fun HtmlText(
     baseUrl: String? = null,
     onImageClick: ((clicked: Img, all: List<Img>) -> Unit)? = null,
     onLinkClick: ((uri: String) -> Unit)? = null,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    loadImage: ((String) -> Unit)? = null,
 ) {
     val document = remember(html) { Jsoup.parse(html) }
     HtmlText(
@@ -64,7 +66,8 @@ fun HtmlText(
         baseUrl,
         onImageClick,
         onLinkClick,
-        onClick
+        onClick,
+        loadImage
     )
 }
 
@@ -77,7 +80,8 @@ fun HtmlText(
     baseUrl: String? = null,
     onImageClick: ((clicked: Img, all: List<Img>) -> Unit)? = null,
     onLinkClick: ((href: String) -> Unit)? = null,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    loadImage: ((String) -> Unit)? = null,
 ) {
     val scope = HtmlElementsScope(
         baseUrl = baseUrl,
@@ -91,7 +95,8 @@ fun HtmlText(
             }
         },
         onLinkClick = onLinkClick,
-        onClick = onClick
+        onClick = onClick,
+        loadImage = loadImage,
     )
 
     if (selectable) {
@@ -108,7 +113,8 @@ fun HtmlText(
 @Composable
 private fun HtmlElementsScope.BlockToInlineNodes(
     element: Element,
-    textStyle: TextStyle
+    textStyle: TextStyle,
+    clickable: Boolean = true,
 ) {
     val iterator = element.childNodes().iterator()
     var prevNode: Node? = null
@@ -123,7 +129,7 @@ private fun HtmlElementsScope.BlockToInlineNodes(
                     tempNodes.clear()
                 }
                 prevNode = node
-                Block(node, textStyle)
+                Block(node, textStyle, clickable)
             } else {
                 tempNodes.add(node)
             }
@@ -143,7 +149,8 @@ private fun HtmlElementsScope.BlockToInlineNodes(
 @Composable
 private fun HtmlElementsScope.Block(
     element: Element,
-    textStyle: TextStyle
+    textStyle: TextStyle,
+    clickable: Boolean = true,
 ) {
     when (element.tagName().lowercase()) {
         "body" -> Body(element, textStyle)
@@ -163,7 +170,8 @@ private fun HtmlElementsScope.Block(
         "pre" -> Pre(element, textStyle)
         "iframe" -> Iframe(element)
         //将img作为block渲染，解决img嵌入Text时无法调整大小的问题
-        "img" -> Img(element, textStyle)
+        "img" -> Img(element, textStyle, clickable)
+        "a" -> A(element, textStyle)
         else -> BlockToInlineNodes(element, textStyle)
     }
 }
@@ -330,30 +338,46 @@ private fun HtmlElementsScope.P(element: Element, textStyle: TextStyle) {
 }
 
 @Composable
-private fun HtmlElementsScope.Img(element: Element, textStyle: TextStyle) {
-    val loadImageCallback = LocalHtmlImageLoadedCallback.current
+private fun HtmlElementsScope.A(element: Element, textStyle: TextStyle) {
+    val href: String? = element.attr("href")
+    Box(modifier = Modifier
+        .padding(vertical = 4.dp)
+        .clickable(enabled = !href.isNullOrEmpty()) {
+            Log.d(TAG, "A, click, href = $href")
+            onLinkClick?.invoke(href!!)
+        }) {
+        BlockToInlineNodes(
+            element = element,
+            textStyle = textStyle,
+            clickable = href.isNullOrEmpty()
+        )
+    }
+}
 
+@Composable
+private fun HtmlElementsScope.Img(
+    element: Element,
+    textStyle: TextStyle,
+    clickable: Boolean,
+) {
     Log.d(TAG, "Img = $element")
 
-    BoxWithConstraints(modifier = Modifier.padding(vertical = 4.dp)) {
+    BoxWithConstraints {
         val img by remember(element) { mutableStateOf(Img(element)) }
         val (realWidth, realHeight) = rememberImageSize(img = img, maxWidth = maxWidth)
 
         InlineImage(
             img = img,
-            onLoadSuccess = { newImg ->
-                loadImageCallback?.invoke(newImg)
-            },
-            modifier = Modifier.size(realWidth, realHeight)
+            width = realWidth,
+            height = realHeight,
+            clickable = clickable,
         )
     }
 }
 
 @Composable
 private fun rememberImageSize(img: Img, maxWidth: Dp): Pair<Dp, Dp> {
-    val density = LocalDensity.current
-
-    return remember(img, density) {
+    return remember(img) {
         val imgWidthDp = img.width?.dp
         val imgHeightDp = img.height?.dp
 
@@ -413,7 +437,6 @@ private fun HtmlElementsScope.InlineNodes(
 
     BoxWithConstraints {
         val density = LocalDensity.current
-        val loadImageCallback = LocalHtmlImageLoadedCallback.current
 
         val allImgs = remember(inlineNodes) {
             inlineNodes.filterIsInstance<Element>()
@@ -441,9 +464,7 @@ private fun HtmlElementsScope.InlineNodes(
                         maxWidthDp = maxWidth,
                         density = density,
                         scope = this@InlineNodes,
-                        onLoadSuccess = { newImg ->
-                            loadImageCallback?.invoke(newImg)
-                        })
+                    )
                 })
             }
         }
@@ -485,13 +506,11 @@ private fun createInlineTextImage(
     maxWidthDp: Dp,
     density: Density,
     scope: HtmlElementsScope,
-    onLoadSuccess: (Img) -> Unit,
 ): InlineTextContent {
-
     val imgWidthDp = img.width?.dp
     val imgHeightDp = img.height?.dp
 
-    val (realWidth, realHeight) = if (img.width == null || img.height == null) {
+    val (componentWidth, componentHeight) = if (img.width == null || img.height == null) {
         Pair(maxWidthDp, maxWidthDp / 3f)
     } else if (imgWidthDp!! > maxWidthDp) {
         Pair(maxWidthDp, maxWidthDp * img.height / img.width)
@@ -501,15 +520,15 @@ private fun createInlineTextImage(
 
     return InlineTextContent(
         Placeholder(
-            width = with(density) { realWidth.toSp() },
-            height = with(density) { realHeight.toSp() },
+            width = with(density) { componentWidth.toSp() },
+            height = with(density) { componentHeight.toSp() },
             placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter
         )
     ) {
         scope.InlineImage(
             img = img,
-            onLoadSuccess = onLoadSuccess,
-            modifier = Modifier.size(realWidth, realHeight)
+            width = componentWidth,
+            height = componentHeight,
         )
     }
 }
@@ -517,24 +536,60 @@ private fun createInlineTextImage(
 @Composable
 private fun HtmlElementsScope.InlineImage(
     img: Img,
-    onLoadSuccess: (Img) -> Unit,
+    width: Dp,
+    height: Dp,
+    clickable: Boolean = true
+) {
+    var currentLoadState by remember(
+        img.loadState,
+    ) { mutableStateOf(img.loadState) }
+
+    val modifier = Modifier.size(width, height)
+
+    when (currentLoadState) {
+        "loading" -> {
+            LoadingImage(modifier = modifier)
+        }
+        "success" -> {
+            val clickEnabled = clickable && onImageClick != null
+            AsyncImage(
+                model = img.src.fullUrl(baseUrl),
+                contentDescription = img.alt,
+                contentScale = ContentScale.Crop,
+                modifier = if (clickEnabled) modifier.clickable { onImageClick?.invoke(img) } else modifier,
+            )
+        }
+        "error" -> {
+            ErrorImage(
+                modifier = modifier.clickable {
+                    currentLoadState = "loading"
+                    loadImage?.invoke(img.src)
+                },
+            )
+        }
+        "" -> {
+            AutoLoadInlineImage(img = img, modifier = modifier)
+        }
+    }
+}
+
+@Composable
+private fun HtmlElementsScope.AutoLoadInlineImage(
+    img: Img,
     modifier: Modifier
 ) {
-    val context = LocalContext.current
-    val screenWidth =
-        with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.roundToPx() }
     var retryTimes by remember { mutableStateOf(0) }
 
     SubcomposeAsyncImage(
-        model = ImageRequest.Builder(context).data(img.src.fullUrl(baseUrl))
-//            .size(coil.size.Size(screenWidth, Dimension.Undefined))
-            .size(coil.size.Size.ORIGINAL)
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(img.src.fullUrl(baseUrl))
             .setParameter("retryTimes", retryTimes)
             .build(),
         contentDescription = img.alt,
         modifier = modifier,
         success = {
-            val imgModifier = Modifier.apply { onImageClick?.let { clickable { it(img) } } }
+            val imgModifier =
+                Modifier.clickable(enabled = onImageClick != null) { onImageClick?.invoke(img) }
             Image(
                 painter = rememberAsyncImagePainter(model = it.result.drawable),
                 contentDescription = img.alt,
@@ -558,7 +613,6 @@ private fun HtmlElementsScope.InlineImage(
                     TAG,
                     "load image success, url = ${img.src}, width = ${intrinsicWidth}, height = $intrinsicHeight"
                 )
-                onLoadSuccess(img.copy(width = intrinsicWidth, height = intrinsicHeight))
             }
         },
         onError = {
@@ -669,6 +723,7 @@ private data class HtmlElementsScope(
     val onImageClick: ((Img) -> Unit)? = null,
     val onLinkClick: ((String) -> Unit)? = null,
     val onClick: (() -> Unit)? = null,
+    val loadImage: ((src: String) -> Unit)? = null
 )
 
 private fun Modifier.innermostBlockPadding() = this.padding(PaddingValues(vertical = 5.dp))
@@ -694,15 +749,17 @@ private fun Element.isIframe(): Boolean {
 @Stable
 data class Img(
     val src: String,
-    val alt: String? = null,
+    val alt: String,
     val width: Int? = null,
     val height: Int? = null,
+    val loadState: String,
 ) {
     constructor(element: Element) : this(
         element.attr("src"),
         element.attr("alt"),
         element.attr("width").toIntOrNull(),
-        element.attr("height").toIntOrNull()
+        element.attr("height").toIntOrNull(),
+        element.attr("loadState"),
     )
 
     fun size() = if (width == null || height == null) null else Size(width, height)
@@ -719,7 +776,3 @@ private fun String.fullUrl(baseUrl: String? = null): String {
     }
     return this
 }
-
-private typealias HtmlImageLoadedCallback = (Img) -> Unit
-
-val LocalHtmlImageLoadedCallback = compositionLocalOf<HtmlImageLoadedCallback?> { null }

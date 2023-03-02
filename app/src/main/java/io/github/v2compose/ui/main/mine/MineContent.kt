@@ -10,7 +10,6 @@ import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,7 +26,6 @@ import io.github.v2compose.bean.Account
 import io.github.v2compose.core.extension.isBeforeTodayByUTC
 import io.github.v2compose.ui.HandleSnackbarMessage
 import io.github.v2compose.ui.common.ListDivider
-import kotlinx.coroutines.launch
 
 
 @Composable
@@ -45,6 +43,7 @@ fun MineContent(
     val account by viewModel.account.collectAsStateWithLifecycle()
     val lastCheckInTime by viewModel.lastCheckInTime.collectAsStateWithLifecycle()
     val hasCheckingInTips by viewModel.hasCheckingInTips.collectAsStateWithLifecycle()
+    val checkingIn by viewModel.checkingIn.collectAsStateWithLifecycle()
 
     HandleSnackbarMessage(viewModel, mineContentState)
 
@@ -52,6 +51,7 @@ fun MineContent(
         account = account,
         lastCheckInTime = lastCheckInTime,
         hasCheckingInTips = hasCheckingInTips,
+        checkingIn = checkingIn,
         onLoginClick = onLoginClick,
         onMyHomePageClick = onMyHomePageClick,
         onCheckInClick = viewModel::doCheckIn,
@@ -68,6 +68,7 @@ private fun MineContainer(
     account: Account,
     lastCheckInTime: Long,
     hasCheckingInTips: Boolean,
+    checkingIn: Boolean,
     onLoginClick: () -> Unit,
     onMyHomePageClick: () -> Unit,
     onCheckInClick: () -> Unit,
@@ -87,6 +88,7 @@ private fun MineContainer(
                 account = account,
                 lastCheckInTime = lastCheckInTime,
                 hasCheckingInTips = hasCheckingInTips,
+                checkingIn = checkingIn,
                 onLoginClick = onLoginClick,
                 onMyHomePageClick = onMyHomePageClick,
                 onCheckInClick = onCheckInClick,
@@ -135,12 +137,12 @@ private fun MineContainer(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MineHeader(
     account: Account,
     lastCheckInTime: Long,
     hasCheckingInTips: Boolean,
+    checkingIn: Boolean,
     onLoginClick: () -> Unit,
     onMyHomePageClick: () -> Unit,
     onCheckInClick: () -> Unit,
@@ -176,26 +178,11 @@ private fun MineHeader(
                     .wrapContentHeight()
             )
             if (account.isValid()) {
-                val canCheckIn = hasCheckingInTips || lastCheckInTime.isBeforeTodayByUTC()
-                AssistChip(
-                    onClick = onCheckInClick,
-                    enabled = canCheckIn,
-                    label = {
-                        Text(
-                            stringResource(if (canCheckIn) R.string.daily_mission else R.string.daily_mission_ok),
-                            color = contentColor.copy(alpha = ContentAlpha.medium),
-                        )
-                    },
-                    leadingIcon = {
-                        if (!canCheckIn) {
-                            Icon(
-                                Icons.Rounded.Check,
-                                "daily mission",
-                                tint = contentColor.copy(alpha = ContentAlpha.medium),
-                            )
-                        }
-                    },
-                    shape = RoundedCornerShape(16.dp)
+                CheckInButton(
+                    hasCheckingInTips,
+                    lastCheckInTime,
+                    checkingIn,
+                    onCheckInClick,
                 )
             }
         }
@@ -206,6 +193,48 @@ private fun MineHeader(
             modifier = Modifier.size(32.dp)
         )
     }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun CheckInButton(
+    hasCheckingInTips: Boolean,
+    lastCheckInTime: Long,
+    checkingIn: Boolean,
+    onCheckInClick: () -> Unit,
+) {
+    val contentColor = LocalContentColor.current
+    val canCheckIn = hasCheckingInTips || lastCheckInTime.isBeforeTodayByUTC()
+    val checkInText = if (checkingIn) {
+        R.string.checking_in
+    } else if (canCheckIn) {
+        R.string.daily_mission
+    } else {
+        R.string.daily_mission_ok
+    }
+    AssistChip(
+        onClick = onCheckInClick,
+        enabled = canCheckIn,
+        label = {
+            Text(
+                stringResource(checkInText),
+                color = contentColor.copy(alpha = ContentAlpha.medium),
+            )
+        },
+        leadingIcon = {
+            val iconColor = contentColor.copy(alpha = ContentAlpha.medium)
+            if (checkingIn) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = iconColor,
+                    strokeWidth = 2.dp
+                )
+            } else if (!canCheckIn) {
+                Icon(Icons.Rounded.Check, "daily mission", tint = iconColor)
+            }
+        },
+        shape = RoundedCornerShape(16.dp)
+    )
 }
 
 @Composable

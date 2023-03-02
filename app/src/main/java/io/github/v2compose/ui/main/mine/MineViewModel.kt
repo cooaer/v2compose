@@ -32,6 +32,9 @@ class MineViewModel @Inject constructor(
     val lastCheckInTime: StateFlow<Long> = accountRepository.lastCheckInTime
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), 0L)
 
+    private val _checkingIn = MutableStateFlow(false)
+    val checkingIn = _checkingIn.asStateFlow()
+
     init {
         refreshAccount()
     }
@@ -55,6 +58,7 @@ class MineViewModel @Inject constructor(
     //日常任务：领取每日登录奖励
     fun doCheckIn() {
         viewModelScope.launch {
+            _checkingIn.emit(true)
             val result = checkIn()
             if (result.success) {
                 result.message?.let { updateSnackbarMessage(it) }
@@ -63,6 +67,7 @@ class MineViewModel @Inject constructor(
                     result.message ?: context.getString(R.string.daily_mission_failure)
                 )
             }
+            _checkingIn.emit(false)
         }
     }
 

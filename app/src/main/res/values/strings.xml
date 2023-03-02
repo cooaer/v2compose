@@ -144,6 +144,7 @@
     <!-- mine start -->
     <string name="daily_mission">领取每日登录奖励</string>
     <string name="daily_mission_ok">已领取</string>
+    <string name="checking_in">领取中…</string>
     <string name="daily_mission_failure">领取失败，请重试</string>
     <string name="create_topic">创建主题</string>
     <string name="my_nodes">节点收藏</string>

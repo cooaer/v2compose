@@ -16,6 +16,9 @@
     <string name="cancel">取消</string>
 
     <string name="function_not_implemented">该功能正在开发中…</string>
+    <string name="enqueue_download_image">已加入下载队列</string>
+    <string name="save_image_success">保存图片成功</string>
+    <string name="save_image_failed">保存图片失败</string>
 
     <!-- Topic Screen Start -->
     <string name="topic">主题</string>
@@ -190,4 +193,8 @@
     <string name="add_supplement_tips">关于为主题创建附言：\n请在确有必要的情况下再使用此功能为原主题补充信息；\n每个主题至多可以附加 3 条附言；\n创建附言价格为每千字 20 铜币；</string>
     <string name="add_supplement_back_tips">返回将丢弃当前编写的附言，确认返回吗？</string>
     <!-- Add Supplement Screen End-->
+
+    <!-- Gallery Screen End-->
+    <string name="save_image">保存</string>
+    <!-- Gallery Screen End-->
 </resources>

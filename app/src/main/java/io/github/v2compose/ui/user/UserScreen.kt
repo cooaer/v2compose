@@ -12,9 +12,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,6 +35,7 @@ import io.github.v2compose.network.bean.UserReplies
 import io.github.v2compose.network.bean.UserTopics
 import io.github.v2compose.ui.HandleSnackbarMessage
 import io.github.v2compose.ui.common.*
+import io.github.v2compose.ui.gallery.composables.PopupImage
 import io.github.v2compose.ui.user.composables.UserToolbar
 import kotlinx.coroutines.launch
 import me.onebone.toolbar.*
@@ -46,6 +46,7 @@ fun UserScreenRoute(
     onTopicClick: (String) -> Unit,
     onNodeClick: (String, String) -> Unit,
     openUri: (String) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
     viewModel: UserViewModel = hiltViewModel(),
     screenState: UserScreenState = rememberUserScreenState(),
 ) {
@@ -57,6 +58,13 @@ fun UserScreenRoute(
     val userTopics = viewModel.userTopics.collectAsLazyPagingItems()
     val userReplies = viewModel.userReplies.collectAsLazyPagingItems()
     val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
+    var htmlImageUrl by rememberSaveable { mutableStateOf("") }
+
+    if (htmlImageUrl.isNotEmpty()) {
+        PopupImage(imageUrl = htmlImageUrl) {
+            htmlImageUrl = ""
+        }
+    }
 
     HandleSnackbarMessage(viewModel, screenState)
 
@@ -67,7 +75,6 @@ fun UserScreenRoute(
         topicTitleOverview = topicTitleOverview,
         isLoggedIn = isLoggedIn,
         sizedHtmls = viewModel.sizedHtmls,
-        snackbarHostState = screenState.snackbarHostState,
         onBackClick = onBackClick,
         onShareClick = {
             context.share(userArgs.userName, V2exUri.userUrl(userArgs.userName))
@@ -79,6 +86,7 @@ fun UserScreenRoute(
         onNodeClick = onNodeClick,
         openUri = openUri,
         loadHtmlImage = viewModel::loadHtmlImage,
+        onHtmlImageClick = { current, _ -> htmlImageUrl = current },
     )
 }
 
@@ -90,7 +98,6 @@ private fun UserScreen(
     topicTitleOverview: Boolean,
     isLoggedIn: Boolean,
     sizedHtmls: SnapshotStateMap<String, String>,
-    snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
     onShareClick: () -> Unit,
     onRetryClick: () -> Unit,
@@ -100,6 +107,7 @@ private fun UserScreen(
     onNodeClick: (String, String) -> Unit,
     openUri: (String) -> Unit,
     loadHtmlImage: (String, String, String?) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
 ) {
     val scaffoldState = rememberCollapsingToolbarScaffoldState()
 
@@ -108,39 +116,33 @@ private fun UserScreen(
             .background(color = MaterialTheme.colorScheme.background)
             .systemBarsPadding(),
     ) {
-        Box {
-            CollapsingToolbarScaffold(modifier = Modifier.fillMaxSize(),
-                state = scaffoldState,
-                scrollStrategy = ScrollStrategy.ExitUntilCollapsed,
-                enabled = true,
-                toolbar = {
-                    UserToolbar(
-                        userUiState = userUiState,
-                        isLoggedIn = isLoggedIn,
-                        scaffoldState = scaffoldState,
-                        onBackClick = onBackClick,
-                        onShareClick = onShareClick,
-                        onFollowClick = onFollowClick,
-                        onBlockClick = onBlockClick,
-                    )
-                }) {
-                UserContent(
+        CollapsingToolbarScaffold(modifier = Modifier.fillMaxSize(),
+            state = scaffoldState,
+            scrollStrategy = ScrollStrategy.ExitUntilCollapsed,
+            enabled = true,
+            toolbar = {
+                UserToolbar(
                     userUiState = userUiState,
-                    userTopics = userTopics,
-                    userReplies = userReplies,
-                    sizedHtmls = sizedHtmls,
-                    topicTitleOverview = topicTitleOverview,
-                    onRetryClick = onRetryClick,
-                    onTopicClick = onTopicClick,
-                    onNodeClick = onNodeClick,
-                    openUri = openUri,
-                    loadHtmlImage = loadHtmlImage,
+                    isLoggedIn = isLoggedIn,
+                    scaffoldState = scaffoldState,
+                    onBackClick = onBackClick,
+                    onShareClick = onShareClick,
+                    onFollowClick = onFollowClick,
+                    onBlockClick = onBlockClick,
                 )
-            }
-
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier.align(Alignment.BottomCenter)
+            }) {
+            UserContent(
+                userUiState = userUiState,
+                userTopics = userTopics,
+                userReplies = userReplies,
+                sizedHtmls = sizedHtmls,
+                topicTitleOverview = topicTitleOverview,
+                onRetryClick = onRetryClick,
+                onTopicClick = onTopicClick,
+                onNodeClick = onNodeClick,
+                openUri = openUri,
+                loadHtmlImage = loadHtmlImage,
+                onHtmlImageClick = onHtmlImageClick,
             )
         }
     }
@@ -160,6 +162,7 @@ private fun UserContent(
     onNodeClick: (String, String) -> Unit,
     openUri: (String) -> Unit,
     loadHtmlImage: (String, String, String?) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
 ) {
     when (userUiState) {
         is UserUiState.Success -> {
@@ -172,6 +175,7 @@ private fun UserContent(
                 onNodeClick = onNodeClick,
                 openUri = openUri,
                 loadHtmlImage = loadHtmlImage,
+                onHtmlImageClick = onHtmlImageClick,
             )
         }
         is UserUiState.Loading -> {
@@ -194,6 +198,7 @@ fun UserPager(
     onNodeClick: (String, String) -> Unit,
     openUri: (String) -> Unit,
     loadHtmlImage: (String, String, String?) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState()
@@ -240,6 +245,7 @@ fun UserPager(
                     onTopicClick = onTopicClick,
                     openUri = openUri,
                     loadHtmlImage = loadHtmlImage,
+                    onHtmlImageClick = onHtmlImageClick,
                 )
             }
         }
@@ -314,6 +320,7 @@ private fun UserRepliesList(
     onTopicClick: (String) -> Unit,
     openUri: (String) -> Unit,
     loadHtmlImage: (String, String, String?) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item(key = "refresh", contentType = "loadState") {
@@ -330,7 +337,8 @@ private fun UserRepliesList(
                 content = sizedHtmls[tag] ?: item.content.content,
                 onTopicClick = onTopicClick,
                 openUri = openUri,
-                loadHtmlImage = { html, src -> loadHtmlImage(tag, html, src) }
+                loadHtmlImage = { html, src -> loadHtmlImage(tag, html, src) },
+                onHtmlImageClick = onHtmlImageClick,
             )
         }
 
@@ -347,6 +355,7 @@ fun UserReplyItem(
     onTopicClick: (String) -> Unit,
     openUri: (String) -> Unit,
     loadHtmlImage: (String, String?) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
 ) {
     val contentColor = LocalContentColor.current
     Box(modifier = Modifier
@@ -373,6 +382,7 @@ fun UserReplyItem(
                 content = content,
                 onUriClick = openUri,
                 loadImage = loadHtmlImage,
+                onHtmlImageClick = onHtmlImageClick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .drawBehind {

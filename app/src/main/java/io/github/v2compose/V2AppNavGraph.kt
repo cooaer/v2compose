@@ -7,6 +7,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.navOptions
 import com.google.accompanist.navigation.animation.AnimatedNavHost
+import io.github.v2compose.ui.gallery.galleryScreen
+import io.github.v2compose.ui.gallery.navigateToGallery
 import io.github.v2compose.ui.login.google.googleLoginScreen
 import io.github.v2compose.ui.login.google.navigateToGoogleLogin
 import io.github.v2compose.ui.login.loginScreen
@@ -63,13 +65,15 @@ fun V2AppNavGraph(
             onCreateTopicClick = navController::navigateToWriteTopic,
             onSettingsClick = navController::navigateToSettings,
             openUri = appState::openUri,
+            onHtmlImageClick = navController::navigateToGallery,
         )
         topicScreen(
             onBackClick = appState::back,
             onNodeClick = navController::navigateToNode,
             onUserAvatarClick = navController::navigateToUser,
             openUri = appState::openUri,
-            onAddSupplementClick = navController::navigateToAddSupplement
+            onAddSupplementClick = navController::navigateToAddSupplement,
+            onHtmlImageClick = navController::navigateToGallery,
         )
         nodeScreen(
             onBackClick = appState::back,
@@ -85,7 +89,8 @@ fun V2AppNavGraph(
             onBackClick = appState::back,
             onTopicClick = appState::openUri,
             onNodeClick = { nodePath, _ -> appState.openUri(nodePath) },
-            openUri = appState::openUri
+            openUri = appState::openUri,
+            onHtmlImageClick = navController::navigateToGallery,
         )
         settingsScreen(
             onBackClick = appState::back,
@@ -131,6 +136,9 @@ fun V2AppNavGraph(
                 })
             },
             openUri = appState::openUri,
+        )
+        galleryScreen(
+            onBackClick = appState::back,
         )
     }
 }

@@ -21,6 +21,10 @@ import io.github.v2compose.ui.theme.V2composeTheme
 
 val LocalSnackbarHostState =
     compositionLocalOf<SnackbarHostState> { error("LocalSnackbar not provided") }
+
+private typealias ImageSaver = (String) -> Unit
+val LocalImageSaver = compositionLocalOf<ImageSaver> { error("LocalImageSaver not provided") }
+
 private val BottomAppBarHeight = 72.dp
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -42,7 +46,10 @@ fun V2App(viewModel: V2AppViewModel = viewModel()) {
         val navController = rememberAnimatedNavController()
         val appState = rememberV2AppState(navHostController = navController)
 
-        CompositionLocalProvider(LocalSnackbarHostState provides appState.snackbarHostState) {
+        CompositionLocalProvider(
+            LocalSnackbarHostState provides appState.snackbarHostState,
+            LocalImageSaver provides appState::saveImage,
+        ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 V2AppNavGraph(
                     navController = navController,

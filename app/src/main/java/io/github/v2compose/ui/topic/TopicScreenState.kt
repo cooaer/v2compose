@@ -9,6 +9,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import io.github.v2compose.LocalSnackbarHostState
 import io.github.v2compose.R
 import io.github.v2compose.V2exUri
 import io.github.v2compose.core.openInBrowser
@@ -22,7 +23,7 @@ import kotlinx.coroutines.CoroutineScope
 fun rememberTopicScreenState(
     context: Context = LocalContext.current,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
+    snackbarHostState: SnackbarHostState = LocalSnackbarHostState.current,
 ): TopicScreenState {
     return remember(context, coroutineScope, snackbarHostState) {
         TopicScreenState(context, coroutineScope, snackbarHostState)

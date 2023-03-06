@@ -69,7 +69,6 @@ fun SettingsScreenRoute(
         isLoggedIn = isLoggedIn,
         cacheSize = cacheSize,
         appSettings = appSettings,
-        snackbarHostState = settingsScreenState.snackbarHostState,
         onBackClick = onBackClick,
         onClearCacheClick = viewModel::clearCache,
         onAutoCheckInChanged = viewModel::updateAutoCheckIn,
@@ -102,7 +101,6 @@ private fun SettingsScreen(
     isLoggedIn: Boolean,
     cacheSize: Long,
     appSettings: AppSettings,
-    snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
     onClearCacheClick: () -> Unit,
     onAutoCheckInChanged: (Boolean) -> Unit,
@@ -116,7 +114,6 @@ private fun SettingsScreen(
 ) {
     Scaffold(
         topBar = { SettingsTopBar(onBackClick = onBackClick) },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) {
         Column(
             modifier = Modifier

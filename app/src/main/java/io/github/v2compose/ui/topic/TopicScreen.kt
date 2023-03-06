@@ -38,6 +38,7 @@ import io.github.v2compose.network.bean.TopicInfo.ContentInfo.Supplement
 import io.github.v2compose.network.bean.TopicInfo.Reply
 import io.github.v2compose.ui.HandleSnackbarMessage
 import io.github.v2compose.ui.common.*
+import io.github.v2compose.ui.gallery.composables.PopupImage
 import io.github.v2compose.ui.topic.composables.*
 import kotlinx.coroutines.launch
 
@@ -50,6 +51,7 @@ fun TopicScreenRoute(
     onUserAvatarClick: (String, String) -> Unit,
     onAddSupplementClick: (String) -> Unit,
     openUri: (String) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
     viewModel: TopicViewModel = hiltViewModel(),
     screenState: TopicScreenState = rememberTopicScreenState(),
 ) {
@@ -67,6 +69,13 @@ fun TopicScreenRoute(
     val topicInfoWrapper by viewModel.topicInfoWrapper
     val replyWrappers = viewModel.replyWrappers
     val replyTopicState by viewModel.replyTopicState.collectAsStateWithLifecycle()
+    var htmlImageUrl by rememberSaveable { mutableStateOf("") }
+
+    if (htmlImageUrl.isNotEmpty()) {
+        PopupImage(imageUrl = htmlImageUrl) {
+            htmlImageUrl = ""
+        }
+    }
 
     HandleReplyTopicState(replyTopicState, topicItems, openUri)
 
@@ -78,7 +87,6 @@ fun TopicScreenRoute(
         repliesOrder = if (repliesReversed) RepliesOrder.Negative else RepliesOrder.Positive,
         topicItems = topicItems,
         sizedHtmls = viewModel.sizedHtmls,
-        snackbarHostState = screenState.snackbarHostState,
         replyWrappers = replyWrappers,
         replyTopicState = replyTopicState,
         onBackClick = onBackClick,
@@ -112,6 +120,7 @@ fun TopicScreenRoute(
         },
         loadHtmlImage = viewModel::loadHtmlImage,
         onSendComment = viewModel::replyTopic,
+        onHtmlImageClick = { current, _ -> htmlImageUrl = current },
     )
 }
 
@@ -124,7 +133,6 @@ private fun TopicScreen(
     topicItems: LazyPagingItems<Any>,
     sizedHtmls: SnapshotStateMap<String, String>,
     replyWrappers: Map<String, ReplyWrapper>,
-    snackbarHostState: SnackbarHostState,
     replyTopicState: ReplyTopicState,
     onBackClick: () -> Unit,
     onTopicMenuClick: (TopicMenuItem) -> Unit,
@@ -135,6 +143,7 @@ private fun TopicScreen(
     onReplyMenuItemClick: (ReplyMenuItem, Reply) -> Unit,
     loadHtmlImage: (String, String, String?) -> Unit,
     onSendComment: (String) -> Unit,
+    onHtmlImageClick: (String, List<String>) -> Unit,
 ) {
     val density = LocalDensity.current
 
@@ -183,7 +192,6 @@ private fun TopicScreen(
                 }
             })
         },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         contentWindowInsets = WindowInsets.ime.union(WindowInsets.systemBars),
     ) { paddingValues ->
         Box(
@@ -216,6 +224,7 @@ private fun TopicScreen(
                     }
                 },
                 loadHtmlImage = loadHtmlImage,
+                onHtmlImageClick = onHtmlImageClick,
                 modifier = Modifier.nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
             )
 
@@ -251,6 +260,7 @@ private fun TopicList(
     openUri: (String) -> Unit,
     onTopicMenuItemClick: (ReplyMenuItem, Reply) -> Unit,
     loadHtmlImage: (String, String, String?) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
     modifier: Modifier = Modifier,
 ) {
     val clickedUserReplies = rememberMutableStateListOf<List<Reply>>()
@@ -276,6 +286,7 @@ private fun TopicList(
             onUserAvatarClick = onUserAvatarClick,
             onUriClick = clickUriHandler,
             loadHtmlImage = loadHtmlImage,
+            onHtmlImageClick = onHtmlImageClick,
         )
     }
 
@@ -308,7 +319,8 @@ private fun TopicList(
                     TopicContent(
                         content = sizedHtmls[tag] ?: content,
                         openUri = openUri,
-                        loadHtmlImage = { html, src -> loadHtmlImage(tag, html, src) }
+                        loadHtmlImage = { html, src -> loadHtmlImage(tag, html, src) },
+                        onHtmlImageClick = onHtmlImageClick,
                     )
                 }
                 listItemIndex++
@@ -324,7 +336,8 @@ private fun TopicList(
                         supplement = item,
                         content = sizedHtmls[tag] ?: item.content,
                         openUri = openUri,
-                        loadHtmlImage = { html, src -> loadHtmlImage(tag, html, src) }
+                        loadHtmlImage = { html, src -> loadHtmlImage(tag, html, src) },
+                        onHtmlImageClick = onHtmlImageClick,
                     )
                 }
                 listItemIndex += topicInfo.topic.contentInfo.supplements.size
@@ -373,6 +386,7 @@ private fun TopicList(
                     onClick = onTopicReplyClick,
                     onMenuItemClick = { onTopicMenuItemClick(it, item) },
                     loadHtmlImage = { html, src -> loadHtmlImage(tag, html, src) },
+                    onHtmlImageClick = onHtmlImageClick,
                 )
             }
         }
@@ -388,6 +402,7 @@ private fun UserRepliesDialog(
     onUserAvatarClick: (String, String) -> Unit,
     onUriClick: (String, Reply) -> Unit,
     loadHtmlImage: (String, String, String?) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
 ) {
     Dialog(
         onDismissRequest = onDismissRequest,
@@ -433,7 +448,8 @@ private fun UserRepliesDialog(
                             reply = item,
                             content = sizedHtmls[tag] ?: item.replyContent,
                             onUriClick = onUriClick,
-                            loadHtmlImage = { html, src -> loadHtmlImage(tag, html, src) }
+                            loadHtmlImage = { html, src -> loadHtmlImage(tag, html, src) },
+                            onHtmlImageClick = onHtmlImageClick,
                         )
                     }
                 }
@@ -472,6 +488,7 @@ private fun TopicContent(
     content: String,
     openUri: (String) -> Unit,
     loadHtmlImage: (String, String?) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
 ) {
     HtmlContent(
         content = content,
@@ -479,6 +496,7 @@ private fun TopicContent(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
         onUriClick = openUri,
         loadImage = loadHtmlImage,
+        onHtmlImageClick = onHtmlImageClick,
     )
 }
 
@@ -489,6 +507,7 @@ private fun TopicSupplement(
     content: String,
     openUri: (String) -> Unit,
     loadHtmlImage: (String, String?) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
 ) {
     val backgroundColor = MaterialTheme.colorScheme.surfaceVariant
     val leftBorderColor = MaterialTheme.colorScheme.tertiary
@@ -512,6 +531,7 @@ private fun TopicSupplement(
                 modifier = Modifier.fillMaxWidth(),
                 onUriClick = openUri,
                 loadImage = loadHtmlImage,
+                onHtmlImageClick = onHtmlImageClick,
             )
         }
     }

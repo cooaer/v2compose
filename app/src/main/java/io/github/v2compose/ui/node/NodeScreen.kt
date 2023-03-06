@@ -71,7 +71,6 @@ fun NodeRoute(
         nodeTopicItems = nodeTopicItems,
         topicTitleOverview = topicTitleOverview,
         isLoggedIn = isLoggedIn,
-        snackbarHostState = nodeScreenState.snackbarHostState,
         onBackClick = onBackClick,
         onFavoriteClick = viewModel::follow,
         onRetryNodeClick = viewModel::retryNode,
@@ -91,7 +90,6 @@ private fun NodeScreen(
     nodeTopicItems: LazyPagingItems<Any>,
     topicTitleOverview: Boolean,
     isLoggedIn: Boolean,
-    snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
     onFavoriteClick: () -> Unit,
     onRetryNodeClick: () -> Unit,
@@ -110,42 +108,35 @@ private fun NodeScreen(
             .background(color = MaterialTheme.colorScheme.background)
             .systemBarsPadding(),
     ) {
-        Box {
-            CollapsingToolbarScaffold(
-                modifier = Modifier.fillMaxSize(),
-                state = scaffoldState,
-                scrollStrategy = ScrollStrategy.ExitUntilCollapsed,
-                toolbar = {
-                    NodeTopBar(
-                        scaffoldState = scaffoldState,
-                        nodeArgs = nodeArgs,
-                        nodeUiState = nodeUiState,
-                        nodeTopicInfo = nodeTopicInfo,
-                        isLoggedIn = isLoggedIn,
-                        onBackClick = onBackClick,
-                        onFavoriteClick = onFavoriteClick,
-                        onShareClick = onShareClick,
-                    )
-                },
-            ) {
-                NodeContent(
+        CollapsingToolbarScaffold(
+            modifier = Modifier.fillMaxSize(),
+            state = scaffoldState,
+            scrollStrategy = ScrollStrategy.ExitUntilCollapsed,
+            toolbar = {
+                NodeTopBar(
+                    scaffoldState = scaffoldState,
+                    nodeArgs = nodeArgs,
                     nodeUiState = nodeUiState,
-                    lazyPagingItems = nodeTopicItems,
-                    topicTitleOverview = topicTitleOverview,
-                    modifier = Modifier
-                        .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
-                    onTopicClick = onTopicClick,
-                    onUserAvatarClick = onUserAvatarClick,
-                    onRetryNodeClick = onRetryNodeClick,
-                    openUri = openUri,
+                    nodeTopicInfo = nodeTopicInfo,
+                    isLoggedIn = isLoggedIn,
+                    onBackClick = onBackClick,
+                    onFavoriteClick = onFavoriteClick,
+                    onShareClick = onShareClick,
                 )
-
-            }
-
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier.align(Alignment.BottomCenter),
+            },
+        ) {
+            NodeContent(
+                nodeUiState = nodeUiState,
+                lazyPagingItems = nodeTopicItems,
+                topicTitleOverview = topicTitleOverview,
+                modifier = Modifier
+                    .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
+                onTopicClick = onTopicClick,
+                onUserAvatarClick = onUserAvatarClick,
+                onRetryNodeClick = onRetryNodeClick,
+                openUri = openUri,
             )
+
         }
     }
 }
@@ -381,7 +372,7 @@ private fun TopicList(
 private fun NodeDescription(
     desc: String,
     openUri: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier
@@ -392,7 +383,7 @@ private fun NodeDescription(
             content = desc,
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            onUriClick = openUri
+            onUriClick = openUri,
         )
         ListDivider(modifier = Modifier.align(alignment = Alignment.BottomCenter))
     }

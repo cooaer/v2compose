@@ -29,6 +29,7 @@ import io.github.v2compose.network.bean.TopicInfo
 import io.github.v2compose.network.bean.TopicInfo.Reply
 import io.github.v2compose.ui.common.HtmlContent
 import io.github.v2compose.ui.common.ListDivider
+import io.github.v2compose.ui.common.OnHtmlImageClick
 import io.github.v2compose.ui.common.TopicUserAvatar
 import io.github.v2compose.ui.topic.ReplyWrapper
 
@@ -45,6 +46,7 @@ fun TopicReply(
     onClick: (TopicInfo.Reply) -> Unit,
     onMenuItemClick: (ReplyMenuItem) -> Unit,
     loadHtmlImage: (String, String?) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
     modifier: Modifier = Modifier
 ) {
 
@@ -89,6 +91,7 @@ fun TopicReply(
                     onUriClick = { onUriClick(it, reply) },
                     onClick = { onClick(reply) },
                     loadImage = loadHtmlImage,
+                    onHtmlImageClick = onHtmlImageClick,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -197,6 +200,7 @@ fun UserTopicReply(
     content: String,
     onUriClick: (String, TopicInfo.Reply) -> Unit,
     loadHtmlImage: (String, String?) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
 ) {
     Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp)) {
         if (index != 0) {
@@ -207,6 +211,7 @@ fun UserTopicReply(
             content = content,
             onUriClick = { onUriClick(it, reply) },
             loadImage = loadHtmlImage,
+            onHtmlImageClick = onHtmlImageClick
         )
         Row {
             ReplyFloor(floor = reply.floor)

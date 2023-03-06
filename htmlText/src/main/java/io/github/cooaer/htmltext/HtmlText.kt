@@ -1,5 +1,6 @@
 package io.github.cooaer.htmltext
 
+import android.net.Uri
 import android.util.Log
 import android.util.Size
 import androidx.compose.foundation.Image
@@ -83,13 +84,16 @@ fun HtmlText(
     onClick: (() -> Unit)? = null,
     loadImage: ((String) -> Unit)? = null,
 ) {
+    val allImgs = remember(document) { document.select("img") }
+
     val scope = HtmlElementsScope(
         baseUrl = baseUrl,
         linkColor = MaterialTheme.colorScheme.tertiary,
         onImageClick = { img ->
             if (onImageClick != null) {
-                val allImgs = document.select("img").map { Img(it) }
-                onImageClick(img, allImgs)
+                onImageClick(
+                    img.copy(src = img.src.fullUrl(baseUrl)),
+                    allImgs.map { ele -> Img(ele).let { it.copy(src = it.src.fullUrl(baseUrl)) } })
             } else {
                 onClick?.invoke()
             }
@@ -337,6 +341,8 @@ private fun HtmlElementsScope.P(element: Element, textStyle: TextStyle) {
     BlockToInlineNodes(element, textStyle)
 }
 
+private val imageFormats = listOf("png", "jpg", "jpeg", "webp", "gif")
+
 @Composable
 private fun HtmlElementsScope.A(element: Element, textStyle: TextStyle) {
     val href: String? = element.attr("href")
@@ -346,10 +352,15 @@ private fun HtmlElementsScope.A(element: Element, textStyle: TextStyle) {
             Log.d(TAG, "A, click, href = $href")
             onLinkClick?.invoke(href!!)
         }) {
+
+        val isImageUrl = Uri.parse(href)?.let { uri ->
+            imageFormats.any { format -> uri.lastPathSegment?.endsWith(".$format", true) == true }
+        } ?: false
+
         BlockToInlineNodes(
             element = element,
             textStyle = textStyle,
-            clickable = href.isNullOrEmpty()
+            clickable = href.isNullOrEmpty() || isImageUrl
         )
     }
 }
@@ -766,7 +777,7 @@ data class Img(
 
 }
 
-private fun String.fullUrl(baseUrl: String? = null): String {
+fun String.fullUrl(baseUrl: String? = null): String {
     if (startsWith("//")) {
         return "https:$this"
     } else if (startsWith("/")) {

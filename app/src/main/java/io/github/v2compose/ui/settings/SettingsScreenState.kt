@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import io.github.v2compose.LocalSnackbarHostState
 import io.github.v2compose.R
 import io.github.v2compose.network.bean.Release
 import kotlinx.coroutines.async
@@ -16,7 +17,7 @@ import javax.inject.Inject
 @Composable
 fun rememberSettingsScreenState(
     context: Context = LocalContext.current,
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
+    snackbarHostState: SnackbarHostState = LocalSnackbarHostState.current,
 ): SettingsScreenState {
     return remember(context, snackbarHostState) {
         SettingsScreenState(context, snackbarHostState)

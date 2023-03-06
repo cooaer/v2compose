@@ -10,10 +10,8 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +30,7 @@ import androidx.paging.compose.itemsIndexed
 import io.github.v2compose.R
 import io.github.v2compose.network.bean.NotificationInfo
 import io.github.v2compose.ui.common.*
+import io.github.v2compose.ui.gallery.composables.PopupImage
 
 private const val TAG = "NotificationsContent"
 
@@ -40,6 +39,7 @@ fun NotificationsContent(
     onLoginClick: () -> Unit,
     onUriClick: (String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
     viewModel: NotificationViewModel = hiltViewModel()
 ) {
     val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
@@ -48,18 +48,28 @@ fun NotificationsContent(
         if (isLoggedIn) {
             val unreadNotifications by viewModel.unreadNotifications.collectAsStateWithLifecycle()
             val notifications = viewModel.notifications.collectAsLazyPagingItems()
+            var htmlImageUrl by rememberSaveable { mutableStateOf("") }
+
+            if (htmlImageUrl.isNotEmpty()) {
+                PopupImage(imageUrl = htmlImageUrl) {
+                    htmlImageUrl = ""
+                }
+            }
 
             LaunchedEffect(unreadNotifications) {
                 if (unreadNotifications > 0) {
                     notifications.refresh()
                 }
             }
+
             NotificationList(
                 notifications = notifications,
                 sizedHtmls = viewModel.sizedHtmls,
                 onUriClick = onUriClick,
                 onUserAvatarClick = onUserAvatarClick,
                 loadHtmlImage = viewModel::loadHtmlImage,
+//                onHtmlImageClick = onHtmlImageClick,
+                onHtmlImageClick = { current, _ -> htmlImageUrl = current }
             )
         } else {
             ElevatedButton(onClick = onLoginClick, modifier = Modifier.align(Alignment.Center)) {
@@ -76,6 +86,7 @@ private fun NotificationList(
     onUriClick: (String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
     loadHtmlImage: (String, String, String?) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
 ) {
     val refreshing = remember(notifications.loadState.refresh) {
         with(notifications.loadState.refresh) {
@@ -95,6 +106,7 @@ private fun NotificationList(
                         onUriClick = onUriClick,
                         onUserAvatarClick = onUserAvatarClick,
                         loadHtmlImage = { html, src -> loadHtmlImage(tag, html, src) },
+                        onHtmlImageClick = onHtmlImageClick,
                     )
                 }
             }
@@ -110,6 +122,7 @@ private fun NotificationItem(
     onUriClick: (String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
     loadHtmlImage: (String, String?) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
 ) {
     val contentColor = LocalContentColor.current
     val titleText = remember(item) {
@@ -149,6 +162,7 @@ private fun NotificationItem(
                         content = content,
                         onUriClick = onUriClick,
                         loadImage = loadHtmlImage,
+                        onHtmlImageClick = onHtmlImageClick,
                         modifier = Modifier
                             .background(
                                 color = MaterialTheme.colorScheme.surfaceVariant,

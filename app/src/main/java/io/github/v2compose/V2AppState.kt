@@ -2,29 +2,37 @@ package io.github.v2compose
 
 import android.content.Context
 import android.net.Uri
+import android.os.Environment
 import android.util.Log
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import coil.annotation.ExperimentalCoilApi
+import coil.imageLoader
 import io.github.v2compose.bean.RedirectEvent
 import io.github.v2compose.core.extension.fullUrl
 import io.github.v2compose.core.extension.tryParse
 import io.github.v2compose.core.openInBrowser
+import io.github.v2compose.ui.BaseScreenState
 import io.github.v2compose.ui.main.mainNavigationRoute
 import io.github.v2compose.ui.node.navigateToNode
 import io.github.v2compose.ui.topic.navigateToTopic
 import io.github.v2compose.ui.user.navigateToUser
 import io.github.v2compose.ui.webview.navigateToWebView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import java.io.File
 import javax.inject.Inject
 
 private const val TAG = "AppState"
@@ -33,11 +41,12 @@ private const val TAG = "AppState"
 fun rememberV2AppState(
     navHostController: NavHostController,
     context: Context = LocalContext.current,
+    coroutineScope: CoroutineScope = rememberCoroutineScope(),
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ): V2AppState {
-    val v2AppState = remember(navHostController, context, snackbarHostState) {
-        V2AppState(context, navHostController, snackbarHostState)
+    val v2AppState = remember(navHostController, context, coroutineScope, snackbarHostState) {
+        V2AppState(context, navHostController, coroutineScope, snackbarHostState)
     }
     DisposableEffect(lifecycleOwner, v2AppState) {
         lifecycleOwner.lifecycle.addObserver(v2AppState)
@@ -50,12 +59,12 @@ fun rememberV2AppState(
 
 
 class V2AppState @Inject constructor(
-    private val context: Context,
+    context: Context,
     private val navHostController: NavHostController,
-    val snackbarHostState: SnackbarHostState,
-) : DefaultLifecycleObserver {
+    coroutineScope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+) : BaseScreenState(context, coroutineScope, snackbarHostState), DefaultLifecycleObserver {
 
-    //TODO: 在深层页面失效的问题
     override fun onCreate(owner: LifecycleOwner) {
         EventBus.getDefault().register(this)
     }
@@ -94,6 +103,24 @@ class V2AppState @Inject constructor(
                 }
             }
         }
+    }
+
+    @OptIn(ExperimentalCoilApi::class)
+    fun saveImage(url: String) = coroutineScope.launch {
+        val imageName = Uri.parse(url).lastPathSegment ?: return@launch
+        val pictureDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+        val appImageDir = File(pictureDir, "v2compose").also {
+            it.mkdirs()
+        }
+        context.imageLoader.diskCache?.get(url)?.let { snapshot ->
+            val newFile = File(appImageDir, imageName)
+            snapshot.data.toFile().copyTo(newFile, overwrite = true)
+            snapshot.close()
+            showMessage(R.string.save_image_success)
+            return@launch
+        }
+        showMessage(R.string.save_image_failed)
+        return@launch
     }
 
 }

@@ -22,6 +22,7 @@ import io.github.v2compose.R
 import io.github.v2compose.network.bean.NewsInfo
 import io.github.v2compose.ui.HandleSnackbarMessage
 import io.github.v2compose.ui.common.NewReleaseDialog
+import io.github.v2compose.ui.common.OnHtmlImageClick
 import io.github.v2compose.ui.main.home.HomeContent
 import io.github.v2compose.ui.main.mine.MineContent
 import io.github.v2compose.ui.main.nodes.NodesContent
@@ -41,6 +42,7 @@ fun MainScreenRoute(
     onMyFollowingClick: () -> Unit,
     onSettingsClick: () -> Unit,
     openUri: (String) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
     viewModel: MainViewModel = hiltViewModel(),
     screenState: MainScreenState = rememberMainScreenState()
 ) {
@@ -77,7 +79,8 @@ fun MainScreenRoute(
         onMyNodesClick = onMyNodesClick,
         onMyTopicsClick = onMyTopicsClick,
         onMyFollowingClick = onMyFollowingClick,
-        onUriClick = openUri
+        onUriClick = openUri,
+        onHtmlImageClick = onHtmlImageClick,
     )
 }
 
@@ -97,6 +100,7 @@ private fun MainScreen(
     onMyTopicsClick: () -> Unit,
     onMyFollowingClick: () -> Unit,
     onUriClick: (String) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
 ) {
     var navBarSelectedIndex by rememberSaveable(stateSaver = autoSaver()) { mutableStateOf(0) }
 
@@ -135,6 +139,7 @@ private fun MainScreen(
                     onMyFollowingClick = onMyFollowingClick,
                     onSettingsClick = onSettingsClick,
                     onUriClick = onUriClick,
+                    onHtmlImageClick = onHtmlImageClick,
                 )
             }
             MainBottomNavigation(navBarSelectedIndex, unreadNotifications) {
@@ -185,6 +190,7 @@ fun MainContent(
     onMyFollowingClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onUriClick: (String) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
 ) {
     rememberSaveableStateHolder().SaveableStateProvider(key = navBarSelectedIndex) {
         when (navBarSelectedIndex) {
@@ -197,7 +203,8 @@ fun MainContent(
             2 -> NotificationsContent(
                 onLoginClick = onLoginClick,
                 onUriClick = onUriClick,
-                onUserAvatarClick = onUserAvatarClick
+                onUserAvatarClick = onUserAvatarClick,
+                onHtmlImageClick = onHtmlImageClick,
             )
             3 -> MineContent(
                 onLoginClick = onLoginClick,
@@ -242,23 +249,4 @@ fun MainBottomNavigation(
                 onClick = { onItemSelected(index) })
         }
     }
-}
-
-@Preview(showBackground = true, widthDp = 440, heightDp = 880)
-@Composable
-fun MainScreenPreview() {
-    MainScreenRoute(
-        onNewsItemClick = {},
-        onNodeClick = { _, _ -> },
-        onUserAvatarClick = { _, _ -> },
-        onSearchClick = {},
-        onSettingsClick = {},
-        openUri = {},
-        onLoginClick = {},
-        onMyHomePageClick = {},
-        onMyNodesClick = {},
-        onMyTopicsClick = {},
-        onMyFollowingClick = {},
-        onCreateTopicClick = {},
-    )
 }

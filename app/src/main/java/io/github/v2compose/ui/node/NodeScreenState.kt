@@ -7,6 +7,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import io.github.v2compose.LocalSnackbarHostState
 import io.github.v2compose.core.share
 import io.github.v2compose.ui.BaseScreenState
 import io.github.v2compose.ui.BaseViewModel
@@ -16,7 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 fun rememberNodeScreenState(
     context: Context = LocalContext.current,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
+    snackbarHostState: SnackbarHostState = LocalSnackbarHostState.current,
 ): NodeScreenState {
     return remember(context, coroutineScope, snackbarHostState) {
         NodeScreenState(context, coroutineScope, snackbarHostState)

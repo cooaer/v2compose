@@ -10,6 +10,8 @@ import coil.size.Scale
 import coil.size.Size
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.cooaer.htmltext.Img
+import io.github.cooaer.htmltext.fullUrl
+import io.github.v2compose.Constants
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.jsoup.Jsoup
@@ -39,7 +41,8 @@ class FixedHtmlImageUseCase @Inject constructor(@ApplicationContext private val 
         emit(document.outerHtml())
 
         loadingImages.map { (element, img) ->
-            val imageRequest = createImageRequest(img.src)
+            val src = img.src.fullUrl(Constants.baseUrl)
+            val imageRequest = createImageRequest(src)
             try {
                 val result = context.imageLoader.execute(imageRequest)
                 Pair(element, result)

@@ -16,6 +16,8 @@ import kotlin.experimental.xor
 
 private const val TAG = "HtmlComposables"
 
+typealias OnHtmlImageClick = (String, List<String>) -> Unit
+
 @Composable
 fun HtmlContent(
     content: String,
@@ -30,6 +32,7 @@ fun HtmlContent(
     onUriClick: ((uri: String) -> Unit)? = null,
     onClick: (() -> Unit)? = null,
     loadImage: ((String, String?) -> Unit)? = null,
+    onHtmlImageClick: ((String, List<String>) -> Unit)? = null
 ) {
     val fixedHtml = rememberFixedHtml(content = content)
 
@@ -41,7 +44,8 @@ fun HtmlContent(
         baseUrl = baseUrl,
         onLinkClick = onUriClick,
         onClick = onClick,
-        loadImage = { src -> loadImage?.invoke(fixedHtml, src) }
+        loadImage = { src -> loadImage?.invoke(fixedHtml, src) },
+        onImageClick = { clicked, all -> onHtmlImageClick?.invoke(clicked.src, all.map { it.src }) }
     )
 
     LaunchedEffect(true) {

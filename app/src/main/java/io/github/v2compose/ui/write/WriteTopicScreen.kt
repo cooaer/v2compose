@@ -63,12 +63,16 @@ fun WriteTopicScreenRoute(
 
     WriteTopicScreen(
         initialDraftTopic = initialDraftTopic,
-        screenState = screenState,
         loadNodesState = loadNodesState,
         createTopicState = createTopicState,
+        snackbarHostState = screenState.snackbarHostState,
         onCloseClick = onCloseClick,
         onTopicChanged = viewModel::saveDraftTopic,
-        onSendClick = viewModel::createTopic,
+        onSendClick = { title, content, node ->
+            if (screenState.check(title, content, node)) {
+                viewModel.createTopic(title, content.trim(), node!!.id)
+            }
+        },
         retryLoadingNodes = viewModel::loadNodes
     )
 }
@@ -79,10 +83,10 @@ private fun WriteTopicScreen(
     initialDraftTopic: DraftTopic,
     createTopicState: CreateTopicState,
     loadNodesState: LoadNodesState,
-    screenState: WriteTopicScreenState,
+    snackbarHostState: SnackbarHostState,
     onCloseClick: () -> Unit,
     onTopicChanged: (String, String, TopicNode?) -> Unit,
-    onSendClick: (title: String, content: String, nodeId: String) -> Unit,
+    onSendClick: (title: String, content: String, node: TopicNode?) -> Unit,
     retryLoadingNodes: () -> Unit,
 ) {
     var title by rememberSaveable { mutableStateOf(initialDraftTopic.title) }
@@ -94,15 +98,11 @@ private fun WriteTopicScreen(
             TopBar(
                 createTopicState = createTopicState,
                 onCloseClick = onCloseClick,
-                onSendClick = {
-                    if (screenState.check(title, content, node)) {
-                        onSendClick(title, content.trim(), node!!.id)
-                    }
-                }
+                onSendClick = { onSendClick(title, content, node) },
             )
         },
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
-        snackbarHost = { SnackbarHost(hostState = screenState.snackbarHostState) }
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { insets ->
         Box(
             modifier = Modifier
@@ -373,7 +373,7 @@ private fun TopicNodeField(
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                if(node?.name.isNullOrEmpty()) stringResource(R.string.select_node) else node?.name!!,
+                if (node?.name.isNullOrEmpty()) stringResource(R.string.select_node) else node?.name!!,
                 color = contentColor,
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,

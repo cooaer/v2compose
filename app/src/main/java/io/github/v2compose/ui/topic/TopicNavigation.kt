@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.*
 import com.google.accompanist.navigation.animation.composable
 import io.github.v2compose.core.StringDecoder
+import io.github.v2compose.ui.common.OnHtmlImageClick
 
 private const val argTopicId: String = "topicId"
 
@@ -33,6 +34,7 @@ fun NavGraphBuilder.topicScreen(
     onUserAvatarClick: (String, String) -> Unit,
     openUri: (String) -> Unit,
     onAddSupplementClick:(String) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
 ) {
     composable(
         topicNavigationRoute,
@@ -44,6 +46,7 @@ fun NavGraphBuilder.topicScreen(
             onUserAvatarClick = onUserAvatarClick,
             openUri = openUri,
             onAddSupplementClick = onAddSupplementClick,
+            onHtmlImageClick = onHtmlImageClick,
         )
     }
 }

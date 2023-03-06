@@ -5,12 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSavedStateRegistryOwner
@@ -27,6 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import io.github.v2compose.network.bean.NewsInfo
 import io.github.v2compose.ui.common.LoadMore
+import io.github.v2compose.ui.common.PullToRefresh
 import io.github.v2compose.ui.common.SimpleTopic
 import io.github.v2compose.ui.main.home.NewsTabInfo
 
@@ -42,7 +38,7 @@ fun NewsTab(
     val topicTitleOverview by viewModel.topicTitleOverview.collectAsStateWithLifecycle()
 
     val newsUiState by viewModel.newsInfoFlow.collectAsStateWithLifecycle()
-    val refreshing by viewModel.refreshingFlow.collectAsStateWithLifecycle()
+    val refreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     NewsContent(
         refreshing = refreshing,
@@ -145,7 +141,7 @@ private fun NewsList(
                     userName = item.userName,
                     userAvatar = item.avatar,
                     time = item.time,
-                    replyNum = item.replies.toString(),
+                    replyCount = item.replies.toString(),
                     nodeId = item.tagId,
                     nodeName = item.tagName,
                     titleOverview = topicTitleOverview,
@@ -155,33 +151,5 @@ private fun NewsList(
                 )
             }
         }
-    }
-}
-
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-private fun PullToRefresh(
-    refreshing: Boolean,
-    onRefresh: () -> Unit,
-    content: @Composable () -> Unit
-) {
-    val pullRefreshState = rememberPullRefreshState(
-        refreshing = refreshing,
-        onRefresh = onRefresh
-    )
-
-    Box(
-        Modifier
-            .pullRefresh(pullRefreshState)
-            .fillMaxSize()
-    ) {
-
-        content()
-
-        PullRefreshIndicator(
-            refreshing = refreshing,
-            state = pullRefreshState,
-            modifier = Modifier.align(Alignment.TopCenter)
-        )
     }
 }

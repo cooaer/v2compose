@@ -1,5 +1,6 @@
 package io.github.v2compose.ui.login.twostep
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -67,12 +68,14 @@ class TwoStepLoginViewModel @Inject constructor(
 
 }
 
+@Stable
 sealed interface TwoStepLoginUiState {
     data class Success(val twoStepLoginInfo: TwoStepLoginInfo) : TwoStepLoginUiState
     object Loading : TwoStepLoginUiState
     data class Error(val error: Throwable) : TwoStepLoginUiState
 }
 
+@Stable
 sealed interface LoginState {
     object Idle : LoginState
     object Loading : LoginState

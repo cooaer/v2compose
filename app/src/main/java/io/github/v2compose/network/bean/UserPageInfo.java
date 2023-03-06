@@ -1,5 +1,8 @@
 package io.github.v2compose.network.bean;
 
+import androidx.annotation.NonNull;
+import androidx.compose.runtime.Stable;
+
 import io.github.v2compose.util.AvatarUtils;
 import io.github.v2compose.util.Check;
 import me.ghui.fruit.Attrs;
@@ -10,6 +13,7 @@ import me.ghui.fruit.annotations.Pick;
  * https://www.v2ex.com/member/ghui
  */
 
+@Stable
 @Pick("div#Wrapper")
 public class UserPageInfo extends BaseInfo {
     @Pick("h1")
@@ -31,14 +35,6 @@ public class UserPageInfo extends BaseInfo {
 
     public boolean hadBlocked() {
         return Check.notEmpty(blockOnClick) && blockOnClick.contains("unblock");
-    }
-
-    public void updateBlockUrl(boolean toBlock) {
-        if (toBlock) {
-            blockOnClick = blockOnClick.replace("unblock", "block");
-        } else {
-            blockOnClick = blockOnClick.replace("block", "unblock");
-        }
     }
 
     //    if (confirm('确认要取消对 diskerjtr 的关注？')) { location.href = '/unfollow/128373?once=15154'; }
@@ -78,6 +74,7 @@ public class UserPageInfo extends BaseInfo {
         return desc;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "UserPageInfo{" +

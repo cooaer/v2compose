@@ -3,7 +3,6 @@ package io.github.v2compose.ui.settings
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import coil.Coil
 import coil.annotation.ExperimentalCoilApi
 import coil.disk.DiskCache
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,6 +15,7 @@ import io.github.v2compose.repository.AccountRepository
 import io.github.v2compose.usecase.CheckForUpdatesUseCase
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import okhttp3.Cache
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,9 +24,9 @@ class SettingsViewModel @Inject constructor(
     private val appPreferences: AppPreferences,
     val checkForUpdates: CheckForUpdatesUseCase,
     private val accountRepository: AccountRepository,
+    private val httpCache: Cache,
+    private val imageDiskCache: DiskCache,
 ) : ViewModel() {
-
-    private val imageDiskCache: DiskCache? = Coil.imageLoader(context).diskCache
 
     val appSettings: StateFlow<AppSettings> = appPreferences.appSettings
         .stateIn(
@@ -51,8 +51,15 @@ class SettingsViewModel @Inject constructor(
     @OptIn(ExperimentalCoilApi::class)
     private fun initCacheSize() {
         viewModelScope.launch {
-            val imageSizeMB = imageDiskCache?.size?.div(1024 * 1024)
-            _cacheSize.emit(imageSizeMB ?: 0L)
+            val imageCacheSize = imageDiskCache.size.div(1024 * 1024)
+            val httpCacheSize = httpCache.size().div(1024 * 1024)
+            _cacheSize.emit(imageCacheSize + httpCacheSize)
+        }
+    }
+
+    fun updateAutoCheckIn(value: Boolean) {
+        viewModelScope.launch {
+            appPreferences.autoCheckIn(value)
         }
     }
 
@@ -77,7 +84,8 @@ class SettingsViewModel @Inject constructor(
     @OptIn(ExperimentalCoilApi::class)
     fun clearCache() {
         viewModelScope.launch {
-            imageDiskCache?.clear()
+            imageDiskCache.clear()
+            httpCache.evictAll()
             _cacheSize.emit(0L)
         }
     }
@@ -88,10 +96,8 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun logout(){
-        viewModelScope.launch {
-            accountRepository.logout()
-        }
+    suspend fun logout() {
+        accountRepository.logout()
     }
 
 }

@@ -25,7 +25,8 @@ fun SimpleTopic(
     userName: String,
     userAvatar: String,
     time: String,
-    replyNum: String,
+    replyCount: String,
+    viewCount: Int? = null,
     nodeId: String,
     nodeName: String,
     title: String,
@@ -65,10 +66,18 @@ fun SimpleTopic(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            stringResource(R.string.n_comment, replyNum),
+                            stringResource(R.string.n_comment, replyCount.ifBlank { "0" }),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = ContentAlpha.medium)
                         )
+                        viewCount?.let {
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                stringResource(R.string.n_views, viewCount.toString()),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = ContentAlpha.medium)
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.width(8.dp))

@@ -9,6 +9,7 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.google.accompanist.navigation.animation.composable
 import io.github.v2compose.core.StringDecoder
+import io.github.v2compose.ui.common.OnHtmlImageClick
 
 private const val argsUserName = "userName"
 private const val argsAvatar = "userAvatar"
@@ -34,6 +35,7 @@ fun NavGraphBuilder.userScreen(
     onTopicClick: (String) -> Unit,
     onNodeClick: (String, String) -> Unit,
     openUri: (String) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
 ) {
     composable(
         route = userScreenRoute,
@@ -50,6 +52,7 @@ fun NavGraphBuilder.userScreen(
             onTopicClick = onTopicClick,
             onNodeClick = onNodeClick,
             openUri = openUri,
+            onHtmlImageClick = onHtmlImageClick,
         )
     }
 }

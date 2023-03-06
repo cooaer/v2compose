@@ -17,12 +17,12 @@ fun NavController.navigateToWebView(url: String) {
 }
 
 @OptIn(ExperimentalAnimationApi::class)
-fun NavGraphBuilder.webViewScreen(onCloseClick: () -> Unit) {
+fun NavGraphBuilder.webViewScreen(onCloseClick: () -> Unit, openUri:(String) -> Unit) {
     composable(
         webViewRoute,
         arguments = listOf(navArgument(argsUrl) { type = NavType.StringType })
     ) {
         val url = Uri.decode(it.arguments?.getString(argsUrl)) ?: ""
-        WebViewScreenRoute(url = url, onCloseClick = onCloseClick)
+        WebViewScreenRoute(url = url, onCloseClick = onCloseClick, openUri = openUri)
     }
 }

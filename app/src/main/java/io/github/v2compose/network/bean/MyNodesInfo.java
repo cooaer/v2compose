@@ -15,7 +15,7 @@ import me.ghui.fruit.annotations.Pick;
  */
 
 @Pick("div#my-nodes")
-public class NodeStarInfo extends BaseInfo {
+public class MyNodesInfo extends BaseInfo {
 
     @Pick("a.fav-node")
     private List<Item> items;

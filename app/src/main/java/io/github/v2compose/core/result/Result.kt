@@ -16,11 +16,13 @@
 
 package io.github.v2compose.core.result
 
+import androidx.compose.runtime.Stable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 
+@Stable
 sealed interface Result<out T> {
     data class Success<T>(val data: T) : Result<T>
     data class Error(val exception: Throwable?) : Result<Nothing>

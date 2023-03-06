@@ -1,23 +1,21 @@
 package io.github.v2compose
 
 import android.app.Application
-import android.os.Build
 import coil.ImageLoader
 import coil.ImageLoaderFactory
-import coil.decode.GifDecoder
-import coil.decode.ImageDecoderDecoder
-import coil.decode.SvgDecoder
 import com.orhanobut.logger.AndroidLogAdapter
 import com.orhanobut.logger.FormatStrategy
 import com.orhanobut.logger.Logger
 import com.orhanobut.logger.PrettyFormatStrategy
 import dagger.hilt.android.HiltAndroidApp
-import io.github.v2compose.network.OkHttpFactory
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+import javax.inject.Inject
 
 @HiltAndroidApp
 class App : Application(), ImageLoaderFactory {
+    @Inject
+    lateinit var imageLoader: ImageLoader
 
     companion object {
         private const val TAG = "APP"
@@ -53,18 +51,7 @@ class App : Application(), ImageLoaderFactory {
         })
     }
 
-    override fun newImageLoader(): ImageLoader {
-        return ImageLoader.Builder(this)
-            .okHttpClient(OkHttpFactory.imageHttpClient)
-            .components {
-            if (Build.VERSION.SDK_INT >= 28) {
-                add(ImageDecoderDecoder.Factory())
-            } else {
-                add(GifDecoder.Factory())
-            }
-            add(SvgDecoder.Factory())
-        }.build()
-    }
+    override fun newImageLoader(): ImageLoader = imageLoader
 
     private fun resetScrollableTabRowMinimumTabWidth() {
         try {

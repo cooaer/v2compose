@@ -5,8 +5,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import androidx.navigation.navOptions
 import com.google.accompanist.navigation.animation.AnimatedNavHost
-import io.github.v2compose.datasource.AppSettings
+import io.github.v2compose.ui.gallery.galleryScreen
+import io.github.v2compose.ui.gallery.navigateToGallery
 import io.github.v2compose.ui.login.google.googleLoginScreen
 import io.github.v2compose.ui.login.google.navigateToGoogleLogin
 import io.github.v2compose.ui.login.loginScreen
@@ -21,11 +23,17 @@ import io.github.v2compose.ui.search.navigateToSearch
 import io.github.v2compose.ui.search.searchScreen
 import io.github.v2compose.ui.settings.navigateToSettings
 import io.github.v2compose.ui.settings.settingsScreen
+import io.github.v2compose.ui.settings.settingsScreenRoute
+import io.github.v2compose.ui.supplement.addSupplementScreen
+import io.github.v2compose.ui.supplement.navigateToAddSupplement
 import io.github.v2compose.ui.topic.navigateToTopic
 import io.github.v2compose.ui.topic.topicScreen
 import io.github.v2compose.ui.user.navigateToUser
 import io.github.v2compose.ui.user.userScreen
+import io.github.v2compose.ui.webview.navigateToWebView
 import io.github.v2compose.ui.webview.webViewScreen
+import io.github.v2compose.ui.write.navigateToWriteTopic
+import io.github.v2compose.ui.write.writeTopicScreen
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -51,18 +59,21 @@ fun V2AppNavGraph(
                     )
                 }
             },
-            onMyNodesClick = {},
-            onMyTopicsClick = {},
-            onMyFollowingClick = {},
-            onCreateTopicClick = {},
+            onMyNodesClick = { navController.navigateToWebView(V2exUri.myNodesUrl) },
+            onMyTopicsClick = { navController.navigateToWebView(V2exUri.myTopicsUrl) },
+            onMyFollowingClick = { navController.navigateToWebView(V2exUri.myFollowingUrl) },
+            onCreateTopicClick = navController::navigateToWriteTopic,
             onSettingsClick = navController::navigateToSettings,
             openUri = appState::openUri,
+            onHtmlImageClick = navController::navigateToGallery,
         )
         topicScreen(
             onBackClick = appState::back,
             onNodeClick = navController::navigateToNode,
             onUserAvatarClick = navController::navigateToUser,
-            openUri = appState::openUri
+            openUri = appState::openUri,
+            onAddSupplementClick = navController::navigateToAddSupplement,
+            onHtmlImageClick = navController::navigateToGallery,
         )
         nodeScreen(
             onBackClick = appState::back,
@@ -78,11 +89,19 @@ fun V2AppNavGraph(
             onBackClick = appState::back,
             onTopicClick = appState::openUri,
             onNodeClick = { nodePath, _ -> appState.openUri(nodePath) },
-            openUri = appState::openUri
+            openUri = appState::openUri,
+            onHtmlImageClick = navController::navigateToGallery,
         )
         settingsScreen(
             onBackClick = appState::back,
             openUri = appState::openUri,
+            onLogoutSuccess = {
+                navController.navigateToLogin(navOptions = navOptions {
+                    popUpTo(settingsScreenRoute) {
+                        inclusive = true
+                    }
+                })
+            }
         )
         loginScreen(
             onCloseClick = appState::back,
@@ -97,6 +116,29 @@ fun V2AppNavGraph(
         )
         webViewScreen(
             onCloseClick = appState::back,
+            openUri = appState::openUri
+        )
+        writeTopicScreen(
+            onCloseClick = appState::back,
+            openUri = appState::openUri,
+            onCreateTopicSuccess = {
+                navController.popBackStack()
+                navController.navigateToTopic(it)
+            },
+        )
+        addSupplementScreen(
+            onCloseClick = appState::back,
+            onAddSupplementSuccess = {
+                navController.navigateToTopic(it, navOptions {
+                    popUpTo(V2exUri.topicPath(it)) {
+                        inclusive = true
+                    }
+                })
+            },
+            openUri = appState::openUri,
+        )
+        galleryScreen(
+            onBackClick = appState::back,
         )
     }
 }

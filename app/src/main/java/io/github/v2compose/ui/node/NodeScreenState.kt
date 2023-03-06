@@ -1,19 +1,35 @@
 package io.github.v2compose.ui.node
 
 import android.content.Context
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import io.github.v2compose.LocalSnackbarHostState
 import io.github.v2compose.core.share
+import io.github.v2compose.ui.BaseScreenState
+import io.github.v2compose.ui.BaseViewModel
+import kotlinx.coroutines.CoroutineScope
 
 @Composable
-fun rememberNodeScreenState(context: Context = LocalContext.current): NodeScreenState {
-    return remember(context) {
-        NodeScreenState(context)
+fun rememberNodeScreenState(
+    context: Context = LocalContext.current,
+    coroutineScope: CoroutineScope = rememberCoroutineScope(),
+    snackbarHostState: SnackbarHostState = LocalSnackbarHostState.current,
+): NodeScreenState {
+    return remember(context, coroutineScope, snackbarHostState) {
+        NodeScreenState(context, coroutineScope, snackbarHostState)
     }
 }
 
-class NodeScreenState(private val context: Context) {
+@Stable
+class NodeScreenState(
+    context: Context,
+    coroutineScope: CoroutineScope,
+    snackbarHostState: SnackbarHostState
+):BaseScreenState(context, coroutineScope, snackbarHostState) {
 
     fun share(nodeArgs: NodeArgs, nodeUiState: NodeUiState) {
         val title = if (nodeUiState is NodeUiState.Success) {

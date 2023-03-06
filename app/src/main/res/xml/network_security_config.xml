@@ -4,7 +4,7 @@
         <domain includeSubdomains="true">v2ex.com</domain>
         <domain includeSubdomains="true">v2ex.co</domain>
     </domain-config>
-    <base-config cleartextTrafficPermitted="true">
+    <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>

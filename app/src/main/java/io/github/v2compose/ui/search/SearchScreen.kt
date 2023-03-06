@@ -4,17 +4,21 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -22,17 +26,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.*
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
@@ -42,7 +45,8 @@ import io.github.v2compose.network.bean.SoV2EXSearchResultInfo
 import io.github.v2compose.ui.common.pagingAppendMoreItem
 import io.github.v2compose.ui.common.pagingRefreshItem
 import io.github.v2compose.ui.common.rememberLazyListState
-import kotlinx.coroutines.delay
+
+private const val TAG = "SearchScreen"
 
 @Composable
 fun SearchScreenRoute(
@@ -51,14 +55,17 @@ fun SearchScreenRoute(
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val keyword by viewModel.keyword.collectAsStateWithLifecycle()
-    val lazyPagingItems = viewModel.topics.collectAsLazyPagingItems()
+    val topics = viewModel.topics.collectAsLazyPagingItems()
+    val historyKeywords by viewModel.historyKeywords.collectAsStateWithLifecycle()
 
     SearchScreen(
         keyword = keyword,
-        lazyPagingItems = lazyPagingItems,
+        historyKeywords = historyKeywords,
+        topics = topics,
         onCloseClick = goBack,
         onTopicClick = onTopicClick,
-        onSearchClick = { viewModel.updateKeyword(it) },
+        onSearchClick = { viewModel.search(it) },
+        onDeleteKeywordsClick = viewModel::clearHistoryKeywords
     )
 }
 
@@ -67,17 +74,19 @@ fun SearchScreenRoute(
 @Composable
 private fun SearchScreen(
     keyword: String?,
-    lazyPagingItems: LazyPagingItems<SoV2EXSearchResultInfo.Hit>,
+    historyKeywords: List<String>,
+    topics: LazyPagingItems<SoV2EXSearchResultInfo.Hit>,
     onCloseClick: () -> Unit,
     onTopicClick: (SoV2EXSearchResultInfo.Hit) -> Unit,
     onSearchClick: (String) -> Unit,
+    onDeleteKeywordsClick: () -> Unit,
 ) {
 //    val backgroundColor = if (lazyPagingItems.itemCount == 0) {
 //        MaterialTheme.colorScheme.onBackground.copy(alpha = ContentAlpha.disabled)
 //    } else {
 //        MaterialTheme.colorScheme.background
 //    }
-    val backgroundColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f)
+    val backgroundColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)
 
     Scaffold(modifier = Modifier.background(color = backgroundColor)) {
         Box(
@@ -86,11 +95,19 @@ private fun SearchScreen(
                 .background(color = backgroundColor)
                 .padding(it)
         ) {
-            SearchResult(
-                keyword = keyword,
-                lazyPagingItems = lazyPagingItems,
-                onTopicClick = onTopicClick
-            )
+            if (topics.itemSnapshotList.isEmpty()) {
+                SearchHistoryKeywords(
+                    searchKeywords = historyKeywords,
+                    onKeywordClick = onSearchClick,
+                    onDeleteKeywordsClick = onDeleteKeywordsClick,
+                    modifier = Modifier.padding(top = 72.dp)
+                )
+            } else {
+                SearchResult(
+                    topics = topics,
+                    onTopicClick = onTopicClick
+                )
+            }
             SearchBar(keyword = keyword, onCloseClick = onCloseClick, onSearchClick = onSearchClick)
         }
     }
@@ -100,89 +117,171 @@ private fun SearchScreen(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun SearchBar(keyword: String?, onCloseClick: () -> Unit, onSearchClick: (String) -> Unit) {
-    var initialKeyword by remember(keyword) { mutableStateOf(keyword ?: "") }
+    var currentKeyword by remember(keyword) {
+        mutableStateOf(
+            TextFieldValue(keyword ?: "", selection = TextRange(keyword?.length ?: 0))
+        )
+    }
     var autoShowKeyboard by rememberSaveable { mutableStateOf(true) }
     val focusRequester = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
-    val onSearchAction = remember(onSearchClick, keyboard) {
+    val onSearchAction = remember(onSearchClick, currentKeyword) {
         {
-            onSearchClick(initialKeyword)
-            keyboard?.hide()
+            if (currentKeyword.text.isNotEmpty()) {
+                onSearchClick(currentKeyword.text)
+                keyboard?.hide()
+            }
         }
     }
 
-    OutlinedTextField(
-        value = initialKeyword,
-        onValueChange = { initialKeyword = it },
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .background(
-                color = MaterialTheme.colorScheme.background,
-                shape = RoundedCornerShape(12.dp),
-            )
-            .focusRequester(focusRequester)
-            .onFocusChanged { },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Text, imeAction = ImeAction.Search
-        ),
-        keyboardActions = KeyboardActions(onSearch = { onSearchAction() }),
-        singleLine = true,
-        placeholder = {
+    ) {
+        OutlinedTextField(
+            value = currentKeyword,
+            onValueChange = { currentKeyword = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = MaterialTheme.colorScheme.background,
+                    shape = RoundedCornerShape(12.dp),
+                )
+                .focusRequester(focusRequester)
+                .onFocusChanged { },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text, imeAction = ImeAction.Search
+            ),
+            keyboardActions = KeyboardActions(onSearch = { onSearchAction() }),
+            singleLine = true,
+            placeholder = {
+                Icon(
+                    painter = painterResource(id = R.drawable.logo_sov2ex),
+                    contentDescription = "sov2ex logo",
+                    tint = MaterialTheme.colorScheme.onBackground.copy(alpha = ContentAlpha.disabled)
+                )
+            },
+            shape = RoundedCornerShape(12.dp),
+        )
+        IconButton(
+            onClick = {
+                if (currentKeyword.text.isNotEmpty()) {
+                    currentKeyword = TextFieldValue("")
+                } else {
+                    onCloseClick()
+                }
+            },
+            modifier = Modifier.align(Alignment.CenterEnd),
+        ) {
             Icon(
-                painter = painterResource(id = R.drawable.logo_sov2ex),
-                contentDescription = "sov2ex logo",
-                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = ContentAlpha.disabled)
-            )
-        },
-        trailingIcon = {
-            Icon(imageVector = Icons.Rounded.Close,
+                imageVector = Icons.Rounded.Close,
                 contentDescription = "close",
-                modifier = Modifier.clickable {
-                    if (initialKeyword.isNotEmpty()) {
-                        initialKeyword = ""
-                    } else {
-                        onCloseClick()
-                    }
-                })
-        },
-        shape = RoundedCornerShape(12.dp),
-    )
+            )
+        }
+    }
 
     LaunchedEffect(focusRequester) {
         if (autoShowKeyboard) {
             focusRequester.requestFocus()
-            delay(100)
             keyboard?.show()
             autoShowKeyboard = false
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SearchHistoryKeywords(
+    searchKeywords: List<String>,
+    onKeywordClick: (String) -> Unit,
+    onDeleteKeywordsClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                stringResource(id = R.string.history_keywords),
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = 16.dp)
+            )
+            Icon(
+                Icons.Rounded.Delete, "delete",
+                modifier = Modifier
+                    .padding(end = 10.dp)
+                    .align(Alignment.CenterEnd)
+                    .clip(CircleShape)
+                    .clickable { onDeleteKeywordsClick() }
+                    .padding(6.dp),
+                tint = LocalContentColor.current.copy(alpha = ContentAlpha.medium)
+            )
+        }
+        FlowRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp),
+        ) {
+            searchKeywords.forEach {
+                SearchKeyword(keyword = it, onKeywordClick = onKeywordClick)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchKeyword(keyword: String, onKeywordClick: (String) -> Unit) {
+    val backgroundColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f)
+    Box(modifier = Modifier.padding(6.dp)) {
+        Box(
+            modifier = Modifier
+                .height(24.dp)
+                .background(
+                    color = backgroundColor,
+                    shape = RoundedCornerShape(24.dp)
+                )
+                .clip(RoundedCornerShape(24.dp))
+                .clickable { onKeywordClick(keyword) }
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                keyword,
+                color = LocalContentColor.current.copy(alpha = ContentAlpha.high),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+}
+
 @Composable
 private fun SearchResult(
-    keyword: String?,
-    lazyPagingItems: LazyPagingItems<SoV2EXSearchResultInfo.Hit>,
+    topics: LazyPagingItems<SoV2EXSearchResultInfo.Hit>,
     onTopicClick: (SoV2EXSearchResultInfo.Hit) -> Unit,
 ) {
+    val lazyListState = topics.rememberLazyListState()
+
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(top = 72.dp),
-        state = lazyPagingItems.rememberLazyListState(),
+        state = lazyListState,
     ) {
-        if (!keyword.isNullOrEmpty()) {
-            pagingRefreshItem(lazyPagingItems)
-        }
-        itemsIndexed(items = lazyPagingItems,
-            key = { index, item -> item.source.id }) { index, item ->
+        pagingRefreshItem(topics)
+        itemsIndexed(items = topics, key = { _, item -> item.source.id }) { index, item ->
             item?.let {
                 SearchTopic(topic = item, onTopicClick = onTopicClick)
             }
         }
-        if (!keyword.isNullOrEmpty()) {
-            pagingAppendMoreItem(lazyPagingItems)
+        pagingAppendMoreItem(topics)
+    }
+
+    val isRefreshing = topics.loadState.refresh is LoadState.Loading
+    LaunchedEffect(isRefreshing) {
+        if (!isRefreshing) {
+            lazyListState.scrollToItem(0)
         }
     }
+
 }
 
 @Composable

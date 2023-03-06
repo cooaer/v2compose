@@ -1,5 +1,7 @@
 package io.github.v2compose.network.bean;
 
+import androidx.compose.runtime.Stable;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
@@ -13,6 +15,7 @@ import io.github.v2compose.util.Check;
  * https://www.v2ex.com/api/nodes/show.json?name=qna
  */
 
+@Stable
 public class NodeInfo extends BaseInfo implements Serializable {
     @SerializedName("id")
     private int id;
@@ -52,76 +55,42 @@ public class NodeInfo extends BaseInfo implements Serializable {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getUrl() {
         return url;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
     public String getTitle() {
         return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
     }
 
     public int getTopics() {
         return topics;
     }
 
-    public void setTopics(int topics) {
-        this.topics = topics;
-    }
-
     public int getStars() {
         return stars;
     }
 
-    public void setStars(int stars) {
-        this.stars = stars;
-    }
-
     public String getHeader() {
-        return header;
-    }
-
-    public void setHeader(String header) {
-        this.header = header;
+        return header != null ? header : "";
     }
 
     public long getCreated() {
         return created;
     }
 
-    public void setCreated(long created) {
-        this.created = created;
-    }
-
     public String getAvatar() {
         return AvatarUtils.adjustAvatar(avatar);
-    }
-
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
     }
 
     @Override
     public boolean isValid() {
         return Check.notEmpty(name);
     }
+
+
 }

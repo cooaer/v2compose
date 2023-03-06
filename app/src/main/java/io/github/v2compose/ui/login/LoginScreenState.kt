@@ -12,6 +12,7 @@ fun rememberLoginScreenState(context: Context = LocalContext.current): LoginScre
     }
 }
 
+@Stable
 class LoginScreenState(private val context: Context) {
 
     var userNameError by mutableStateOf("")

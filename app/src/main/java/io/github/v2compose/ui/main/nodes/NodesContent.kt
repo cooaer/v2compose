@@ -3,18 +3,19 @@ package io.github.v2compose.ui.main.nodes
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.flowlayout.FlowRow
 import io.github.v2compose.network.bean.NodesNavInfo
+import io.github.v2compose.ui.common.LoadError
 import io.github.v2compose.ui.common.NodeTag
+import io.github.v2compose.ui.common.PullToRefresh
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
@@ -22,19 +23,30 @@ fun NodesContent(
     onNodeClick: (String, String) -> Unit,
     viewModel: NodesViewModel = hiltViewModel(),
 ) {
-    var nodesUiState = viewModel.nodesNavInfo.value
-    if (nodesUiState !is NodesUiState.Success) {
-        nodesUiState = viewModel.nodesNavInfo.collectAsStateWithLifecycle().value
-    }
+    val nodesUiState by viewModel.nodesUiState.collectAsStateWithLifecycle()
+    val nodesNavInfo by viewModel.nodesNavInfo.collectAsStateWithLifecycle()
+
+    NodesContainer(nodesUiState, nodesNavInfo, onNodeClick, viewModel::refresh)
+}
+
+@Composable
+private fun NodesContainer(
+    nodesUiState: NodesUiState,
+    nodesNavInfo: NodesNavInfo?,
+    onNodeClick: (String, String) -> Unit,
+    onRefresh: () -> Unit,
+) {
     when (nodesUiState) {
-        is NodesUiState.Success -> {
-            NodesList(nodesNavInfo = nodesUiState.nodesNavInfo, onNodeClick = onNodeClick)
-        }
-        is NodesUiState.Loading -> {
-            NodesLoading()
-        }
         is NodesUiState.Error -> {
-            NodesError()
+            LoadError(error = nodesUiState.error, onRetryClick = onRefresh)
+        }
+        else -> {
+            val isRefreshing = nodesUiState is NodesUiState.Loading
+            PullToRefresh(refreshing = isRefreshing, onRefresh = onRefresh) {
+                nodesNavInfo?.let {
+                    NodesList(nodesNavInfo = it, onNodeClick = onNodeClick)
+                }
+            }
         }
     }
 }
@@ -44,7 +56,7 @@ fun NodesContent(
 fun NodesList(
     nodesNavInfo: NodesNavInfo, onNodeClick: (String, String) -> Unit,
 ) {
-    LazyColumn {
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(count = nodesNavInfo.size, key = { nodesNavInfo[it].category }) { index ->
             NodesGroup(nodesNavInfo[index], onNodeClick = onNodeClick)
         }
@@ -81,16 +93,4 @@ fun NodesFlow(
             NodeTag(nodeName = node.name, nodeId = node.id, onItemClick = onNodeClick)
         }
     }
-}
-
-@Composable
-fun NodesLoading() {
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-        CircularProgressIndicator()
-    }
-}
-
-@Composable
-fun NodesError() {
-
 }

@@ -1,41 +1,44 @@
 package io.github.v2compose.ui.main.nodes
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.v2compose.core.result.Result
-import io.github.v2compose.core.result.asResult
 import io.github.v2compose.network.bean.NodesNavInfo
 import io.github.v2compose.repository.NodeRepository
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class NodesViewModel @Inject constructor(private val nodeRepository: NodeRepository) : ViewModel() {
 
-    val nodesNavInfo: StateFlow<NodesUiState> = flow<NodesNavInfo> {
-        emit(nodeRepository.getNodesNavInfo())
-    }.asResult().map {
-        when (it) {
-            is Result.Success -> {
-                NodesUiState.Success(it.data)
-            }
-            is Result.Loading -> {
-                NodesUiState.Loading
-            }
-            is Result.Error -> {
-                NodesUiState.Error
+    private val _nodesUiState = MutableStateFlow<NodesUiState>(NodesUiState.Idle)
+    val nodesUiState = _nodesUiState.asStateFlow()
+
+    val nodesNavInfo: StateFlow<NodesNavInfo?> = nodeRepository.nodesNavInfo
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
+
+    fun refresh() {
+        viewModelScope.launch {
+            _nodesUiState.emit(NodesUiState.Loading)
+            try {
+                nodeRepository.getNodesNavInfo().let {
+                    _nodesUiState.emit(NodesUiState.Success(it))
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _nodesUiState.emit(NodesUiState.Error(e))
             }
         }
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),
-        NodesUiState.Loading,
-    )
+    }
+
 }
 
+@Stable
 sealed interface NodesUiState {
+    object Idle : NodesUiState
     data class Success(val nodesNavInfo: NodesNavInfo) : NodesUiState
     object Loading : NodesUiState
-    object Error : NodesUiState
+    data class Error(val error: Throwable?) : NodesUiState
 }

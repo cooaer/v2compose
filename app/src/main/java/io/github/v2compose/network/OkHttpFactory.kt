@@ -1,5 +1,6 @@
 package io.github.v2compose.network
 
+import android.content.Context
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -11,37 +12,39 @@ import io.github.v2compose.network.NetConstants.wapUserAgent
 import io.github.v2compose.util.Check
 import io.github.v2compose.util.L
 import me.ghui.fruit.Fruit
-import okhttp3.Interceptor
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
+import okhttp3.*
 import okhttp3.logging.HttpLoggingInterceptor
+import okio.IOException
 import org.greenrobot.eventbus.EventBus
+import java.io.File
 import java.util.concurrent.TimeUnit
 
 object OkHttpFactory {
 
     private const val TIMEOUT_SECONDS: Long = 10
 
-    val gson: Gson by lazy { createGson() }
-    val fruit: Fruit by lazy { createFruit() }
-    val cookieJar: WebkitCookieManagerProxy by lazy { createCookieJar() }
-    val httpClient: OkHttpClient by lazy { createHttpClient() }
-    val imageHttpClient: OkHttpClient by lazy { createImageHttpClient() }
+//    val gson: Gson by lazy { createGson() }
+//    val fruit: Fruit by lazy { createFruit() }
+//    val cookieManager: WebkitCookieManager by lazy { createCookieManager() }
+//    val httpClient: OkHttpClient by lazy { createHttpClient() }
+//    val imageHttpClient: OkHttpClient by lazy { createImageHttpClient(cookieManager) }
 
-    private fun createGson(): Gson {
+    fun createGson(): Gson {
         return GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
             .create()
     }
 
-    private fun createFruit(): Fruit {
+    fun createFruit(): Fruit {
         return Fruit()
     }
 
-    private fun createHttpClient(): OkHttpClient {
+    fun createHttpClient(cookieJar: CookieJar, cache: Cache): OkHttpClient {
         val builder: OkHttpClient.Builder =
-            OkHttpClient.Builder().connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .cookieJar(cookieJar).retryOnConnectionFailure(true)
+            OkHttpClient.Builder()
+                .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .cache(cache)
+                .cookieJar(cookieJar)
+                .retryOnConnectionFailure(true)
                 .addInterceptor(ConfigInterceptor())
                 .addInterceptor(RedirectInterceptor())
                 .followRedirects(false)
@@ -55,10 +58,12 @@ object OkHttpFactory {
         return builder.build()
     }
 
-    private fun createImageHttpClient(): OkHttpClient {
+    fun createImageHttpClient(cookieJar: CookieJar): OkHttpClient {
         val builder: OkHttpClient.Builder =
-            OkHttpClient.Builder().connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .cookieJar(cookieJar).retryOnConnectionFailure(true)
+            OkHttpClient.Builder()
+                .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .cookieJar(cookieJar)
+                .retryOnConnectionFailure(true)
                 .addInterceptor(ConfigInterceptor())
         if (BuildConfig.DEBUG) {
             builder.addInterceptor(
@@ -69,11 +74,18 @@ object OkHttpFactory {
         return builder.build()
     }
 
-    private fun createCookieJar(): WebkitCookieManagerProxy {
-        return WebkitCookieManagerProxy()
+    fun createCookieManager(): WebkitCookieManager {
+        return WebkitCookieManager()
+    }
+
+    fun createCache(context: Context): Cache {
+        val cacheDir = File(context.cacheDir, "http_cache")
+        val cacheMaxSize: Long = 100 * 1024 * 1024 //100M
+        return Cache(cacheDir, cacheMaxSize)
     }
 
     private class ConfigInterceptor : Interceptor {
+        @Throws(IOException::class)
         override fun intercept(chain: Interceptor.Chain): Response {
             var request: Request = chain.request()
             val ua = request.header(keyUserAgent)
@@ -85,6 +97,7 @@ object OkHttpFactory {
     }
 
     private class RedirectInterceptor : Interceptor {
+        @Throws(IOException::class)
         override fun intercept(chain: Interceptor.Chain): Response {
             val resp = chain.proceed(chain.request())
             if (resp.isRedirect && chain.request().url.host.contains(Constants.host)) {

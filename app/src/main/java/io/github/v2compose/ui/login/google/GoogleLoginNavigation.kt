@@ -8,10 +8,11 @@ import androidx.navigation.navArgument
 import com.google.accompanist.navigation.animation.composable
 
 private const val argsOnce = "once"
-private const val googleLoginRoute = "/login/google?$argsOnce={$argsOnce}"
+
+private const val googleLoginRoute = "/auth/google?$argsOnce={$argsOnce}"
 
 fun NavController.navigateToGoogleLogin(once: String) {
-    navigate("/login/google?$argsOnce=$once")
+    navigate("/auth/google?$argsOnce=$once")
 }
 
 @OptIn(ExperimentalAnimationApi::class)

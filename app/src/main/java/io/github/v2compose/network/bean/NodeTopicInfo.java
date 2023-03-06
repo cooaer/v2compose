@@ -39,24 +39,12 @@ public class NodeTopicInfo extends BaseInfo {
         return items != null ? items : Collections.emptyList();
     }
 
-    public void setItems(List<Item> items) {
-        this.items = items;
-    }
-
     public String getFavoriteLink() {
         return NetConstants.BASE_URL + favoriteLink;
     }
 
     public boolean hasStared() {
         return Check.notEmpty(favoriteLink) && favoriteLink.contains("/unfavorite/node/");
-    }
-
-    public void updateStarStatus(boolean isStared) {
-        if (isStared) {
-            favoriteLink = favoriteLink.replace("/favorite/", "/unfavorite/");
-        } else {
-            favoriteLink = favoriteLink.replace("/unfavorite/", "/favorite/");
-        }
     }
 
     public String getOnce() {

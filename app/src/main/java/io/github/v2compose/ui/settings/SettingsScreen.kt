@@ -13,7 +13,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -24,23 +23,18 @@ import io.github.v2compose.R
 import io.github.v2compose.bean.DarkMode
 import io.github.v2compose.datasource.AppSettings
 import io.github.v2compose.network.bean.Release
-import io.github.v2compose.ui.common.BackIcon
-import io.github.v2compose.ui.common.ListDivider
-import io.github.v2compose.ui.common.NewReleaseDialog
-import io.github.v2compose.ui.common.SingleChoiceListDialog
-import kotlinx.coroutines.async
+import io.github.v2compose.ui.common.*
 import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreenRoute(
     onBackClick: () -> Unit,
     openUri: (String) -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel()
+    onLogoutSuccess: () -> Unit,
+    viewModel: SettingsViewModel = hiltViewModel(),
+    settingsScreenState: SettingsScreenState = rememberSettingsScreenState()
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
-
-    val snackbarHostState = remember { SnackbarHostState() }
 
     var newRelease by rememberSaveable(
         saver = mapSaver(
@@ -68,13 +62,25 @@ fun SettingsScreenRoute(
         )
     }
 
+    var showClearCacheDialog by remember { mutableStateOf(false) }
+    if (showClearCacheDialog) {
+        TextAlertDialog(
+            title = stringResource(id = R.string.settings_clear_cache),
+            message = stringResource(id = R.string.clear_cache_tips),
+            onConfirm = {
+                showClearCacheDialog = false
+                viewModel.clearCache()
+            },
+            onDismiss = { showClearCacheDialog = false })
+    }
+
     SettingsScreen(
         isLoggedIn = isLoggedIn,
         cacheSize = cacheSize,
         appSettings = appSettings,
-        snackbarHostState = snackbarHostState,
         onBackClick = onBackClick,
-        onClearCacheClick = viewModel::clearCache,
+        onClearCacheClick = { showClearCacheDialog = true },
+        onAutoCheckInChanged = viewModel::updateAutoCheckIn,
         onOpenInBrowserChanged = viewModel::setOpenInInternalBrowser,
         onDarkModeChanged = viewModel::setDarkMode,
         onTopicTitleTwoLineMaxChanged = viewModel::setTopicTitleTwoLineMax,
@@ -82,27 +88,18 @@ fun SettingsScreenRoute(
         onVersionClick = {},
         onCheckForUpdatesClick = {
             coroutineScope.launch {
-                val showSnackbar =
-                    async {
-                        snackbarHostState.showSnackbar(
-                            context.getString(R.string.checking_for_updates),
-                            duration = SnackbarDuration.Short,
-                        )
-                    }
-                val check = async { viewModel.checkForUpdates() }
-                val release = check.await()
-                showSnackbar.cancel()
-                if (release.isValid()) {
-                    newRelease = release
-                } else {
-                    snackbarHostState.showSnackbar(
-                        context.getString(R.string.no_updates),
-                        duration = SnackbarDuration.Short,
-                    )
-                }
+                settingsScreenState.checkForUpdates(
+                    checkForUpdates = viewModel.checkForUpdates::invoke,
+                    onNewRelease = { newRelease = it }
+                )
             }
         },
-        onLogout = viewModel::logout
+        onLogout = {
+            coroutineScope.launch {
+                viewModel.logout()
+                onLogoutSuccess()
+            }
+        }
     )
 }
 
@@ -112,9 +109,9 @@ private fun SettingsScreen(
     isLoggedIn: Boolean,
     cacheSize: Long,
     appSettings: AppSettings,
-    snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
     onClearCacheClick: () -> Unit,
+    onAutoCheckInChanged: (Boolean) -> Unit,
     onOpenInBrowserChanged: (Boolean) -> Unit,
     onDarkModeChanged: (DarkMode) -> Unit,
     onTopicTitleTwoLineMaxChanged: (Boolean) -> Unit,
@@ -125,7 +122,6 @@ private fun SettingsScreen(
 ) {
     Scaffold(
         topBar = { SettingsTopBar(onBackClick = onBackClick) },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) {
         Column(
             modifier = Modifier
@@ -139,15 +135,21 @@ private fun SettingsScreen(
                 summary = stringResource(id = R.string.settings_clear_cache_summary, cacheSize),
                 onPreferenceClick = onClearCacheClick
             )
-            DropdownPreference(
-                title = stringResource(id = R.string.settings_open_in_browser),
-                entries = listOf(
-                    stringResource(id = R.string.settings_internal_browser),
-                    stringResource(id = R.string.settings_external_browser),
-                ),
-                selectedIndex = if (appSettings.openInInternalBrowser) 0 else 1,
-                onEntryClick = { selectedIndex -> onOpenInBrowserChanged(selectedIndex == 0) },
+            SwitchPreference(
+                title = stringResource(R.string.settings_auto_check_in),
+                summary = stringResource(R.string.settings_auto_check_in_description),
+                checked = appSettings.autoCheckIn,
+                onCheckedChange = onAutoCheckInChanged,
             )
+//            DropdownPreference(
+//                title = stringResource(id = R.string.settings_open_in_browser),
+//                entries = listOf(
+//                    stringResource(id = R.string.settings_internal_browser),
+//                    stringResource(id = R.string.settings_external_browser),
+//                ),
+//                selectedIndex = if (appSettings.openInInternalBrowser) 0 else 1,
+//                onEntryClick = { selectedIndex -> onOpenInBrowserChanged(selectedIndex == 0) },
+//            )
             PreferenceGroupTitle(title = stringResource(id = R.string.settings_appearance))
             DropdownPreference(
                 title = stringResource(id = R.string.settings_dark_mode),
@@ -236,6 +238,7 @@ private fun Logout(onLogout: () -> Unit) {
             color = MaterialTheme.colorScheme.error,
             modifier = Modifier.align(Alignment.Center)
         )
+        ListDivider(modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
 
@@ -292,9 +295,13 @@ private fun SwitchPreference(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    Box {
+    Box(modifier = Modifier.clickable { onCheckedChange(!checked) }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            PreferenceContent(title = title, summary = summary, modifier = Modifier.weight(1.0f))
+            PreferenceContent(
+                title = title,
+                summary = summary,
+                modifier = Modifier.weight(1.0f)
+            )
             Switch(checked = checked, onCheckedChange = onCheckedChange)
             Spacer(Modifier.width(16.dp))
         }

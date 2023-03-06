@@ -3,8 +3,6 @@ package io.github.v2compose.network;
 import androidx.annotation.NonNull;
 
 import java.io.IOException;
-import java.net.CookieManager;
-import java.net.CookiePolicy;
 import java.net.CookieStore;
 import java.net.URI;
 import java.util.ArrayList;
@@ -22,20 +20,15 @@ import okhttp3.HttpUrl;
  * Created by ghui on 10/07/2017.
  */
 
-public class WebkitCookieManagerProxy extends CookieManager implements CookieJar {
-    private static final String TAG = WebkitCookieManagerProxy.class.getSimpleName();
-    private android.webkit.CookieManager webkitCookieManager;
+public class WebkitCookieManager implements CookieJar {
 
-    public WebkitCookieManagerProxy() {
-        this(null, null);
+    private static final String TAG = WebkitCookieManager.class.getSimpleName();
+    private final android.webkit.CookieManager cookieManager;
+
+    public WebkitCookieManager() {
+        this.cookieManager = android.webkit.CookieManager.getInstance();
     }
 
-    WebkitCookieManagerProxy(CookieStore store, CookiePolicy cookiePolicy) {
-        super(null, cookiePolicy);
-        this.webkitCookieManager = android.webkit.CookieManager.getInstance();
-    }
-
-    @Override
     public void put(URI uri, Map<String, List<String>> responseHeaders)
             throws IOException {
         // make sure our args are valid
@@ -52,12 +45,11 @@ public class WebkitCookieManagerProxy extends CookieManager implements CookieJar
                 continue;
             // process each of the headers
             for (String headerValue : responseHeaders.get(headerKey)) {
-                webkitCookieManager.setCookie(url, headerValue);
+                cookieManager.setCookie(url, headerValue);
             }
         }
     }
 
-    @Override
     public Map<String, List<String>> get(URI uri,
                                          Map<String, List<String>> requestHeaders) throws IOException {
         // make sure our args are valid
@@ -68,18 +60,12 @@ public class WebkitCookieManagerProxy extends CookieManager implements CookieJar
         // prepare our response
         Map<String, List<String>> res = new HashMap<String, List<String>>();
         // get the cookie
-        String cookie = webkitCookieManager.getCookie(url);
+        String cookie = cookieManager.getCookie(url);
         // return it
         if (cookie != null) {
             res.put("Cookie", Arrays.asList(cookie));
         }
         return res;
-    }
-
-    @Override
-    public CookieStore getCookieStore() {
-        // we don't want anyone to work with this cookie store directly
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -122,6 +108,6 @@ public class WebkitCookieManagerProxy extends CookieManager implements CookieJar
     }
 
     public void clearCookies() {
-        webkitCookieManager.removeAllCookies(null);
+        cookieManager.removeAllCookies(null);
     }
 }

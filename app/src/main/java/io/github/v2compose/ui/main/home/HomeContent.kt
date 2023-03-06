@@ -7,9 +7,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import io.github.v2compose.network.bean.NewsInfo
@@ -29,10 +27,6 @@ fun HomeContent(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val pagerState = rememberPagerState()
-    //修复从其他屏幕返回主屏幕时，当前选中的Tab不在屏幕中间的问题
-    val currentPage = with(pagerState) {
-        if (currentPageOffsetFraction.isNaN()) initialPage else currentPage
-    }
 
     val coroutineScope = rememberCoroutineScope()
     val tabInfos = viewModel.newsTabInfos
@@ -46,36 +40,20 @@ fun HomeContent(
             state = pagerState,
             key = { tabInfos[it].value },
         ) { page ->
-            rememberSaveableStateHolder().SaveableStateProvider(key = page) {
-                NewsTab(
-                    newsTabInfo = tabInfos[page],
-                    onNewsItemClick = onNewsItemClick,
-                    onNodeClick = onNodeClick,
-                    onUserAvatarClick = onUserAvatarClick,
-                )
-            }
+            NewsTab(
+                newsTabInfo = tabInfos[page],
+                onNewsItemClick = onNewsItemClick,
+                onNodeClick = onNodeClick,
+                onUserAvatarClick = onUserAvatarClick,
+            )
         }
 
-//        Log.d(
-//            TAG,
-//            """
-//                pagerState, initialPage = ${pagerState.initialPage},
-//                initialPageOffsetFraction = ${pagerState.initialPageOffsetFraction},
-//                currentPage = ${pagerState.currentPage},
-//                settledPage = ${pagerState.settledPage},
-//                targerPage = ${pagerState.targetPage},
-//                currentPageOffsetFraction = ${pagerState.currentPageOffsetFraction},
-//                isScrollInProgress = ${pagerState.isScrollInProgress},
-//                pagerState = $pagerState
-//                """
-//        )
-
         ScrollableTabRow(
-            selectedTabIndex = currentPage,
+            selectedTabIndex = pagerState.currentPage,
             edgePadding = 12.dp,
         ) {
             tabInfos.forEachIndexed { index, tabInfo ->
-                val selected = index == currentPage
+                val selected = index == pagerState.currentPage
                 Tab(
                     selected = selected,
                     onClick = {
@@ -99,13 +77,4 @@ fun HomeContent(
             }
         }
     }
-}
-
-@Preview(showBackground = true, widthDp = 440, heightDp = 880)
-@Composable
-fun HomeContentPreview() {
-    HomeContent(
-        onNewsItemClick = {},
-        onNodeClick = { id, name -> },
-        onUserAvatarClick = { _, _ -> })
 }

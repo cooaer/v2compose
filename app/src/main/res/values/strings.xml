@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">V2compose</string>
+    <string name="v2ex">V2EX</string>
 
     <string name="developing">🚧开发中…</string>
 
@@ -8,37 +9,67 @@
     <string name="retry">重试</string>
 
     <string name="n_comment">评论%s</string>
+    <string name="n_views">点击%s</string>
     <string name="n_floor">%d楼</string>
 
     <string name="ok">确定</string>
     <string name="cancel">取消</string>
 
     <string name="function_not_implemented">该功能正在开发中…</string>
+    <string name="enqueue_download_image">已加入下载队列</string>
+    <string name="save_image_success">保存图片成功</string>
+    <string name="save_image_failed">保存图片失败</string>
 
     <!-- Topic Screen Start -->
     <string name="topic">主题</string>
     <string name="topic_menu_item_sort">浏览顺序</string>
-    <string name="topic_menu_item_add_bookmark">添加收藏</string>
-    <string name="topic_menu_item_bookmark">已收藏</string>
+    <string name="topic_menu_item_favorite">收藏</string>
+    <string name="topic_menu_item_unfavorite">取消收藏</string>
+    <string name="topic_menu_item_append">添加附言</string>
     <string name="topic_menu_item_comment">评论</string>
     <string name="topic_menu_item_more">更多</string>
-    <string name="topic_menu_item_thanks">感谢</string>
-    <string name="topic_menu_item_thanked">已感谢</string>
+    <string name="menu_item_thank">感谢</string>
+    <string name="menu_item_unthank">感谢已发送</string>
+    <string name="topic_menu_item_ignore">忽略</string>
+    <string name="topic_menu_item_unignore">取消忽略</string>
     <string name="topic_menu_item_report">举报</string>
     <string name="topic_menu_item_reported">已举报</string>
     <string name="topic_menu_item_share">分享</string>
     <string name="topic_menu_item_open_in_browser">在浏览器中打开</string>
 
+    <string name="unthanks_tips">感谢已发送，不能取消</string>
+    <string name="unreport_tips">你已对本主题进行了报告，不能取消</string>
+    <string name="action_success">%s成功</string>
+    <string name="action_failure">%s异常，请重试</string>
+    <string name="thanks_fail_is_self">不能感谢自己</string>
+    <string name="thanks_fail_just_joined">感谢发送失败，可能因为您刚注册不久</string>
+
     <string name="user_previous_replies">%s之前的评论</string>
 
     <string name="replies_order_positive">最早</string>
     <string name="replies_order_negative">最新</string>
+
+
+    <string name="reply">回复</string>
+    <string name="op">OP</string>
+    <string name="reply_comment">回复评论</string>
+    <string name="copy_comment">复制评论</string>
+    <string name="ignore_comment">忽略评论</string>
+    <string name="user_home_page">他的主页</string>
+    <string name="copy_comment_success_tips">已复制评论至剪切板</string>
+
     <!-- Topic Screen End -->
 
     <!-- Node Screen Start -->
     <string name="node">节点</string>
     <string name="node_topics_and_favorites">%d条主题  %d次收藏</string>
     <string name="node_click_times">%d 次点击</string>
+    <string name="node_favorite">加入收藏</string>
+    <string name="node_favorited">已收藏</string>
+    <string name="node_unfavorite_tips">确定要取消收藏吗？</string>
+    <string name="node_action_failure_tips">操作异常，请重试</string>
+    <string name="node_favorite_success_tips">已加入收藏</string>
+    <string name="node_unfavorite_success_tips">已取消收藏</string>
     <!-- Node Screen End -->
 
     <!-- Search Screen Start -->
@@ -49,6 +80,7 @@
     <string name="n_minutes_ago">%d分钟前</string>
     <string name="just_now">刚刚</string>
 
+    <string name="history_keywords">历史搜索</string>
     <!-- Search Screen End -->
 
     <!-- User Screen Start -->
@@ -56,6 +88,14 @@
     <string name="user_reply">回复</string>
     <string name="user_online">Online</string>
     <string name="user_offline">Offline</string>
+    <string name="user_follow">加入特别关注</string>
+    <string name="user_unfollow">已关注</string>
+    <string name="user_block">屏蔽</string>
+    <string name="user_unblock">已屏蔽</string>
+    <string name="user_action_success">操作成功</string>
+    <string name="user_action_failure">操作异常，请重试</string>
+    <string name="user_unfollow_tips">确定要取消特特别关注吗？</string>
+    <string name="user_block_tips">确定要屏蔽%s吗？</string>
     <!-- User Screen End -->
 
     <!-- Settings Screen Start -->
@@ -66,6 +106,10 @@
 
     <string name="settings_clear_cache">清除缓存</string>
     <string name="settings_clear_cache_summary">包括图片及其他缓存数据，共%dMB</string>
+    <string name="clear_cache_tips">确认清除缓存吗？</string>
+
+    <string name="settings_auto_check_in">自动签到</string>
+    <string name="settings_auto_check_in_description">自动领取每日登录奖励</string>
 
     <string name="settings_open_in_browser">打开主题、回复等携带的链接</string>
     <string name="settings_internal_browser">内置浏览器</string>
@@ -97,12 +141,15 @@
 
     <string name="logout">退出帐号</string>
     <string name="logout_tips">确认退出帐号吗？</string>
+    <string name="logout_success">您已退出帐号</string>
 
     <!-- Settings Screen End -->
 
     <!-- mine start -->
     <string name="daily_mission">领取每日登录奖励</string>
     <string name="daily_mission_ok">已领取</string>
+    <string name="checking_in">领取中…</string>
+    <string name="daily_mission_failure">领取失败，请重试</string>
     <string name="create_topic">创建主题</string>
     <string name="my_nodes">节点收藏</string>
     <string name="my_topics">主题收藏</string>
@@ -118,6 +165,7 @@
     <string name="login_username_blank">用户名/邮箱不能为空</string>
     <string name="login_password_blank">密码不能为空</string>
     <string name="login_captcha_blank">验证码不能为空</string>
+    <string name="login_first">登录后才能进行该操作</string>
     <!-- Login Screen End -->
 
     <!-- Two Step Screen Start -->
@@ -128,4 +176,26 @@
     <string name="tfa_code_empty">验证码不能为空</string>
     <string name="captcha_error">验证码错误，请重试</string>
     <!-- Two Step Screen End -->
+
+    <!-- Write Topic Screen Start -->
+    <string name="send">发送</string>
+    <string name="topic_title_empty">标题不能为空</string>
+    <string name="node_empty">请选择一个节点</string>
+    <string name="topic_title">标题</string>
+    <string name="topic_content_placeholder">如果标题能够表达完整内容，则正文可以为空。</string>
+    <string name="load_nodes_failure">加载节点列表失败</string>
+    <string name="select_node">选择节点</string>
+    <string name="search_all_nodes">搜索全部节点</string>
+    <!-- Write Topic Screen End-->
+
+    <!-- Add Supplement Screen Start -->
+    <string name="add_supplement">添加附言</string>
+    <string name="add_supplement_fail_tips">添加附言失败，请重试</string>
+    <string name="add_supplement_tips">关于为主题创建附言：\n请在确有必要的情况下再使用此功能为原主题补充信息；\n每个主题至多可以附加 3 条附言；\n创建附言价格为每千字 20 铜币；</string>
+    <string name="add_supplement_back_tips">返回将丢弃当前编写的附言，确认返回吗？</string>
+    <!-- Add Supplement Screen End-->
+
+    <!-- Gallery Screen End-->
+    <string name="save_image">保存</string>
+    <!-- Gallery Screen End-->
 </resources>

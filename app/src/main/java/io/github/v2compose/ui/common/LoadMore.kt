@@ -1,6 +1,5 @@
 package io.github.v2compose.ui.common
 
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.Button
@@ -19,15 +18,14 @@ fun <T : Any> LazyListScope.pagingRefreshItem(
     lazyPagingItems: LazyPagingItems<T>,
     modifier: Modifier = Modifier,
 ) {
-    if (!lazyPagingItems.loadState.refresh.endOfPaginationReached) {
-        if (lazyPagingItems.loadState.refresh is LoadState.NotLoading) return
+    if (lazyPagingItems.loadState.refresh.endOfPaginationReached) return
+    if (lazyPagingItems.loadState.refresh is LoadState.NotLoading) return
 
-        item(key = "refresh${lazyPagingItems.itemCount}", contentType = "refresh") {
-            PagingLoadState(
-                state = lazyPagingItems.loadState.refresh,
-                onRetryClick = { lazyPagingItems.retry() }, modifier = modifier,
-            )
-        }
+    item(key = "refresh${lazyPagingItems.itemCount}", contentType = "refresh") {
+        PagingLoadState(
+            state = lazyPagingItems.loadState.refresh,
+            onRetryClick = { lazyPagingItems.retry() }, modifier = modifier,
+        )
     }
 }
 
@@ -35,16 +33,15 @@ fun <T : Any> LazyListScope.pagingAppendMoreItem(
     lazyPagingItems: LazyPagingItems<T>,
     modifier: Modifier = Modifier,
 ) {
-    if (!lazyPagingItems.loadState.append.endOfPaginationReached) {
-        if (lazyPagingItems.loadState.append is LoadState.NotLoading) return
+    if (lazyPagingItems.loadState.append.endOfPaginationReached) return
+    if (lazyPagingItems.loadState.append is LoadState.NotLoading) return
 
-        item(key = "appendMore${lazyPagingItems.itemCount}", contentType = "appendMore") {
-            PagingLoadState(
-                state = lazyPagingItems.loadState.append,
-                onRetryClick = { lazyPagingItems.retry() },
-                modifier = modifier,
-            )
-        }
+    item(key = "appendMore${lazyPagingItems.itemCount}", contentType = "appendMore") {
+        PagingLoadState(
+            state = lazyPagingItems.loadState.append,
+            onRetryClick = { lazyPagingItems.retry() },
+            modifier = modifier,
+        )
     }
 }
 
@@ -90,7 +87,6 @@ fun LoadError(error: Throwable?, onRetryClick: () -> Unit, modifier: Modifier = 
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier.then(LoadModifier),
     ) {
-        Log.d("LoadMore", "error message = ${error?.message}")
         Text(error?.message ?: stringResource(R.string.load_failed))
         Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = onRetryClick) {

@@ -8,7 +8,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.v2compose.network.bean.NewsInfo
 import io.github.v2compose.repository.NewsRepository
 import io.github.v2compose.repository.TopicRepository
-import io.github.v2compose.usecase.UpdateAccountUseCase
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -18,7 +17,6 @@ class NewsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val newsRepository: NewsRepository,
     private val topicRepository: TopicRepository,
-    private val updateAccount: UpdateAccountUseCase,
 ) : ViewModel() {
 
     companion object {
@@ -27,8 +25,8 @@ class NewsViewModel @Inject constructor(
 
     val tab: String = savedStateHandle[KEY_TAB] ?: ""
 
-    private val _refreshingFlow = MutableStateFlow(false)
-    val refreshingFlow = _refreshingFlow.asStateFlow()
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
 
     private val _newsInfoFlow = MutableStateFlow<NewsUiState>(NewsUiState.Loading)
     val newsInfoFlow = _newsInfoFlow.asStateFlow()
@@ -45,9 +43,9 @@ class NewsViewModel @Inject constructor(
 
     fun refresh() {
         viewModelScope.launch {
-            _refreshingFlow.emit(true)
+            _isRefreshing.emit(true)
             loadInternal()
-            _refreshingFlow.emit(false)
+            _isRefreshing.emit(false)
         }
     }
 
@@ -66,7 +64,6 @@ class NewsViewModel @Inject constructor(
         try {
             val newsInfo = newsRepository.getHomeNews(tab)
             _newsInfoFlow.emit(NewsUiState.Success(newsInfo))
-//            updateAccount.updateWithNewsInfo(newsInfo)
         } catch (e: Exception) {
             e.printStackTrace()
             _newsInfoFlow.emit(NewsUiState.Error(e))

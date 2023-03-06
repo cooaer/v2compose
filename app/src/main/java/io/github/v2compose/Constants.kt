@@ -11,8 +11,4 @@ object Constants {
 
     const val topicTitleOverviewMaxLines = 2
 
-    fun topicUrl(topicId: String) = "${baseUrl}/t/$topicId"
-
-    fun userUrl(userName: String) = "${baseUrl}/member/$userName"
-
 }

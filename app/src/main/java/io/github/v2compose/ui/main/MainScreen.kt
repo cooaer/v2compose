@@ -20,30 +20,35 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.v2compose.R
 import io.github.v2compose.network.bean.NewsInfo
+import io.github.v2compose.ui.HandleSnackbarMessage
 import io.github.v2compose.ui.common.NewReleaseDialog
+import io.github.v2compose.ui.common.OnHtmlImageClick
 import io.github.v2compose.ui.main.home.HomeContent
 import io.github.v2compose.ui.main.mine.MineContent
 import io.github.v2compose.ui.main.nodes.NodesContent
 import io.github.v2compose.ui.main.notifications.NotificationsContent
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(
+fun MainScreenRoute(
     onNewsItemClick: (NewsInfo.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
     onSearchClick: () -> Unit,
-    onLoginClick:() -> Unit,
-    onMyHomePageClick:() -> Unit,
+    onLoginClick: () -> Unit,
+    onMyHomePageClick: () -> Unit,
     onCreateTopicClick: () -> Unit,
     onMyNodesClick: () -> Unit,
     onMyTopicsClick: () -> Unit,
     onMyFollowingClick: () -> Unit,
     onSettingsClick: () -> Unit,
     openUri: (String) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
     viewModel: MainViewModel = hiltViewModel(),
+    screenState: MainScreenState = rememberMainScreenState()
 ) {
-    var navBarSelectedIndex by rememberSaveable(stateSaver = autoSaver()) { mutableStateOf(0) }
+    val unreadNotifications by viewModel.unreadNotifications.collectAsStateWithLifecycle()
+
+    HandleSnackbarMessage(viewModel, screenState)
 
     val newRelease by viewModel.newRelease.collectAsStateWithLifecycle()
     if (newRelease.isValid()) {
@@ -61,6 +66,44 @@ fun MainScreen(
         )
     }
 
+    MainScreen(
+        unreadNotifications = unreadNotifications,
+        onSearchClick = onSearchClick,
+        onSettingsClick = onSettingsClick,
+        onNewsItemClick = onNewsItemClick,
+        onNodeClick = onNodeClick,
+        onUserAvatarClick = onUserAvatarClick,
+        onLoginClick = onLoginClick,
+        onMyHomePageClick = onMyHomePageClick,
+        onCreateTopicClick = onCreateTopicClick,
+        onMyNodesClick = onMyNodesClick,
+        onMyTopicsClick = onMyTopicsClick,
+        onMyFollowingClick = onMyFollowingClick,
+        onUriClick = openUri,
+        onHtmlImageClick = onHtmlImageClick,
+    )
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun MainScreen(
+    unreadNotifications: Int,
+    onSearchClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+    onNewsItemClick: (NewsInfo.Item) -> Unit,
+    onNodeClick: (String, String) -> Unit,
+    onUserAvatarClick: (String, String) -> Unit,
+    onLoginClick: () -> Unit,
+    onMyHomePageClick: () -> Unit,
+    onCreateTopicClick: () -> Unit,
+    onMyNodesClick: () -> Unit,
+    onMyTopicsClick: () -> Unit,
+    onMyFollowingClick: () -> Unit,
+    onUriClick: (String) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
+) {
+    var navBarSelectedIndex by rememberSaveable(stateSaver = autoSaver()) { mutableStateOf(0) }
+
     Scaffold(
         topBar = {
             MainTopBar(
@@ -73,7 +116,7 @@ fun MainScreen(
                 },
             )
         },
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        contentWindowInsets = WindowInsets(bottom = 0)
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -95,9 +138,11 @@ fun MainScreen(
                     onMyTopicsClick = onMyTopicsClick,
                     onMyFollowingClick = onMyFollowingClick,
                     onSettingsClick = onSettingsClick,
+                    onUriClick = onUriClick,
+                    onHtmlImageClick = onHtmlImageClick,
                 )
             }
-            MainBottomNavigation(navBarSelectedIndex) {
+            MainBottomNavigation(navBarSelectedIndex, unreadNotifications) {
                 navBarSelectedIndex = it
             }
         }
@@ -137,13 +182,15 @@ fun MainContent(
     onNewsItemClick: (NewsInfo.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
-    onLoginClick:() -> Unit,
-    onMyHomePageClick:() -> Unit,
+    onLoginClick: () -> Unit,
+    onMyHomePageClick: () -> Unit,
     onCreateTopicClick: () -> Unit,
     onMyNodesClick: () -> Unit,
     onMyTopicsClick: () -> Unit,
     onMyFollowingClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onUriClick: (String) -> Unit,
+    onHtmlImageClick: OnHtmlImageClick,
 ) {
     rememberSaveableStateHolder().SaveableStateProvider(key = navBarSelectedIndex) {
         when (navBarSelectedIndex) {
@@ -153,7 +200,12 @@ fun MainContent(
                 onUserAvatarClick = onUserAvatarClick,
             )
             1 -> NodesContent(onNodeClick = onNodeClick)
-            2 -> NotificationsContent()
+            2 -> NotificationsContent(
+                onLoginClick = onLoginClick,
+                onUriClick = onUriClick,
+                onUserAvatarClick = onUserAvatarClick,
+                onHtmlImageClick = onHtmlImageClick,
+            )
             3 -> MineContent(
                 onLoginClick = onLoginClick,
                 onMyHomePageClick = onMyHomePageClick,
@@ -167,8 +219,13 @@ fun MainContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainBottomNavigation(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
+fun MainBottomNavigation(
+    selectedIndex: Int,
+    unreadNotifications: Int,
+    onItemSelected: (Int) -> Unit
+) {
     val itemNames = stringArrayResource(R.array.main_navigation_items)
     val itemIcons: List<ImageVector> = listOf(
         Icons.Outlined.Home,
@@ -178,29 +235,18 @@ fun MainBottomNavigation(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
     )
     NavigationBar {
         itemNames.forEachIndexed { index, name ->
-            NavigationBarItem(icon = { Icon(itemIcons[index], contentDescription = null) },
+            NavigationBarItem(icon = {
+                if (index == 2 && unreadNotifications > 0) {
+                    BadgedBox(badge = { Badge { Text(unreadNotifications.toString()) } }) {
+                        Icon(itemIcons[index], contentDescription = name)
+                    }
+                } else {
+                    Icon(itemIcons[index], contentDescription = name)
+                }
+            },
                 label = { Text(name) },
                 selected = index == selectedIndex,
                 onClick = { onItemSelected(index) })
         }
     }
-}
-
-@Preview(showBackground = true, widthDp = 440, heightDp = 880)
-@Composable
-fun MainScreenPreview() {
-    MainScreen(
-        onNewsItemClick = {},
-        onNodeClick = { _, _ -> },
-        onUserAvatarClick = { _, _ -> },
-        onSearchClick = {},
-        onSettingsClick = {},
-        openUri = {},
-        onLoginClick = {},
-        onMyHomePageClick = {},
-        onMyNodesClick = {},
-        onMyTopicsClick = {},
-        onMyFollowingClick = {},
-        onCreateTopicClick = {},
-    )
 }

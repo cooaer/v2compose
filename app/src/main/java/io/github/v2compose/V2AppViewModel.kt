@@ -3,7 +3,7 @@ package io.github.v2compose
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.v2compose.datasource.Account
+import io.github.v2compose.bean.Account
 import io.github.v2compose.datasource.AppPreferences
 import io.github.v2compose.datasource.AppSettings
 import io.github.v2compose.repository.AccountRepository

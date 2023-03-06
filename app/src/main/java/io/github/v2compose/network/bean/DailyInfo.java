@@ -17,7 +17,7 @@ public class DailyInfo extends BaseInfo {
     @Pick("h1")
     private String title;
     @Pick("div.cell:contains(已连续)")
-    private String continuousLoginDayStr;
+    private String continuousLoginDaysText;
     @Pick(value = "div.cell input[type=button]", attr = "onclick")
     private String checkInUrl; //location.href = '/mission/daily/redeem?once=84830';
 
@@ -25,8 +25,12 @@ public class DailyInfo extends BaseInfo {
         return Check.notEmpty(checkInUrl) && checkInUrl.equals("location.href = '/balance';");
     }
 
+    public String getContinuousLoginDaysText() {
+        return continuousLoginDaysText;
+    }
+
     public String getContinuousLoginDays() {
-        return Utils.extractDigits(continuousLoginDayStr);
+        return Utils.extractDigits(continuousLoginDaysText);
     }
 
 

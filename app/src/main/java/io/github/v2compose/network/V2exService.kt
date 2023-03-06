@@ -1,11 +1,15 @@
 package io.github.v2compose.network
 
+import com.google.gson.Gson
 import io.github.v2compose.network.bean.*
-import io.github.v2compose.util.RefererUtils
+import me.ghui.fruit.Fruit
 import me.ghui.fruit.converter.retrofit.FruitConverterFactory
 import me.ghui.retrofit.converter.GlobalConverterFactory
 import me.ghui.retrofit.converter.annotations.Html
 import me.ghui.retrofit.converter.annotations.Json
+import okhttp3.OkHttpClient
+import okhttp3.ResponseBody
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
@@ -13,21 +17,20 @@ import retrofit2.http.*
 /**
  * Created by ghui on 05/05/2017.
  */
-interface V2exApi {
+interface V2exService {
 
     companion object {
-        val instance: V2exApi by lazy { createV2exApi() }
-        private fun createV2exApi(): V2exApi {
+        fun createV2exService(httpClient: OkHttpClient, fruit: Fruit, gson: Gson): V2exService {
             val retrofit = Retrofit.Builder()
-                .client(OkHttpFactory.httpClient)
+                .client(httpClient)
                 .addConverterFactory(
                     GlobalConverterFactory.create()
-                        .add(FruitConverterFactory.create(OkHttpFactory.fruit), Html::class.java)
-                        .add(GsonConverterFactory.create(OkHttpFactory.gson), Json::class.java)
+                        .add(FruitConverterFactory.create(fruit), Html::class.java)
+                        .add(GsonConverterFactory.create(gson), Json::class.java)
                 )
                 .baseUrl(NetConstants.BASE_URL)
                 .build()
-            return retrofit.create(V2exApi::class.java)
+            return retrofit.create(V2exService::class.java)
         }
     }
 
@@ -42,6 +45,11 @@ interface V2exApi {
     @Json
     @GET("/api/nodes/s2.json")
     suspend fun nodes(): NodesInfo
+
+    //https://www.v2ex.com/api/nodes/list.json?fields=name,title,topics,aliases&sort_by=topics&reverse=1
+    @Json
+    @GET("api/nodes/list.json?fields=name,title,topics,aliases&sort_by=topics&reverse=1")
+    suspend fun topicNodes(): List<TopicNode>
 
     @Json
     @GET("/api/members/show.json")
@@ -59,10 +67,6 @@ interface V2exApi {
     @Html
     @GET("/")
     suspend fun homeNews(@Query("tab") tab: String): NewsInfo
-
-    @Html
-    @GET("/recent")
-    suspend fun recentNews(@Query("p") page: Int): NewsInfo
 
     @Html
     @GET("/signin")
@@ -85,15 +89,15 @@ interface V2exApi {
 
     @Html
     @GET("/my/following")
-    suspend fun specialCareInfo(@Query("p") page: Int): CareInfo
+    suspend fun myFollowingInfo(@Query("p") page: Int): MyFollowingInfo
 
     @Html
     @GET("/my/topics")
-    suspend fun topicStarInfo(@Query("p") page: Int): TopicStarInfo
+    suspend fun myTopicsInfo(@Query("p") page: Int): MyTopicsInfo
 
     @Html
     @GET("/my/nodes")
-    suspend fun nodeStarInfo(): NodeStarInfo
+    suspend fun myNodesInfo(): MyNodesInfo
 
     @Html
     @GET("/")
@@ -120,20 +124,20 @@ interface V2exApi {
     suspend fun bingSearch(@Url url: String): BingSearchResultInfo
 
     @Html
-    @GET("/new")
-    suspend fun topicCreatePageInfo(): CreateTopicPageInfo
-
-    @Html
-    @GET("/append/topic/{id}")
-    suspend fun appendPageInfo(
-        @Header("Referer") referer: String,
-        @Path("id") topicID: String
-    ): AppendTopicPageInfo
+    @GET("/write")
+    suspend fun createTopicPageInfo(): CreateTopicPageInfo
 
     @Html
     @FormUrlEncoded
-    @POST("/new")
-    suspend fun postTopic(@FieldMap postParams: Map<String, String>): TopicInfo
+    @POST("/write")
+    suspend fun createTopic(@FieldMap postParams: Map<String, String>): CreateTopicPageInfo
+
+    @Html
+    @GET("/append/topic/{id}")
+    suspend fun appendTopicPageInfo(
+        @Header("Referer") referer: String,
+        @Path("id") topicID: String
+    ): AppendTopicPageInfo
 
     @Html
     @FormUrlEncoded
@@ -141,63 +145,55 @@ interface V2exApi {
     suspend fun appendTopic(
         @Path("id") topicId: String,
         @FieldMap postParams: Map<String, String>
-    ): TopicInfo
-
-    @Html
-    @POST("/thank/reply/{id}")
-    suspend fun thxReplier(@Path("id") replyId: String, @Query("once") once: String): SimpleInfo
-
-    @Html
-    @POST("/thank/topic/{id}")
-    suspend fun thxCreator(@Path("id") id: String, @Query("once") once: String): SimpleInfo
+    ): AppendTopicPageInfo
 
     @Html
     @POST("/ajax/money")
     suspend fun thxMoney(): ThxResponseInfo
 
-    // /favorite/topic/812518
-    @Html
-    @GET("/favorite/topic/{id}")
-    suspend fun starTopic(
-        @Header("Referer") referer: String,
-        @Path("id") id: String,
+    @Json
+    @GET("/{action}/topic/{id}")
+    suspend fun getTopicAction(
+        @Header("referer") referer: String,
+        @Path("action") action: String,
+        @Path("id") topicId: String,
         @Query("once") once: String
-    ): TopicInfo
+    ): V2exResult
 
-    @Html
-    @GET("/ignore/topic/{id}")
-    suspend fun ignoreTopic(@Path("id") id: String, @Query("once") once: String): NewsInfo
+    @Json
+    @POST("/{action}/topic/{id}")
+    suspend fun postTopicAction(
+        @Header("referer") referer: String,
+        @Path("action") action: String,
+        @Path("id") topicId: String,
+        @Query("once") once: String
+    ): V2exResult
 
-    @Html
+    @Json
+    @GET("/{action}/reply/{id}")
+    suspend fun getReplyAction(
+        @Header("referer") referer: String,
+        @Path("action") action: String,
+        @Path("id") replyId: String,
+        @Query("once") once: String,
+    ): V2exResult
+
+    @Json
+    @POST("/{action}/reply/{id}")
+    suspend fun postReplyAction(
+        @Header("referer") referer: String,
+        @Path("action") action: String,
+        @Path("id") replyId: String,
+        @Query("once") once: String,
+    ): V2exResult
+
+    @Json
     @POST("/ignore/reply/{id}")
     suspend fun ignoreReply(
+        @Header("referer") referer: String,
         @Path("id") replyId: String,
-        @Query("once") once: String
-    ): IgnoreResultInfo
-
-    @Html
-    @GET("/settings/ignore/node/{id}")
-    suspend fun ignoreNode(@Path("id") nodeId: String, @Query("once") once: String): NodeTopicInfo
-
-    @Html
-    @GET("/settings/unignore/node/{id}")
-    suspend fun unIgnoreNode(@Path("id") nodeId: String, @Query("once") once: String): NodeTopicInfo
-
-    @Html
-    @GET("/unfavorite/topic/{id}")
-    suspend fun unStarTopic(
-        @Header("Referer") referer: String,
-        @Path("id") id: String,
-        @Query("once") once: String
-    ): TopicInfo
-
-    @Html
-    @POST("/up/topic/{id}")
-    suspend fun upTopic(@Path("id") id: String, @Query("t") string: String): SimpleInfo
-
-    @Html
-    @POST("/down/topic/{id}")
-    suspend fun downTopic(@Path("id") id: String, @Query("t") string: String): SimpleInfo
+        @Query("once") once: String,
+    ): Response<ResponseBody>
 
     @Html
     @FormUrlEncoded
@@ -205,20 +201,19 @@ interface V2exApi {
     suspend fun replyTopic(
         @Path("id") id: String,
         @FieldMap replyMap: Map<String, String>
-    ): TopicInfo
+    ): ReplyTopicResultInfo
 
+    // https://www.v2ex.com/follow/264541?once=87883
+    // https://www.v2ex.com/unfollow/264541?once=86758
     @Html
     @GET
-    suspend fun blockUser(@Url url: String): SimpleInfo
+    suspend fun userAction(@Header("Referer") referer: String, @Url url: String): UserPageInfo
 
+    //Request URL: https://www.v2ex.com/unfavorite/node/770?once=18542
+    //Request URL: https://www.v2ex.com/favorite/node/770?once=18542
     @Html
     @GET
-    suspend fun followUser(@Header("Referer") referer: String, @Url url: String): UserPageInfo
-
-    @Html
-    @GET
-    @Headers("Referer: " + RefererUtils.TINY_REFER)
-    suspend fun starNode(@Url url: String): SimpleInfo
+    suspend fun nodeAction(@Header("Referer") referer: String, @Url url: String): NodeTopicInfo
 
     @Html
     @GET("/mission/daily")
@@ -239,19 +234,6 @@ interface V2exApi {
     @Headers("Referer: " + NetConstants.BASE_URL)
     @POST("/2fa")
     suspend fun signInTwoStep(@FieldMap map: Map<String, String>): TwoStepLoginInfo
-
-    @Html
-    @Headers("Referer: " + RefererUtils.TINY_REFER)
-    @GET
-    suspend fun requestByUrl(@Url url: String): DailyInfo
-
-    @Html
-    @GET
-    suspend fun fadeTopic(@Url url: String): TopicInfo
-
-    @Html
-    @GET
-    suspend fun stickyTopic(@Url url: String): TopicInfo
 
     @Html
     @GET("/member/{user}")

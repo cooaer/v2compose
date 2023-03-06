@@ -12,10 +12,11 @@
 
 ## 一些页面预览
 
-| ![news](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/news.jpg?raw=true) | ![nodes](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/nodes.jpg?raw=true) | ![settings](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/settings.jpg?raw=true) |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| ![topic](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/topic.jpg?raw=true) | ![node](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/node.jpg?raw=true) | ![user](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/user.jpg?raw=true) |
-| ![search](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/search.jpg?raw=true) |                                                              |                                                              |
+| ![news](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/news.jpg?raw=true)     | ![nodes](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/nodes.jpg?raw=true)             | ![notifications](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/notifications.jpg?raw=true) |
+|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| ![topic](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/topic.jpg?raw=true)   | ![node](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/node.jpg?raw=true)               | ![user](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/user.jpg?raw=true)                 |
+| ![search](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/search.jpg?raw=true) | ![mine](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/mine.jpg?raw=true)               | ![settings](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/settings.jpg?raw=true) |
+| ![create](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/create.jpg?raw=true) | ![select_node](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/select_node.jpg?raw=true) | ![append](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/append.jpg?raw=true)             |
 
 ## 已完成功能
 
@@ -27,18 +28,23 @@
 - [x] 用户信息页面：展示用户详细信息、用户创建的主题列表、用户的回复列表；
 - [x] 设置页面：支持一些简单的设置项；
 - [x] 夜间模式；
+- [x] 登录；
+- [x] 消息通知；
+- [x] 创建主题；
+- [x] 创建回复；
+- [x] 收藏主题，忽略主题，感谢主题，感谢回复，忽略回复；
+- [x] 签到；
 
 ## 待开发功能
 
-- [ ] 登录；
-- [ ] 消息通知；
 - [ ] 我的页面，我的节点收藏，我的主题收藏，我的特别关注；
-- [ ] 创建主题；
-- [ ] 创建回复；
-- [ ] 收藏主题，忽略主题，感谢主题，感谢回复，忽略回复；
-- [ ] 签到；
 
 ## 特别感谢
 
 * [V2er-app/Android](https://github.com/v2er-app/Android) : 一个 Android 端的 V2ex 客户端，V2Compose 使用该项目的部分网络相关代码！
 * [sov2ex](https://github.com/Bynil/sov2ex) : 一个便捷的 V2EX 站内搜索引擎，V2Compose 使用该项目的 API 实现搜索 V2ex 的功能！
+
+## JetBrains support
+Thanks to JetBrains for supporting open source projects.
+
+<a href="https://jb.gg/OpenSourceSupport" target="_blank">https://jb.gg/OpenSourceSupport.</a>

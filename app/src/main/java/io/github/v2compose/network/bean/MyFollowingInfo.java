@@ -15,7 +15,7 @@ import me.ghui.fruit.annotations.Pick;
  */
 
 @Pick("div#Wrapper")
-public class CareInfo extends BaseInfo {
+public class MyFollowingInfo extends BaseInfo {
     @Pick("div.fr.f12 strong.gray")
     private int total;
     @Pick("div.cell.item")

@@ -37,7 +37,7 @@ public class TwoStepLoginInfo extends BaseInfo {
     }
 
     public String getTitle() {
-        return title;
+        return title != null ? title : "";
     }
 
     public String getOnce() {

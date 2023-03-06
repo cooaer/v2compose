@@ -3,11 +3,11 @@ package io.github.v2compose.datasource
 import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import io.github.v2compose.network.V2exApi
+import io.github.v2compose.network.V2exService
 
 private const val TAG = "NodePagingSource"
 
-class NodePagingSource(private val nodeId: String, private val v2exApi: V2exApi) :
+class NodePagingSource(private val nodeId: String, private val v2exService: V2exService) :
     PagingSource<Int, Any>() {
 
     companion object {
@@ -33,7 +33,7 @@ class NodePagingSource(private val nodeId: String, private val v2exApi: V2exApi)
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Any> {
         return try {
             val page = params.key ?: FirstPageIndex
-            val nodeInfo = v2exApi.nodesInfo(node = nodeId, page = page)
+            val nodeInfo = v2exService.nodesInfo(node = nodeId, page = page)
             Log.d(TAG, "load, result, nodeTopicInfo = $nodeInfo")
             if (page == FirstPageIndex) {
                 pageCount =

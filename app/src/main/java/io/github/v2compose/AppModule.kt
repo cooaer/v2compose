@@ -31,6 +31,13 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideDiskCache(@ApplicationContext context: Context): DiskCache {
+        val dir = File(context.cacheDir, "image_cache")
+        return DiskCache.Builder().directory(dir).maxSizePercent(0.02).build()
+    }
+
+    @Provides
+    @Singleton
     fun provideImageLoader(
         @ApplicationContext context: Context,
         @ImageOkHttpClient httpClient: OkHttpClient,
@@ -47,13 +54,6 @@ object AppModule {
                 }
                 add(SvgDecoder.Factory())
             }.build()
-    }
-
-    @Provides
-    @Singleton
-    fun provideDiskCache(@ApplicationContext context: Context): DiskCache {
-        val dir = File(context.cacheDir, "image_cache")
-        return DiskCache.Builder().directory(dir).maxSizePercent(0.02).build()
     }
 
 }

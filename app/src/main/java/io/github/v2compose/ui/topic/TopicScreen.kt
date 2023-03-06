@@ -25,8 +25,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
@@ -391,70 +389,6 @@ private fun TopicList(
             }
         }
         pagingAppendMoreItem(lazyPagingItems = topicItems)
-    }
-}
-
-@Composable
-private fun UserRepliesDialog(
-    userReplies: List<Reply>,
-    sizedHtmls: SnapshotStateMap<String, String>,
-    onDismissRequest: () -> Unit,
-    onUserAvatarClick: (String, String) -> Unit,
-    onUriClick: (String, Reply) -> Unit,
-    loadHtmlImage: (String, String, String?) -> Unit,
-    onHtmlImageClick: OnHtmlImageClick,
-) {
-    Dialog(
-        onDismissRequest = onDismissRequest,
-        properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true)
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .sizeIn(maxHeight = 560.dp)
-        ) {
-            Column {
-                Row(
-                    modifier = Modifier
-                        .padding(
-                            start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp
-                        )
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    with(userReplies.first()) {
-                        TopicUserAvatar(userName = userName,
-                            userAvatar = avatar,
-                            onUserAvatarClick = { onUserAvatarClick(userName, avatar) })
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            stringResource(id = R.string.user_previous_replies, userName),
-                            maxLines = 1,
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    }
-                }
-
-                LazyColumn(
-                    contentPadding = PaddingValues(bottom = 8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    itemsIndexed(
-                        items = userReplies,
-                        key = { _, item -> item.replyId }) { index, item ->
-                        val tag = item.replyId
-                        UserTopicReply(
-                            index,
-                            reply = item,
-                            content = sizedHtmls[tag] ?: item.replyContent,
-                            onUriClick = onUriClick,
-                            loadHtmlImage = { html, src -> loadHtmlImage(tag, html, src) },
-                            onHtmlImageClick = onHtmlImageClick,
-                        )
-                    }
-                }
-            }
-        }
     }
 }
 

@@ -23,10 +23,7 @@ import io.github.v2compose.R
 import io.github.v2compose.bean.DarkMode
 import io.github.v2compose.datasource.AppSettings
 import io.github.v2compose.network.bean.Release
-import io.github.v2compose.ui.common.BackIcon
-import io.github.v2compose.ui.common.ListDivider
-import io.github.v2compose.ui.common.NewReleaseDialog
-import io.github.v2compose.ui.common.SingleChoiceListDialog
+import io.github.v2compose.ui.common.*
 import kotlinx.coroutines.launch
 
 @Composable
@@ -65,12 +62,24 @@ fun SettingsScreenRoute(
         )
     }
 
+    var showClearCacheDialog by remember { mutableStateOf(false) }
+    if (showClearCacheDialog) {
+        TextAlertDialog(
+            title = stringResource(id = R.string.settings_clear_cache),
+            message = stringResource(id = R.string.clear_cache_tips),
+            onConfirm = {
+                showClearCacheDialog = false
+                viewModel.clearCache()
+            },
+            onDismiss = { showClearCacheDialog = false })
+    }
+
     SettingsScreen(
         isLoggedIn = isLoggedIn,
         cacheSize = cacheSize,
         appSettings = appSettings,
         onBackClick = onBackClick,
-        onClearCacheClick = viewModel::clearCache,
+        onClearCacheClick = { showClearCacheDialog = true },
         onAutoCheckInChanged = viewModel::updateAutoCheckIn,
         onOpenInBrowserChanged = viewModel::setOpenInInternalBrowser,
         onDarkModeChanged = viewModel::setDarkMode,
@@ -87,7 +96,6 @@ fun SettingsScreenRoute(
         },
         onLogout = {
             coroutineScope.launch {
-//                settingsScreenState.logout(logout = viewModel::logout)
                 viewModel.logout()
                 onLogoutSuccess()
             }

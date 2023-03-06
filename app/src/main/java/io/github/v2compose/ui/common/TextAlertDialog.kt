@@ -10,9 +10,15 @@ import io.github.v2compose.R
 
 
 @Composable
-fun TextAlertDialog(message: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+fun TextAlertDialog(
+    title: String? = null,
+    message: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
     AlertDialog(
         onDismissRequest = onDismiss,
+        title = { title?.let { Text(title) }},
         text = { Text(message, style = MaterialTheme.typography.bodyLarge) },
         confirmButton = {
             TextButton(onClick = {

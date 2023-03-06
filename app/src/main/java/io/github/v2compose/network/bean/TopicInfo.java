@@ -421,7 +421,7 @@ public class TopicInfo extends BaseInfo {
     }
 
     @Stable
-    public static class Reply {
+    public static class Reply implements Serializable{
         @Pick(value = "div.reply_content", attr = Attrs.INNER_HTML)
         private String replyContent;
         @Pick("strong a.dark[href^=/member]")

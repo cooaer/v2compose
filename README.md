@@ -43,3 +43,8 @@
 
 * [V2er-app/Android](https://github.com/v2er-app/Android) : 一个 Android 端的 V2ex 客户端，V2Compose 使用该项目的部分网络相关代码！
 * [sov2ex](https://github.com/Bynil/sov2ex) : 一个便捷的 V2EX 站内搜索引擎，V2Compose 使用该项目的 API 实现搜索 V2ex 的功能！
+
+## JetBrains support
+Thanks to JetBrains for supporting open source projects.
+
+<a href="https://jb.gg/OpenSourceSupport" target="_blank">https://jb.gg/OpenSourceSupport.</a>

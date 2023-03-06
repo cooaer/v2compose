@@ -1,5 +1,6 @@
 package io.github.v2compose.ui.write
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -28,8 +29,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.v2compose.R
@@ -73,7 +72,7 @@ fun WriteTopicScreenRoute(
                 viewModel.createTopic(title, content.trim(), node!!.id)
             }
         },
-        retryLoadingNodes = viewModel::loadNodes
+        retryLoadingNodes = viewModel::loadNodes,
     )
 }
 
@@ -93,63 +92,86 @@ private fun WriteTopicScreen(
     var content by rememberSaveable { mutableStateOf(initialDraftTopic.content) }
     var node by rememberSaveable() { mutableStateOf(initialDraftTopic.node) }
 
-    Scaffold(
-        topBar = {
-            TopBar(
-                createTopicState = createTopicState,
-                onCloseClick = onCloseClick,
-                onSendClick = { onSendClick(title, content, node) },
-            )
-        },
-        contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { insets ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(insets)
-        ) {
-            Column {
-                val titleFocusRequester = remember { FocusRequester() }
-                val contentFocusRequester = remember { FocusRequester() }
+    var showNodes by remember { mutableStateOf(false) }
+    val hasNodes = loadNodesState is LoadNodesState.Success && loadNodesState.data.isNotEmpty()
 
-                TopicTitleField(
-                    title = title,
-                    onTitleChanged = {
-                        title = it
-                        onTopicChanged(title, content, node)
-                    },
-                    onNextAction = { contentFocusRequester.requestFocus() },
-                    modifier = Modifier.focusRequester(titleFocusRequester)
+    BackHandler(enabled = showNodes) {
+        showNodes = false
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                TopBar(
+                    createTopicState = createTopicState,
+                    onCloseClick = onCloseClick,
+                    onSendClick = { onSendClick(title, content, node) },
                 )
+            },
+            contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        ) { insets ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(insets)
+            ) {
+                Column {
+                    val titleFocusRequester = remember { FocusRequester() }
+                    val contentFocusRequester = remember { FocusRequester() }
 
-                ListDivider()
+                    TopicTitleField(
+                        title = title,
+                        onTitleChanged = {
+                            title = it
+                            onTopicChanged(title, content, node)
+                        },
+                        onNextAction = { contentFocusRequester.requestFocus() },
+                        modifier = Modifier.focusRequester(titleFocusRequester),
+                    )
 
-                TopicContentField(
-                    content = content,
-                    onContentChanged = {
-                        content = it
-                        onTopicChanged(title, content, node)
-                    },
-                    modifier = Modifier
-                        .focusRequester(contentFocusRequester)
-                        .weight(1f)
-                )
+                    ListDivider()
 
-                TopicNodeField(
-                    loadNodesState = loadNodesState,
-                    node = node,
-                    onNodeSelected = {
-                        node = it
-                        onTopicChanged(title, content, node)
-                    },
-                    retryLoadingNodes = retryLoadingNodes
-                )
+                    TopicContentField(
+                        content = content,
+                        onContentChanged = {
+                            content = it
+                            onTopicChanged(title, content, node)
+                        },
+                        modifier = Modifier
+                            .focusRequester(contentFocusRequester)
+                            .weight(1f)
+                    )
 
-                LaunchedEffect(true) {
-                    titleFocusRequester.requestFocus()
+                    TopicNodeField(
+                        loadNodesState = loadNodesState,
+                        node = node,
+                        onNodeClick = {
+                            showNodes = true
+                            if (loadNodesState !is LoadNodesState.Success) {
+                                retryLoadingNodes()
+                            }
+                        },
+                    )
+
+                    LaunchedEffect(showNodes) {
+                        titleFocusRequester.requestFocus()
+                    }
                 }
             }
+        }
+
+        if (showNodes && hasNodes) {
+            val nodes = (loadNodesState as LoadNodesState.Success).data
+            SelectNode(
+                nodes = nodes,
+                onNodeClick = {
+                    showNodes = false
+                    node = it
+                    onTopicChanged(title, content, node)
+                },
+                onDismiss = { showNodes = false },
+            )
         }
     }
 
@@ -320,24 +342,8 @@ private fun HandleCreateTopicState(
 private fun TopicNodeField(
     loadNodesState: LoadNodesState,
     node: TopicNode?,
-    onNodeSelected: (TopicNode) -> Unit,
-    retryLoadingNodes: () -> Unit,
+    onNodeClick: (TopicNode?) -> Unit,
 ) {
-    var showNodes by remember { mutableStateOf(false) }
-    val hasNodes = loadNodesState is LoadNodesState.Success && loadNodesState.data.isNotEmpty()
-
-    if (showNodes && hasNodes) {
-        val nodes = (loadNodesState as LoadNodesState.Success).data
-        NodesDialog(
-            nodes = nodes,
-            onNodeClick = {
-                showNodes = false
-                onNodeSelected(it)
-            },
-            onDismiss = { showNodes = false },
-        )
-    }
-
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -353,15 +359,10 @@ private fun TopicNodeField(
                     color = MaterialTheme.colorScheme.surfaceVariant,
                     shape = RoundedCornerShape(20.dp)
                 )
-                .clickable {
-                    showNodes = true
-                    if (loadNodesState !is LoadNodesState.Success) {
-                        retryLoadingNodes()
-                    }
-                }
+                .clickable { onNodeClick(node) }
         ) {
             val contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-            Spacer(Modifier.width(10.dp))
+            Spacer(Modifier.width(12.dp))
             if (loadNodesState is LoadNodesState.Loading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(24.dp),
@@ -379,7 +380,7 @@ private fun TopicNodeField(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Spacer(Modifier.width(10.dp))
+            Spacer(Modifier.width(12.dp))
         }
     }
 }
@@ -387,7 +388,7 @@ private fun TopicNodeField(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun NodesDialog(
+private fun SelectNode(
     nodes: List<TopicNode>,
     onNodeClick: (TopicNode) -> Unit,
     onDismiss: () -> Unit,
@@ -405,13 +406,16 @@ private fun NodesDialog(
         }
     }
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(decorFitsSystemWindows = false)
+    Box(
+        modifier = Modifier
+            .clickable { onDismiss() }
+            .background(color = MaterialTheme.colorScheme.inverseSurface.copy(alpha = ContentAlpha.medium))
+            .systemBarsPadding()
+            .imePadding()
+            .padding(32.dp)
     ) {
         Box(
             modifier = Modifier
-                .padding(vertical = 32.dp)
                 .imePadding()
                 .background(
                     color = MaterialTheme.colorScheme.surface,
@@ -426,7 +430,6 @@ private fun NodesDialog(
                     onValueChange = { searchKey = it },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = {}),
-//                    shape = RoundedCornerShape(28.dp),
                     modifier = Modifier
                         .focusRequester(focusRequester)
                         .fillMaxWidth()

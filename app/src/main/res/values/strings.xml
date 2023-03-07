@@ -129,6 +129,8 @@
 
     <string name="settings_open_source">源码</string>
 
+    <string name="settings_issues">反馈</string>
+
     <string name="settings_version">版本</string>
 
     <string name="settings_check_for_updates">检查更新</string>

@@ -85,6 +85,7 @@ fun SettingsScreenRoute(
         onDarkModeChanged = viewModel::setDarkMode,
         onTopicTitleTwoLineMaxChanged = viewModel::setTopicTitleTwoLineMax,
         onSourceClick = openUri,
+        onIssuesClick = openUri,
         onVersionClick = {},
         onCheckForUpdatesClick = {
             coroutineScope.launch {
@@ -116,6 +117,7 @@ private fun SettingsScreen(
     onDarkModeChanged: (DarkMode) -> Unit,
     onTopicTitleTwoLineMaxChanged: (Boolean) -> Unit,
     onSourceClick: (String) -> Unit,
+    onIssuesClick: (String) -> Unit,
     onVersionClick: () -> Unit,
     onCheckForUpdatesClick: () -> Unit,
     onLogout: () -> Unit,
@@ -173,6 +175,10 @@ private fun SettingsScreen(
                 summary = Constants.source,
                 onPreferenceClick = { onSourceClick(Constants.source) }
             )
+            ClickablePreference(
+                title = stringResource(id = R.string.settings_issues),
+                summary = Constants.issues,
+                onPreferenceClick = { onIssuesClick(Constants.issues) })
             ClickablePreference(
                 title = stringResource(id = R.string.settings_version),
                 summary = BuildConfig.VERSION_NAME,
@@ -256,11 +262,11 @@ private fun PreferenceGroupTitle(title: String) {
 @Composable
 private fun ClickablePreference(
     title: String,
-    summary: String,
+    summary: String? = null,
     onPreferenceClick: (() -> Unit)? = null
 ) {
     Box(modifier = Modifier.clickable(enabled = onPreferenceClick != null) { onPreferenceClick?.invoke() }) {
-        PreferenceContent(title, summary)
+        PreferenceContent(title, summary = summary)
         ListDivider(modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
@@ -268,8 +274,8 @@ private fun ClickablePreference(
 @Composable
 private fun PreferenceContent(
     title: String,
-    summary: String,
     modifier: Modifier = Modifier,
+    summary: String? = null,
     contentColor: Color = LocalContentColor.current
 ) {
     Column(modifier = modifier.padding(horizontal = 16.dp, vertical = 16.dp)) {
@@ -278,12 +284,14 @@ private fun PreferenceContent(
             style = MaterialTheme.typography.titleMedium,
             color = contentColor.copy(alpha = ContentAlpha.high)
         )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = summary,
-            style = MaterialTheme.typography.labelMedium,
-            color = contentColor.copy(alpha = ContentAlpha.medium)
-        )
+        summary?.let {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = summary,
+                style = MaterialTheme.typography.labelMedium,
+                color = contentColor.copy(alpha = ContentAlpha.medium)
+            )
+        }
     }
 }
 

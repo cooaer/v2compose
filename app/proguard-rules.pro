@@ -19,3 +19,7 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+## Gson
+-keep class io.github.v2compose.bean.** { <fields>; }
+-keep class io.github.v2compose.network.bean.** { <fields>; }

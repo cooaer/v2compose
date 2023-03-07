@@ -9,6 +9,7 @@ plugins {
 }
 
 android {
+
     namespace 'io.github.v2compose'
     compileSdk 33
 
@@ -28,7 +29,8 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

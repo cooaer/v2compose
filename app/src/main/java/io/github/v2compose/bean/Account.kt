@@ -1,8 +1,10 @@
 package io.github.v2compose.bean
 
+import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapter
 
+@JsonClass(generateAdapter = true)
 data class Account(
     val userName: String = "",
     val userAvatar: String = "",
@@ -11,6 +13,7 @@ data class Account(
     val topics: Int = 0,
     val following: Int = 0,
 ) {
+
     companion object {
         val Empty = Account()
 
@@ -28,4 +31,5 @@ data class Account(
     fun isValid(): Boolean {
         return userName.isNotEmpty()
     }
+
 }

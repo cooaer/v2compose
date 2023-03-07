@@ -127,6 +127,9 @@
     <string name="settings_topic_replies_positive">正序</string>
     <string name="settings_topic_replies_order_negative">倒序</string>
 
+    <string name="settings_highlight_op_reply">高亮OP回帖</string>
+    <string name="settings_highlight_op_reply_summary">开启后可以高亮原始发帖人的回帖</string>
+
     <string name="settings_open_source">源码</string>
 
     <string name="settings_issues">反馈</string>

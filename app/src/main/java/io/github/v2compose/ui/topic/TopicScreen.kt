@@ -56,6 +56,7 @@ fun TopicScreenRoute(
     val args = viewModel.topicArgs
     val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
     val repliesReversed by viewModel.repliesReversed.collectAsStateWithLifecycle(initialValue = true)
+    val highlightOpReply by viewModel.highlightOpReply.collectAsStateWithLifecycle()
     val topicItems = viewModel.topicItems.collectAsLazyPagingItems()
 
     val topicInfo = if (topicItems.itemCount > 0) {
@@ -87,6 +88,7 @@ fun TopicScreenRoute(
         sizedHtmls = viewModel.sizedHtmls,
         replyWrappers = replyWrappers,
         replyTopicState = replyTopicState,
+        highlightOpReply = highlightOpReply,
         onBackClick = onBackClick,
         onTopicMenuClick = {
             when (it) {
@@ -132,6 +134,7 @@ private fun TopicScreen(
     sizedHtmls: SnapshotStateMap<String, String>,
     replyWrappers: Map<String, ReplyWrapper>,
     replyTopicState: ReplyTopicState,
+    highlightOpReply : Boolean,
     onBackClick: () -> Unit,
     onTopicMenuClick: (TopicMenuItem) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
@@ -205,6 +208,7 @@ private fun TopicScreen(
                 sizedHtmls = sizedHtmls,
                 replyWrappers = replyWrappers,
                 isLoggedIn = isLoggedIn,
+                highlightOpReply = highlightOpReply,
                 onUserAvatarClick = onUserAvatarClick,
                 onNodeClick = onNodeClick,
                 onRepliedOrderClick = onRepliedOrderClick,
@@ -251,6 +255,7 @@ private fun TopicList(
     sizedHtmls: SnapshotStateMap<String, String>,
     replyWrappers: Map<String, ReplyWrapper>,
     isLoggedIn: Boolean,
+    highlightOpReply : Boolean,
     onUserAvatarClick: (String, String) -> Unit,
     onNodeClick: (String, String) -> Unit,
     onRepliedOrderClick: (RepliesOrder) -> Unit,
@@ -379,6 +384,7 @@ private fun TopicList(
                     opName = topicInfo.topic?.headerInfo?.userName ?: "",
                     isLoggedIn = isLoggedIn,
                     content = sizedHtmls[tag] ?: item.replyContent,
+                    highlightOpReply = highlightOpReply,
                     onUserAvatarClick = onUserAvatarClick,
                     onUriClick = clickUriHandler,
                     onClick = onTopicReplyClick,

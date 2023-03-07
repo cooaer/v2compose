@@ -15,9 +15,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.LineHeightStyle
@@ -40,7 +40,8 @@ fun TopicReply(
     replyWrapper: ReplyWrapper?,
     opName: String,
     isLoggedIn: Boolean,
-    content:String,
+    content: String,
+    highlightOpReply: Boolean,
     onUserAvatarClick: (String, String) -> Unit,
     onUriClick: (String, TopicInfo.Reply) -> Unit,
     onClick: (TopicInfo.Reply) -> Unit,
@@ -49,11 +50,19 @@ fun TopicReply(
     onHtmlImageClick: OnHtmlImageClick,
     modifier: Modifier = Modifier
 ) {
+    val isOp = opName == reply.userName
+
+    val containerColor = if (highlightOpReply && isOp) {
+        MaterialTheme.colorScheme.surfaceVariant
+    } else {
+        Color.Transparent
+    }
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clickable(enabled = isLoggedIn) { onClick(reply) }
+            .background(color = containerColor)
             .padding(start = 16.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -73,8 +82,9 @@ fun TopicReply(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     UserName(userName = reply.userName)
                     Spacer(Modifier.width(4.dp))
-                    if (opName == reply.userName)
+                    if (isOp) {
                         OpLabel()
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(2.dp))

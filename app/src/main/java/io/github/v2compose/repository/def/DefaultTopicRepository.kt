@@ -45,6 +45,9 @@ class DefaultTopicRepository @Inject constructor(
         appPreferences.toggleTopicRepliesOrder()
     }
 
+    override val highlightOpReply: Flow<Boolean>
+        get() = appPreferences.appSettings.map { it.highlightOpReply }
+
     override fun search(keyword: String): Flow<PagingData<SoV2EXSearchResultInfo.Hit>> {
         return Pager(PagingConfig(pageSize = 10)) { SearchPagingSource(keyword, v2exService) }.flow
     }

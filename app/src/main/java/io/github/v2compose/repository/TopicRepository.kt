@@ -13,6 +13,8 @@ interface TopicRepository {
 
     suspend fun toggleRepliesReversed()
 
+    val highlightOpReply:Flow<Boolean>
+
     fun search(keyword: String): Flow<PagingData<SoV2EXSearchResultInfo.Hit>>
 
     val topicTitleOverview: Flow<Boolean>

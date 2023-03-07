@@ -84,6 +84,7 @@ fun SettingsScreenRoute(
         onOpenInBrowserChanged = viewModel::setOpenInInternalBrowser,
         onDarkModeChanged = viewModel::setDarkMode,
         onTopicTitleTwoLineMaxChanged = viewModel::setTopicTitleTwoLineMax,
+        onHighlightOpReplyChanged = viewModel::toggleHighlightOpReply,
         onSourceClick = openUri,
         onIssuesClick = openUri,
         onVersionClick = {},
@@ -116,6 +117,7 @@ private fun SettingsScreen(
     onOpenInBrowserChanged: (Boolean) -> Unit,
     onDarkModeChanged: (DarkMode) -> Unit,
     onTopicTitleTwoLineMaxChanged: (Boolean) -> Unit,
+    onHighlightOpReplyChanged: (Boolean) -> Unit,
     onSourceClick: (String) -> Unit,
     onIssuesClick: (String) -> Unit,
     onVersionClick: () -> Unit,
@@ -168,6 +170,12 @@ private fun SettingsScreen(
                 summary = stringResource(id = R.string.settings_topic_title_overview_summary),
                 checked = appSettings.topicTitleOverview,
                 onCheckedChange = onTopicTitleTwoLineMaxChanged,
+            )
+            SwitchPreference(
+                title = stringResource(id = R.string.settings_highlight_op_reply),
+                summary = stringResource(id = R.string.settings_highlight_op_reply_summary),
+                checked = appSettings.highlightOpReply,
+                onCheckedChange = onHighlightOpReplyChanged,
             )
             PreferenceGroupTitle(title = stringResource(id = R.string.settings_other))
             ClickablePreference(

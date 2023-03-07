@@ -140,12 +140,13 @@ private fun TopicReplyActions(
         MaterialTheme.colorScheme.secondary.copy(alpha = ContentAlpha.medium)
     Box(modifier = modifier.padding(end = 4.dp)) {
         Row {
-            if (isLoggedIn) {
+            if (isLoggedIn || thanksCount > 0) {
                 val menuItem = remember(reply) {
                     if (reply.hadThanked()) ReplyMenuItem.Thanked else ReplyMenuItem.Thank
                 }
 
                 IconButton(
+                    enabled = isLoggedIn,
                     onClick = { onMenuItemClick(menuItem) }) {
                     Icon(
                         imageVector = menuItem.icon,

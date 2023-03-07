@@ -72,7 +72,7 @@ fun GalleryImage(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = MaterialTheme.colorScheme.background.copy(alpha = ContentAlpha.medium * currentAlpha))
+            .background(color = MaterialTheme.colorScheme.inverseSurface.copy(alpha = ContentAlpha.medium * currentAlpha))
             .combinedClickable(interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {

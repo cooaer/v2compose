@@ -134,7 +134,7 @@ private fun TopicScreen(
     sizedHtmls: SnapshotStateMap<String, String>,
     replyWrappers: Map<String, ReplyWrapper>,
     replyTopicState: ReplyTopicState,
-    highlightOpReply : Boolean,
+    highlightOpReply: Boolean,
     onBackClick: () -> Unit,
     onTopicMenuClick: (TopicMenuItem) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
@@ -255,7 +255,7 @@ private fun TopicList(
     sizedHtmls: SnapshotStateMap<String, String>,
     replyWrappers: Map<String, ReplyWrapper>,
     isLoggedIn: Boolean,
-    highlightOpReply : Boolean,
+    highlightOpReply: Boolean,
     onUserAvatarClick: (String, String) -> Unit,
     onNodeClick: (String, String) -> Unit,
     onRepliedOrderClick: (RepliesOrder) -> Unit,
@@ -296,7 +296,7 @@ private fun TopicList(
     LazyColumn(
         state = lazyListState,
         modifier = modifier,
-        contentPadding = PaddingValues(bottom = fabSizeWithMargin),
+        contentPadding = PaddingValues(bottom = if (isLoggedIn) fabSizeWithMargin else 0.dp),
     ) {
         pagingRefreshItem(topicItems)
         if (topicInfo.topic != null) {

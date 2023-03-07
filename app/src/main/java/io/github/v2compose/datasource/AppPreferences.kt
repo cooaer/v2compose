@@ -29,6 +29,7 @@ data class AppSettings(
     val ignoredReleaseName: String? = null,
     val autoCheckIn: Boolean = false,
     val searchKeywords: List<String> = listOf(),
+    val highlightOpReply: Boolean = false,
 ) {
     companion object {
         val Default = AppSettings()
@@ -48,6 +49,7 @@ class AppPreferences @Inject constructor(
         private val KeyIgnoredReleaseName = stringPreferencesKey("ignored_release_name")
         private val KeyAutoCheckIn = booleanPreferencesKey("auto_check_in")
         private val KeySearchKeywords = stringPreferencesKey("search_keywords")
+        private val KeyHighlightOpReply = booleanPreferencesKey("highlight_op_reply")
     }
 
     val appSettings: Flow<AppSettings> = context.appDataStore.data.map {
@@ -59,7 +61,8 @@ class AppPreferences @Inject constructor(
             topicTitleOverview = it[KeyTopicTitleOverview] ?: true,
             ignoredReleaseName = it[KeyIgnoredReleaseName],
             autoCheckIn = it[KeyAutoCheckIn] ?: false,
-            searchKeywords = it[KeySearchKeywords]?.toStringList(moshi) ?: listOf()
+            searchKeywords = it[KeySearchKeywords]?.toStringList(moshi) ?: listOf(),
+            highlightOpReply = it[KeyHighlightOpReply] ?: false
         )
     }.distinctUntilChanged()
 
@@ -102,6 +105,12 @@ class AppPreferences @Inject constructor(
     suspend fun searchKeywords(value: List<String>) {
         context.appDataStore.edit {
             it[KeySearchKeywords] = value.toJson(moshi)
+        }
+    }
+
+    suspend fun highlightOpReply(value: Boolean) {
+        context.appDataStore.edit {
+            it[KeyHighlightOpReply] = value
         }
     }
 

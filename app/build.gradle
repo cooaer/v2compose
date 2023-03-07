@@ -4,6 +4,8 @@ plugins {
     id 'kotlin-kapt'
     id "kotlin-parcelize"
     id 'com.google.dagger.hilt.android'
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
 }
 
 android {
@@ -14,8 +16,8 @@ android {
         applicationId "io.github.v2compose"
         minSdk 26
         targetSdk 33
-        versionCode 1
-        versionName "0.0.2"
+        versionCode 3
+        versionName "0.0.3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -94,6 +96,11 @@ dependencies {
     implementation "androidx.compose.ui:ui"
     implementation "androidx.compose.ui:ui-tooling-preview"
     implementation "androidx.compose.material:material-icons-extended"
+
+    //firebase
+    implementation platform('com.google.firebase:firebase-bom:31.2.3')
+    implementation 'com.google.firebase:firebase-crashlytics-ktx'
+    implementation 'com.google.firebase:firebase-analytics-ktx'
 
     //test
     testImplementation 'junit:junit:4.13.2'

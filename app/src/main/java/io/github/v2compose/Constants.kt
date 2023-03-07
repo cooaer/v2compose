@@ -6,6 +6,7 @@ object Constants {
     const val userPath = "/member/"
 
     const val source = "https://github.com/cooaer/v2compose"
+    const val issues = "https://github.com/cooaer/v2compose/issues/new"
     const val owner = "cooaer"
     const val repo = "v2compose"
 

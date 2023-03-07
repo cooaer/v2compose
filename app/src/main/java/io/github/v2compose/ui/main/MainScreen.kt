@@ -15,7 +15,6 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringArrayResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.v2compose.R
@@ -115,8 +114,7 @@ private fun MainScreen(
                     }
                 },
             )
-        },
-        contentWindowInsets = WindowInsets(bottom = 0)
+        }, contentWindowInsets = WindowInsets(bottom = 0)
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -163,17 +161,15 @@ private fun MainTopBar(currentNavBarIndex: Int, onMenuItemClick: (MenuItem) -> U
             else -> MenuItem.search
         }
     }
-    CenterAlignedTopAppBar(
-        title = { Text(navBarItemNames[currentNavBarIndex]) },
-        actions = {
-            IconButton(onClick = { onMenuItemClick(menuItem) }) {
-                Icon(
-                    menuItem.imageVector,
-                    contentDescription = menuItem.name,
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-        })
+    CenterAlignedTopAppBar(title = { Text(navBarItemNames[currentNavBarIndex]) }, actions = {
+        IconButton(onClick = { onMenuItemClick(menuItem) }) {
+            Icon(
+                menuItem.imageVector,
+                contentDescription = menuItem.name,
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    })
 }
 
 @Composable
@@ -222,9 +218,7 @@ fun MainContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainBottomNavigation(
-    selectedIndex: Int,
-    unreadNotifications: Int,
-    onItemSelected: (Int) -> Unit
+    selectedIndex: Int, unreadNotifications: Int, onItemSelected: (Int) -> Unit
 ) {
     val itemNames = stringArrayResource(R.array.main_navigation_items)
     val itemIcons: List<ImageVector> = listOf(

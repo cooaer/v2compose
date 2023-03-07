@@ -81,6 +81,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun toggleHighlightOpReply(value: Boolean) {
+        viewModelScope.launch {
+            appPreferences.highlightOpReply(value)
+        }
+    }
+
     @OptIn(ExperimentalCoilApi::class)
     fun clearCache() {
         viewModelScope.launch {

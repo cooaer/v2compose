@@ -84,7 +84,9 @@ fun SettingsScreenRoute(
         onOpenInBrowserChanged = viewModel::setOpenInInternalBrowser,
         onDarkModeChanged = viewModel::setDarkMode,
         onTopicTitleTwoLineMaxChanged = viewModel::setTopicTitleTwoLineMax,
+        onHighlightOpReplyChanged = viewModel::toggleHighlightOpReply,
         onSourceClick = openUri,
+        onIssuesClick = openUri,
         onVersionClick = {},
         onCheckForUpdatesClick = {
             coroutineScope.launch {
@@ -115,7 +117,9 @@ private fun SettingsScreen(
     onOpenInBrowserChanged: (Boolean) -> Unit,
     onDarkModeChanged: (DarkMode) -> Unit,
     onTopicTitleTwoLineMaxChanged: (Boolean) -> Unit,
+    onHighlightOpReplyChanged: (Boolean) -> Unit,
     onSourceClick: (String) -> Unit,
+    onIssuesClick: (String) -> Unit,
     onVersionClick: () -> Unit,
     onCheckForUpdatesClick: () -> Unit,
     onLogout: () -> Unit,
@@ -167,12 +171,22 @@ private fun SettingsScreen(
                 checked = appSettings.topicTitleOverview,
                 onCheckedChange = onTopicTitleTwoLineMaxChanged,
             )
+            SwitchPreference(
+                title = stringResource(id = R.string.settings_highlight_op_reply),
+                summary = stringResource(id = R.string.settings_highlight_op_reply_summary),
+                checked = appSettings.highlightOpReply,
+                onCheckedChange = onHighlightOpReplyChanged,
+            )
             PreferenceGroupTitle(title = stringResource(id = R.string.settings_other))
             ClickablePreference(
                 title = stringResource(id = R.string.settings_open_source),
                 summary = Constants.source,
                 onPreferenceClick = { onSourceClick(Constants.source) }
             )
+            ClickablePreference(
+                title = stringResource(id = R.string.settings_issues),
+                summary = Constants.issues,
+                onPreferenceClick = { onIssuesClick(Constants.issues) })
             ClickablePreference(
                 title = stringResource(id = R.string.settings_version),
                 summary = BuildConfig.VERSION_NAME,
@@ -256,11 +270,11 @@ private fun PreferenceGroupTitle(title: String) {
 @Composable
 private fun ClickablePreference(
     title: String,
-    summary: String,
+    summary: String? = null,
     onPreferenceClick: (() -> Unit)? = null
 ) {
     Box(modifier = Modifier.clickable(enabled = onPreferenceClick != null) { onPreferenceClick?.invoke() }) {
-        PreferenceContent(title, summary)
+        PreferenceContent(title, summary = summary)
         ListDivider(modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
@@ -268,8 +282,8 @@ private fun ClickablePreference(
 @Composable
 private fun PreferenceContent(
     title: String,
-    summary: String,
     modifier: Modifier = Modifier,
+    summary: String? = null,
     contentColor: Color = LocalContentColor.current
 ) {
     Column(modifier = modifier.padding(horizontal = 16.dp, vertical = 16.dp)) {
@@ -278,12 +292,14 @@ private fun PreferenceContent(
             style = MaterialTheme.typography.titleMedium,
             color = contentColor.copy(alpha = ContentAlpha.high)
         )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = summary,
-            style = MaterialTheme.typography.labelMedium,
-            color = contentColor.copy(alpha = ContentAlpha.medium)
-        )
+        summary?.let {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = summary,
+                style = MaterialTheme.typography.labelMedium,
+                color = contentColor.copy(alpha = ContentAlpha.medium)
+            )
+        }
     }
 }
 

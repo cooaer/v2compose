@@ -12,6 +12,8 @@ import io.github.v2compose.network.V2exService
 import io.github.v2compose.network.WebkitCookieManager
 import io.github.v2compose.network.bean.*
 import io.github.v2compose.repository.AccountRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -84,10 +86,13 @@ class DefaultAccountRepository @Inject constructor(
         }
     }
 
-    override suspend fun refreshAccount() {
+    override suspend fun refreshAccount() = coroutineScope {
         val userName = account.first().userName
-        val homePageInfo = v2exService.homePageInfo(userName)
-        val userInfo = v2exService.userInfo(userName)
+        val homePageInfoDeferred = async { v2exService.homePageInfo(userName) }
+        val userInfoDeferred = async { v2exService.userInfo(userName) }
+        val homePageInfo = homePageInfoDeferred.await()
+        val userInfo = userInfoDeferred.await()
+
         accountPreferences.updateAccount(
             userName = homePageInfo.userName,
             userAvatar = userInfo.largestAvatar,

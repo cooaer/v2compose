@@ -1,5 +1,6 @@
 package io.github.v2compose.ui.webview.client
 
+import android.webkit.HttpAuthHandler
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import com.google.accompanist.web.AccompanistWebViewClient
@@ -18,6 +19,15 @@ class V2exWebViewClient(private val openUri: (String) -> Unit) : AccompanistWebV
             }
         }
         return false
+    }
+
+    override fun onReceivedHttpAuthRequest(
+        view: WebView?,
+        handler: HttpAuthHandler?,
+        host: String?,
+        realm: String?
+    ) {
+        super.onReceivedHttpAuthRequest(view, handler, host, realm)
     }
 
 }

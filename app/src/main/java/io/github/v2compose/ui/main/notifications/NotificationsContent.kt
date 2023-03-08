@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.ElevatedButton
@@ -88,6 +89,7 @@ private fun NotificationList(
     loadHtmlImage: (String, String, String?) -> Unit,
     onHtmlImageClick: OnHtmlImageClick,
 ) {
+    val lazyListState = rememberLazyListState()
     val refreshing = remember(notifications.loadState.refresh) {
         with(notifications.loadState.refresh) {
             !endOfPaginationReached && this is LoadState.Loading
@@ -111,6 +113,13 @@ private fun NotificationList(
                 }
             }
             pagingAppendMoreItem(lazyPagingItems = notifications)
+        }
+    }
+
+    val isRefreshing = notifications.loadState.refresh is LoadState.Loading
+    LaunchedEffect(isRefreshing) {
+        if (!isRefreshing) {
+            lazyListState.scrollToItem(0)
         }
     }
 }

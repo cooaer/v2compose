@@ -17,6 +17,8 @@ import dagger.hilt.components.SingletonComponent
 import io.github.v2compose.network.di.ImageOkHttpClient
 import okhttp3.OkHttpClient
 import java.io.File
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import javax.inject.Singleton
 
 @Module
@@ -54,6 +56,12 @@ object AppModule {
                 }
                 add(SvgDecoder.Factory())
             }.build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideExecutorService(): ExecutorService {
+        return Executors.newFixedThreadPool(4)
     }
 
 }

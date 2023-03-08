@@ -35,23 +35,39 @@ class MineViewModel @Inject constructor(
     private val _checkingIn = MutableStateFlow(false)
     val checkingIn = _checkingIn.asStateFlow()
 
+    private var lastRefreshAccountTime = 0L
+
     init {
-        refreshAccount()
+        listenAccount()
     }
 
-    private fun refreshAccount() {
+    private fun listenAccount() {
         viewModelScope.launch {
             account.map { it.userName }
                 .distinctUntilChanged()
                 .collectLatest {
-                    if (it.isNotEmpty()) {
-                        try {
-                            accountRepository.refreshAccount()
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    }
+                    if (it.isNotEmpty()) refreshAccountInternal(force = true)
                 }
+        }
+    }
+
+    fun refreshAccount() {
+        viewModelScope.launch {
+            refreshAccountInternal()
+        }
+    }
+
+    private suspend fun refreshAccountInternal(force: Boolean = false) {
+        val currentTime = System.currentTimeMillis()
+        if (!force && currentTime - lastRefreshAccountTime < 5 * 60 * 1000) {
+            return
+        }
+        lastRefreshAccountTime = currentTime
+
+        try {
+            accountRepository.refreshAccount()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 

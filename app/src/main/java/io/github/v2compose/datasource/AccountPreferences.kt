@@ -7,17 +7,20 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.squareup.moshi.Moshi
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.v2compose.bean.Account
+import io.github.v2compose.bean.AccountBalance
 import io.github.v2compose.bean.DraftTopic
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import javax.inject.Singleton
 
 private const val TAG = "AccountSettingsDataSource"
 
 private val Context.accountDataStore: DataStore<Preferences> by preferencesDataStore(name = "account")
 
+@Singleton
 class AccountPreferences @Inject constructor(
     @ApplicationContext private val context: Context,
     private val moshi: Moshi,
@@ -69,6 +72,7 @@ class AccountPreferences @Inject constructor(
         nodes: Int? = null,
         topics: Int? = null,
         following: Int? = null,
+        balance: AccountBalance? = null,
     ) {
         val current = account.first()
         account(
@@ -79,6 +83,7 @@ class AccountPreferences @Inject constructor(
                 nodes = nodes ?: current.nodes,
                 topics = topics ?: current.topics,
                 following = following ?: current.following,
+                balance = balance ?: current.balance,
             )
         )
     }

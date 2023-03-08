@@ -15,7 +15,6 @@ import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewState
 import io.github.v2compose.Constants
 import io.github.v2compose.R
-import io.github.v2compose.network.NetConstants.wapUserAgent
 import io.github.v2compose.ui.common.CloseButton
 
 private const val TAG = "GoogleLogin"
@@ -87,7 +86,19 @@ private fun GoogleLoginScreen(
                 state = webViewState,
                 modifier = Modifier.fillMaxSize(),
                 captureBackPresses = true,
-                onCreated = { it.settings.userAgentString = wapUserAgent })
+                onCreated = {
+                    it.settings.apply {
+                        userAgentString = System.getProperty("http.agent")
+                        javaScriptEnabled = true
+                        domStorageEnabled = true
+                        databaseEnabled = true
+                        allowUniversalAccessFromFileURLs = true
+                        useWideViewPort = true
+                        builtInZoomControls = true
+                        displayZoomControls = false
+                        setSupportZoom(true)
+                    }
+                })
             if (webViewState.isLoading) {
                 LinearProgressIndicator(progress = loadingProgress)
             }

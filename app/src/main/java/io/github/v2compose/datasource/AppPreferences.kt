@@ -9,33 +9,22 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.squareup.moshi.Moshi
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.github.v2compose.bean.AppSettings
 import io.github.v2compose.bean.DarkMode
+import io.github.v2compose.bean.ProxyInfo
 import io.github.v2compose.core.extension.toJson
 import io.github.v2compose.core.extension.toStringList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import javax.inject.Singleton
 
 private const val TAG = "AppSettingsDataSource"
 
 private val Context.appDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
-data class AppSettings(
-    val topicRepliesReversed: Boolean = true,
-    val openInInternalBrowser: Boolean = true,
-    val darkMode: DarkMode = DarkMode.FollowSystem,
-    val topicTitleOverview: Boolean = true,
-    val ignoredReleaseName: String? = null,
-    val autoCheckIn: Boolean = false,
-    val searchKeywords: List<String> = listOf(),
-    val highlightOpReply: Boolean = false,
-) {
-    companion object {
-        val Default = AppSettings()
-    }
-}
-
+@Singleton
 class AppPreferences @Inject constructor(
     @ApplicationContext private val context: Context,
     private val moshi: Moshi,
@@ -50,6 +39,8 @@ class AppPreferences @Inject constructor(
         private val KeyAutoCheckIn = booleanPreferencesKey("auto_check_in")
         private val KeySearchKeywords = stringPreferencesKey("search_keywords")
         private val KeyHighlightOpReply = booleanPreferencesKey("highlight_op_reply")
+
+        private val KeyProxyInfo = stringPreferencesKey("proxy_info")
     }
 
     val appSettings: Flow<AppSettings> = context.appDataStore.data.map {
@@ -65,6 +56,10 @@ class AppPreferences @Inject constructor(
             highlightOpReply = it[KeyHighlightOpReply] ?: false
         )
     }.distinctUntilChanged()
+
+    val proxyInfo: Flow<ProxyInfo> = context.appDataStore.data.map {
+        it[KeyProxyInfo]?.let { value -> ProxyInfo.fromJson(moshi, value) } ?: ProxyInfo.Default
+    }
 
     suspend fun toggleTopicRepliesOrder() {
         context.appDataStore.edit {
@@ -111,6 +106,12 @@ class AppPreferences @Inject constructor(
     suspend fun highlightOpReply(value: Boolean) {
         context.appDataStore.edit {
             it[KeyHighlightOpReply] = value
+        }
+    }
+
+    suspend fun proxyInfo(proxy: ProxyInfo) {
+        context.appDataStore.edit {
+            it[KeyProxyInfo] = proxy.toJson(moshi)
         }
     }
 

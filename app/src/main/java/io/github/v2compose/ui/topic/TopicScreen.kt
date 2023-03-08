@@ -38,6 +38,7 @@ import io.github.v2compose.ui.HandleSnackbarMessage
 import io.github.v2compose.ui.common.*
 import io.github.v2compose.ui.gallery.composables.PopupImage
 import io.github.v2compose.ui.topic.composables.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private const val TAG = "TopicScreen"
@@ -148,6 +149,7 @@ private fun TopicScreen(
 ) {
     val density = LocalDensity.current
 
+    var clickReplyTimes by remember { mutableStateOf(0) }
     var replyInputInitialText by remember { mutableStateOf("") }
     var replyInputCurrentText by remember { mutableStateOf("") }
     var replyInputState by remember { mutableStateOf(ReplyInputState.Collapsed) }
@@ -194,11 +196,11 @@ private fun TopicScreen(
             })
         },
         contentWindowInsets = WindowInsets.ime.union(WindowInsets.systemBars),
-    ) { paddingValues ->
+    ) { contentPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(contentPadding)
         ) {
             TopicList(
                 topicInfo = topicInfo,
@@ -215,6 +217,7 @@ private fun TopicScreen(
                 onTopicReplyClick = {
                     replyInputInitialText = initialReplyText(it)
                     replyInputState = ReplyInputState.Expanded
+                    clickReplyTimes ++
                 },
                 openUri = openUri,
                 onTopicMenuItemClick = { menuItem, reply ->
@@ -227,15 +230,23 @@ private fun TopicScreen(
                 },
                 loadHtmlImage = loadHtmlImage,
                 onHtmlImageClick = onHtmlImageClick,
-                modifier = Modifier.nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
+                modifier = Modifier
+                    .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
             )
 
             ReplyInput(
                 initialValue = replyInputInitialText,
+                clickReplyTimes = clickReplyTimes,
                 onValueChanged = { replyInputCurrentText = it },
                 state = replyInputState,
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
+
+            if (replyTopicState is ReplyTopicState.Success) {
+                LaunchedEffect(true) {
+                    replyInputInitialText = ""
+                }
+            }
         }
     }
 }
@@ -281,6 +292,8 @@ private fun TopicList(
         }
     }
 
+    val repliesBarHeight = with(LocalDensity.current) { 40.dp.roundToPx() }
+
     clickedUserReplies.forEachIndexed { index, item ->
         UserRepliesDialog(
             userReplies = item,
@@ -299,12 +312,12 @@ private fun TopicList(
         contentPadding = PaddingValues(bottom = if (isLoggedIn) fabSizeWithMargin else 0.dp),
     ) {
         pagingRefreshItem(topicItems)
+        var listItemIndex = 0
         if (topicInfo.topic != null) {
             if (!topicInfo.topic.isValid) {
                 //TODO 非登录状态，触发某些关键字（如 fg ），重定向到首页，导致解析失败
                 return@LazyColumn
             }
-            var listItemIndex = 0
 
             item(key = "title", contentType = "title") {
                 TopicTitle(
@@ -368,6 +381,7 @@ private fun TopicList(
                     },
                 )
             }
+            listItemIndex++
         }
         itemsIndexed(items = topicItems,
             key = { index, item -> if (item is Reply) item.replyId else "item#$index" }) { index, item ->
@@ -387,7 +401,20 @@ private fun TopicList(
                     highlightOpReply = highlightOpReply,
                     onUserAvatarClick = onUserAvatarClick,
                     onUriClick = clickUriHandler,
-                    onClick = onTopicReplyClick,
+                    onClick = {
+                        onTopicReplyClick(it)
+                        coroutineScope.launch {
+                            lazyListState.animateScrollToItem(
+                                listItemIndex + index,
+                                -repliesBarHeight
+                            )
+                            delay(400)
+                            lazyListState.animateScrollToItem(
+                                listItemIndex + index,
+                                -repliesBarHeight
+                            )
+                        }
+                    },
                     onMenuItemClick = { onTopicMenuItemClick(it, item) },
                     loadHtmlImage = { html, src -> loadHtmlImage(tag, html, src) },
                     onHtmlImageClick = onHtmlImageClick,

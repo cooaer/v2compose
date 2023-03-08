@@ -1,5 +1,6 @@
 package io.github.v2compose.ui.main.mine
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -9,11 +10,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,6 +50,10 @@ fun MineContent(
 
     HandleSnackbarMessage(viewModel, mineContentState)
 
+    LaunchedEffect(true){
+        viewModel.refreshAccount()
+    }
+
     MineContainer(
         account = account,
         lastCheckInTime = lastCheckInTime,
@@ -78,6 +85,7 @@ private fun MineContainer(
     onMyFollowingClick: () -> Unit,
     onSettingsClick: () -> Unit,
 ) {
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -170,13 +178,21 @@ private fun MineHeader(
         )
         Spacer(Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                if (account.isValid()) account.userName else stringResource(id = R.string.login),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier
-                    .padding(horizontal = 0.dp)
-                    .wrapContentHeight()
-            )
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    if (account.isValid()) account.userName else stringResource(id = R.string.login),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier
+                        .padding(horizontal = 0.dp)
+                        .wrapContentHeight()
+                )
+                if (account.isValid()) {
+                    Spacer(Modifier.width(16.dp))
+                    AccountBalanceItem(num = account.balance.gold, icon = R.drawable.gold)
+                    AccountBalanceItem(num = account.balance.silver, icon = R.drawable.silver)
+                    AccountBalanceItem(num = account.balance.bronze, icon = R.drawable.bronze)
+                }
+            }
             if (account.isValid()) {
                 CheckInButton(
                     hasCheckingInTips,
@@ -192,6 +208,22 @@ private fun MineHeader(
             tint = contentColor.copy(alpha = ContentAlpha.medium),
             modifier = Modifier.size(32.dp)
         )
+    }
+}
+
+@Composable
+fun AccountBalanceItem(num: Int, @DrawableRes icon: Int) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(horizontal = 2.dp, vertical = 3.dp)
+    ) {
+        Text(
+            num.toString(),
+            style = MaterialTheme.typography.labelMedium,
+            color = LocalContentColor.current.copy(alpha = ContentAlpha.medium)
+        )
+        Spacer(modifier = Modifier.width(2.dp))
+        Image(painter = painterResource(icon), contentDescription = "")
     }
 }
 

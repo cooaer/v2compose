@@ -174,11 +174,11 @@ fun V2composeTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
-        androidTheme -> if (darkTheme) DarkAndroidColorScheme else LightAndroidColorScheme
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
+        androidTheme -> if (darkTheme) DarkAndroidColorScheme else LightAndroidColorScheme
         darkTheme -> DarkDefaultColorScheme
         else -> LightDefaultColorScheme
     }

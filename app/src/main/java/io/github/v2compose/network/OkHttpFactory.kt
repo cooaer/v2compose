@@ -9,6 +9,7 @@ import io.github.v2compose.Constants
 import io.github.v2compose.bean.RedirectEvent
 import io.github.v2compose.network.NetConstants.keyUserAgent
 import io.github.v2compose.network.NetConstants.wapUserAgent
+import io.github.v2compose.network.di.V2ProxySelector
 import io.github.v2compose.util.Check
 import io.github.v2compose.util.L
 import me.ghui.fruit.Fruit
@@ -38,7 +39,11 @@ object OkHttpFactory {
         return Fruit()
     }
 
-    fun createHttpClient(cookieJar: CookieJar, cache: Cache): OkHttpClient {
+    fun createHttpClient(
+        cookieJar: CookieJar,
+        cache: Cache,
+        proxySelector: V2ProxySelector
+    ): OkHttpClient {
         val builder: OkHttpClient.Builder =
             OkHttpClient.Builder()
                 .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -49,6 +54,7 @@ object OkHttpFactory {
                 .addInterceptor(RedirectInterceptor())
                 .followRedirects(false)
                 .followSslRedirects(false)
+                .proxySelector(proxySelector)
         if (BuildConfig.DEBUG) {
             builder.addInterceptor(
                 HttpLoggingInterceptor { msg: String? -> L.v(msg) }
@@ -58,13 +64,14 @@ object OkHttpFactory {
         return builder.build()
     }
 
-    fun createImageHttpClient(cookieJar: CookieJar): OkHttpClient {
+    fun createImageHttpClient(cookieJar: CookieJar, proxySelector: V2ProxySelector): OkHttpClient {
         val builder: OkHttpClient.Builder =
             OkHttpClient.Builder()
                 .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .cookieJar(cookieJar)
                 .retryOnConnectionFailure(true)
                 .addInterceptor(ConfigInterceptor())
+                .proxySelector(proxySelector)
         if (BuildConfig.DEBUG) {
             builder.addInterceptor(
                 HttpLoggingInterceptor { msg: String? -> L.v(msg) }

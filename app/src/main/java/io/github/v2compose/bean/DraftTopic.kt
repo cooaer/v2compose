@@ -1,10 +1,11 @@
 package io.github.v2compose.bean
 
+import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapter
 import io.github.v2compose.network.bean.TopicNode
 
-//草稿主题
+@JsonClass(generateAdapter = true)
 data class DraftTopic(
     val title: String = "",
     val content: String = "",

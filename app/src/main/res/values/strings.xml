@@ -102,6 +102,7 @@
     <string name="settings">设置</string>
     <string name="settings_common">常规设置</string>
     <string name="settings_appearance">显示设置</string>
+    <string name="settings_advanced">高级</string>
     <string name="settings_other">其他</string>
 
     <string name="settings_clear_cache">清除缓存</string>
@@ -129,6 +130,18 @@
 
     <string name="settings_highlight_op_reply">高亮OP回帖</string>
     <string name="settings_highlight_op_reply_summary">开启后可以高亮原始发帖人的回帖</string>
+
+    <string name="settings_proxy">代理</string>
+    <string name="settings_proxy_direct">直接连接</string>
+    <string name="settings_proxy_system">系统代理</string>
+    <string name="settings_proxy_http">HTTP</string>
+    <string name="settings_proxy_socks">SOCKS</string>
+    <string name="settings_proxy_hostOrIp">主机或IP</string>
+    <string name="settings_proxy_port">端口</string>
+    <string name="settings_proxy_hostOrIp_empty">主机或IP不能为空</string>
+    <string name="settings_proxy_hostOrIp_format_error">主机或IP格式错误</string>
+    <string name="settings_proxy_port_empty">端口不能为空</string>
+    <string name="settings_proxy_port_error">端口只能为0–65535</string>
 
     <string name="settings_open_source">源码</string>
 

@@ -43,6 +43,7 @@ enum class ReplyInputState {
 @Composable
 fun ReplyInput(
     initialValue: String,
+    clickReplyTimes: Int,
     onValueChanged: (String) -> Unit,
     modifier: Modifier = Modifier,
     state: ReplyInputState = ReplyInputState.Collapsed,
@@ -117,64 +118,11 @@ fun ReplyInput(
                     .then(sizeModifier),
                 shape = RoundedCornerShape(fabSize / 2)
             )
+
+            LaunchedEffect(clickReplyTimes) {
+                focusRequester.requestFocus()
+                keyboard?.show()
+            }
         }
     }
 }
-
-//@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
-//@Composable
-//fun ReplyInput(
-//    value: String,
-//    onValueChanged: (String) -> Unit,
-//    modifier: Modifier = Modifier,
-//    state: ReplyInputState = ReplyInputState.Collapsed,
-//    mention: TopicInfo.Reply? = null
-//) {
-//    val keyboard = LocalSoftwareKeyboardController.current
-//    var visible by remember { mutableStateOf(false) }
-//    val alpha: Float by animateFloatAsState(
-//        targetValue = if (state == ReplyInputState.Expanded) 1f else 0f,
-//        finishedListener = {
-//            visible = it == 1f
-//        }
-//    )
-//
-//    val focusRequester = remember { FocusRequester() }
-//    Box(
-//        modifier = modifier
-//            .fillMaxWidth()
-//            .padding(
-//                start = borderPadding,
-//                top = borderPadding,
-//                end = fabSize + borderPadding * 2,
-//                bottom = borderPadding
-//            )
-//    ) {
-//        OutlinedTextField(
-//            value = value,
-//            onValueChange = onValueChanged,
-//            label = { Text(text = stringResource(id = R.string.reply)) },
-//            modifier = Modifier
-//                .focusRequester(focusRequester)
-//                .graphicsLayer(alpha = alpha)
-//                .align(Alignment.BottomEnd)
-//                .background(
-//                    color = MaterialTheme.colorScheme.background,
-//                    shape = RoundedCornerShape(fabSize / 2)
-//                ),
-//            shape = RoundedCornerShape(fabSize / 2)
-//        )
-//    }
-//
-//    LaunchedEffect(visible) {
-//        if (visible) {
-//            focusRequester.requestFocus()
-//            delay(100)
-//            keyboard?.show()
-//        } else {
-//            focusRequester.freeFocus()
-//            delay(100)
-//            keyboard?.hide()
-//        }
-//    }
-//}

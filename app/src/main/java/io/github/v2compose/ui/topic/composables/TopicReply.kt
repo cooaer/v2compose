@@ -99,7 +99,7 @@ fun TopicReply(
                     content = content,
                     selectable = false,
                     onUriClick = { onUriClick(it, reply) },
-                    onClick = { onClick(reply) },
+                    onClick = { if (isLoggedIn) onClick(reply) },
                     loadImage = loadHtmlImage,
                     onHtmlImageClick = onHtmlImageClick,
                     modifier = Modifier.fillMaxWidth()
@@ -121,7 +121,6 @@ fun TopicReply(
             )
         }
     }
-
 
 }
 

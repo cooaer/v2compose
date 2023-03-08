@@ -4,14 +4,17 @@ import android.app.Application
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.v2compose.R
+import io.github.v2compose.bean.ProxyInfo
 import io.github.v2compose.datasource.AppPreferences
 import io.github.v2compose.network.bean.Release
 import io.github.v2compose.repository.AccountRepository
 import io.github.v2compose.ui.BaseViewModel
 import io.github.v2compose.usecase.CheckForUpdatesUseCase
 import io.github.v2compose.usecase.CheckInUseCase
+import io.github.v2compose.util.WebViewProxy
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.util.concurrent.ExecutorService
 import javax.inject.Inject
 
 @HiltViewModel
@@ -21,6 +24,7 @@ class MainViewModel @Inject constructor(
     private val checkIn: CheckInUseCase,
     private val appPreferences: AppPreferences,
     private val accountRepository: AccountRepository,
+    private val appExecutorService: ExecutorService,
 ) : BaseViewModel(application) {
 
     private val _newRelease = MutableStateFlow(Release.Empty)
@@ -36,6 +40,7 @@ class MainViewModel @Inject constructor(
     init {
         autoCheckForUpdates()
         listenCanCheckIn()
+        initWebViewProxy()
     }
 
     private fun autoCheckForUpdates() {
@@ -65,6 +70,17 @@ class MainViewModel @Inject constructor(
                 }
         }
     }
+
+    private fun initWebViewProxy() {
+        viewModelScope.launch {
+            appPreferences.proxyInfo.collectLatest {
+                if(it != ProxyInfo.Default){
+                    WebViewProxy.updateProxy(it, appExecutorService)
+                }
+            }
+        }
+    }
+
 
     fun resetNewRelease() {
         viewModelScope.launch {

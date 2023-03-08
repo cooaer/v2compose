@@ -9,6 +9,7 @@ plugins {
 }
 
 android {
+
     namespace 'io.github.v2compose'
     compileSdk 33
 
@@ -16,8 +17,8 @@ android {
         applicationId "io.github.v2compose"
         minSdk 26
         targetSdk 33
-        versionCode 3
-        versionName "0.0.3"
+        versionCode 4
+        versionName "0.0.4"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -28,7 +29,8 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -87,6 +89,8 @@ dependencies {
     implementation "androidx.browser:browser:1.4.0"
 
     implementation "androidx.datastore:datastore-preferences:1.0.0"
+
+    implementation "androidx.webkit:webkit:1.6.0"
 
     //compose
     implementation platform('androidx.compose:compose-bom:2023.01.00')

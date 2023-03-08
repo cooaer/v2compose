@@ -35,6 +35,7 @@ data class Account(
 
 }
 
+@JsonClass(generateAdapter = true)
 data class AccountBalance(val gold: Int = 0, val silver: Int = 0, val bronze: Int = 0) {
     companion object {
         val Empty = AccountBalance()

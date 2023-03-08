@@ -13,6 +13,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -20,10 +21,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.v2compose.BuildConfig
 import io.github.v2compose.Constants
 import io.github.v2compose.R
+import io.github.v2compose.bean.AppSettings
 import io.github.v2compose.bean.DarkMode
-import io.github.v2compose.datasource.AppSettings
+import io.github.v2compose.bean.ProxyInfo
+import io.github.v2compose.bean.ProxyType
 import io.github.v2compose.network.bean.Release
 import io.github.v2compose.ui.common.*
+import io.github.v2compose.ui.settings.compoables.SelectProxyDialog
+import io.github.v2compose.ui.settings.compoables.titleResId
 import kotlinx.coroutines.launch
 
 @Composable
@@ -45,6 +50,7 @@ fun SettingsScreenRoute(
 
     val cacheSize by viewModel.cacheSize.collectAsStateWithLifecycle()
     val appSettings by viewModel.appSettings.collectAsStateWithLifecycle()
+    val proxyInfo by viewModel.proxyInfo.collectAsStateWithLifecycle()
     val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
 
     if (newRelease.isValid()) {
@@ -78,6 +84,7 @@ fun SettingsScreenRoute(
         isLoggedIn = isLoggedIn,
         cacheSize = cacheSize,
         appSettings = appSettings,
+        proxyInfo = proxyInfo,
         onBackClick = onBackClick,
         onClearCacheClick = { showClearCacheDialog = true },
         onAutoCheckInChanged = viewModel::updateAutoCheckIn,
@@ -85,6 +92,7 @@ fun SettingsScreenRoute(
         onDarkModeChanged = viewModel::setDarkMode,
         onTopicTitleTwoLineMaxChanged = viewModel::setTopicTitleTwoLineMax,
         onHighlightOpReplyChanged = viewModel::toggleHighlightOpReply,
+        onProxyChanged = viewModel::changeProxy,
         onSourceClick = openUri,
         onIssuesClick = openUri,
         onVersionClick = {},
@@ -111,6 +119,7 @@ private fun SettingsScreen(
     isLoggedIn: Boolean,
     cacheSize: Long,
     appSettings: AppSettings,
+    proxyInfo: ProxyInfo,
     onBackClick: () -> Unit,
     onClearCacheClick: () -> Unit,
     onAutoCheckInChanged: (Boolean) -> Unit,
@@ -118,6 +127,7 @@ private fun SettingsScreen(
     onDarkModeChanged: (DarkMode) -> Unit,
     onTopicTitleTwoLineMaxChanged: (Boolean) -> Unit,
     onHighlightOpReplyChanged: (Boolean) -> Unit,
+    onProxyChanged: (ProxyInfo) -> Unit,
     onSourceClick: (String) -> Unit,
     onIssuesClick: (String) -> Unit,
     onVersionClick: () -> Unit,
@@ -176,6 +186,12 @@ private fun SettingsScreen(
                 summary = stringResource(id = R.string.settings_highlight_op_reply_summary),
                 checked = appSettings.highlightOpReply,
                 onCheckedChange = onHighlightOpReplyChanged,
+            )
+            PreferenceGroupTitle(title = stringResource(id = R.string.settings_advanced))
+            ProxyPreference(
+                title = stringResource(id = R.string.settings_proxy),
+                proxyInfo = proxyInfo,
+                onProxyChanged = onProxyChanged
             )
             PreferenceGroupTitle(title = stringResource(id = R.string.settings_other))
             ClickablePreference(
@@ -349,4 +365,40 @@ private fun DropdownPreference(
     ClickablePreference(title = title, summary = entries[selectedIndex]) {
         showDialog = true
     }
+}
+
+@Composable
+private fun ProxyPreference(
+    title: String,
+    proxyInfo: ProxyInfo,
+    onProxyChanged: (ProxyInfo) -> Unit
+) {
+    val context = LocalContext.current
+    var showSelectProxyDialog by remember { mutableStateOf(false) }
+    var currentProxy by remember(proxyInfo) { mutableStateOf(proxyInfo) }
+
+    val summary = remember(proxyInfo){
+        val typeText = context.getString(currentProxy.type.titleResId)
+        val addressText = if(proxyInfo.type == ProxyType.Http || proxyInfo.type == ProxyType.Socks){
+            proxyInfo.address + ":" + proxyInfo.port
+        }else ""
+        "$typeText $addressText"
+    }
+
+    ClickablePreference(title = title, summary = summary) {
+        showSelectProxyDialog = true
+    }
+
+    if(showSelectProxyDialog){
+        SelectProxyDialog(
+            proxyInfo = currentProxy,
+            onDismiss = { showSelectProxyDialog = false },
+            onProxySelected = {
+                showSelectProxyDialog = false
+                currentProxy = it
+                onProxyChanged(it)
+            },
+        )
+    }
+
 }

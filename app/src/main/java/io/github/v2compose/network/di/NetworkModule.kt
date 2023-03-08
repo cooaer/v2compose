@@ -52,13 +52,18 @@ object NetworkModule {
 
     @Provides
     @CommonOkHttpClient
-    fun provideCommonOkHttpClient(cookieJar: WebkitCookieManager, cache: Cache): OkHttpClient =
-        OkHttpFactory.createHttpClient(cookieJar, cache)
+    fun provideCommonOkHttpClient(
+        cookieJar: WebkitCookieManager,
+        cache: Cache,
+        proxySelector: V2ProxySelector
+    ): OkHttpClient = OkHttpFactory.createHttpClient(cookieJar, cache, proxySelector)
 
     @Provides
     @ImageOkHttpClient
-    fun provideImageOkHttpClient(cookieJar: WebkitCookieManager): OkHttpClient =
-        OkHttpFactory.createImageHttpClient(cookieJar)
+    fun provideImageOkHttpClient(
+        cookieJar: WebkitCookieManager,
+        proxySelector: V2ProxySelector
+    ): OkHttpClient = OkHttpFactory.createImageHttpClient(cookieJar, proxySelector)
 
     @Provides
     @Singleton

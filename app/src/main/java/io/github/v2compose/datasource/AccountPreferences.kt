@@ -13,11 +13,13 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import javax.inject.Singleton
 
 private const val TAG = "AccountSettingsDataSource"
 
 private val Context.accountDataStore: DataStore<Preferences> by preferencesDataStore(name = "account")
 
+@Singleton
 class AccountPreferences @Inject constructor(
     @ApplicationContext private val context: Context,
     private val moshi: Moshi,

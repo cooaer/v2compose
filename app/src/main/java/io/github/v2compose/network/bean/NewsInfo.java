@@ -31,7 +31,10 @@ public class NewsInfo extends BaseInfo {
     @Pick("form[action=/2fa]")
     private String twoStepStr;
 
-    public boolean hasCheckingInTips(){
+    @Pick("a.balance_area")
+    private String balance;
+
+    public boolean hasCheckingInTips() {
         return !Check.isEmpty(checkInTips);
     }
 
@@ -50,8 +53,32 @@ public class NewsInfo extends BaseInfo {
         return items != null ? items : Collections.emptyList();
     }
 
-    public void setItems(List<Item> items) {
-        this.items = items;
+    public int getBalanceGold() {
+        return getBalancePart(0);
+    }
+
+    public int getBalanceSilver() {
+        return getBalancePart(1);
+    }
+
+    public int getBalanceBronze() {
+        return getBalancePart(2);
+    }
+
+    private int getBalancePart(int partIndex) {
+        if (balance == null) {
+            return 0;
+        }
+        try {
+            String[] itemTexts = balance.split(" ");
+            int index = itemTexts.length - 3 + partIndex;
+            if (index >= 0) {
+                return Integer.parseInt(itemTexts[index]);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     @Override
@@ -102,49 +129,24 @@ public class NewsInfo extends BaseInfo {
             return replies;
         }
 
-        public void setReplies(int replies) {
-            this.replies = replies;
-        }
-
         public String getTitle() {
             return title;
-        }
-
-        public void setTitle(String title) {
-            this.title = title;
         }
 
         public String getLinkPath() {
             return linkPath;
         }
 
-
-        public void setLinkPath(String linkPath) {
-            this.linkPath = linkPath;
-        }
-
         public String getAvatar() {
             return AvatarUtils.adjustAvatar(avatar);
-        }
-
-        public void setAvatar(String avatar) {
-            this.avatar = avatar;
         }
 
         public String getAvatarLink() {
             return avatarLink;
         }
 
-        public void setAvatarLink(String avatarLink) {
-            this.avatarLink = avatarLink;
-        }
-
         public String getUserName() {
             return userName;
-        }
-
-        public void setUserName(String userName) {
-            this.userName = userName;
         }
 
         public String getTime() {
@@ -162,10 +164,6 @@ public class NewsInfo extends BaseInfo {
             return tagName;
         }
 
-        public void setTagName(String tagName) {
-            this.tagName = tagName;
-        }
-
         public String getTagId() {
             if (Check.isEmpty(tagLink)) return null;
             return tagLink.substring(tagLink.lastIndexOf("/") + 1);
@@ -173,10 +171,6 @@ public class NewsInfo extends BaseInfo {
 
         public String getTagLink() {
             return tagLink;
-        }
-
-        public void setTagLink(String tagLink) {
-            this.tagLink = tagLink;
         }
 
         @Override

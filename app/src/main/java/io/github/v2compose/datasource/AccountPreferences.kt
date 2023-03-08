@@ -7,6 +7,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.squareup.moshi.Moshi
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.v2compose.bean.Account
+import io.github.v2compose.bean.AccountBalance
 import io.github.v2compose.bean.DraftTopic
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -71,6 +72,7 @@ class AccountPreferences @Inject constructor(
         nodes: Int? = null,
         topics: Int? = null,
         following: Int? = null,
+        balance: AccountBalance? = null,
     ) {
         val current = account.first()
         account(
@@ -81,6 +83,7 @@ class AccountPreferences @Inject constructor(
                 nodes = nodes ?: current.nodes,
                 topics = topics ?: current.topics,
                 following = following ?: current.following,
+                balance = balance ?: current.balance,
             )
         )
     }

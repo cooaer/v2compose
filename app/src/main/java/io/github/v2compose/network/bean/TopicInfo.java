@@ -258,7 +258,7 @@ public class TopicInfo extends BaseInfo {
         private int currentPage;
         @Pick("div.box h1")
         private String title;
-        @Pick(value = "div.content div.box div.inner span:first-child")
+        @Pick(value = "div.content div.box:first-child div.inner span:first-child")
         private String favoriteText;
         @Pick(value = "div.box a[href*=favorite/]", attr = Attrs.HREF)
         private String favoriteLink;

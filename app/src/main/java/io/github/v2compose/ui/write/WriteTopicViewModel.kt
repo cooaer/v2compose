@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.v2compose.bean.ContentFormat
 import io.github.v2compose.bean.DraftTopic
 import io.github.v2compose.core.StringDecoder
 import io.github.v2compose.core.extension.isRedirect
@@ -71,7 +72,7 @@ class WriteTopicViewModel @Inject constructor(
     }
 
 
-    fun createTopic(title: String, content: String, nodeId: String) {
+    fun createTopic(title: String, content: String, contentFormat: ContentFormat, nodeId: String) {
         viewModelScope.launch {
             val once: String =
                 _createTopicState.value.let { if (it is CreateTopicState.Failure) it.pageInfo.once else "" }
@@ -85,13 +86,13 @@ class WriteTopicViewModel @Inject constructor(
                     }
                     pageInfo.once
                 }
-                val result = topicRepository.createTopic(title, content, nodeId, currentOnce)
+                val result = topicRepository.createTopic(title, content, contentFormat, nodeId, currentOnce)
                 _createTopicState.emit(CreateTopicState.Failure(result))
             } catch (e: Exception) {
                 e.printStackTrace()
                 while (true) {
                     if (e !is HttpException || !e.code().isRedirect) break
-                    saveDraftTopic("", "", null)
+                    saveDraftTopic("", "", ContentFormat.Original, null)
                     val location = e.response()?.raw()?.headers?.get("location") ?: break
                     val topicId = Uri.parse(location).pathSegments.getOrNull(1) ?: break
                     _createTopicState.emit(CreateTopicState.Success(topicId))
@@ -102,9 +103,9 @@ class WriteTopicViewModel @Inject constructor(
         }
     }
 
-    fun saveDraftTopic(title: String, content: String, node: TopicNode?) {
+    fun saveDraftTopic(title: String, content: String, contentFormat: ContentFormat, node: TopicNode?) {
         viewModelScope.launch {
-            topicRepository.saveDraftTopic(title, content, node)
+            topicRepository.saveDraftTopic(title, content, contentFormat, node)
         }
     }
 

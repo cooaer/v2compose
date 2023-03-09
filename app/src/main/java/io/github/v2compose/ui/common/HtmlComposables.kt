@@ -56,12 +56,14 @@ fun HtmlContent(
 @Composable
 private fun rememberFixedHtml(content: String): String {
     val document = remember(content) { Jsoup.parse(content) }
-    var encodedEmails by remember(content) { mutableStateOf<Elements?>(document.select("a.__cf_email__")) }
-    return if (!encodedEmails.isNullOrEmpty()) {
-        encodedEmails?.forEach { fixEmailProtected(it) }
-        encodedEmails = null
-        document.outerHtml()
-    } else content
+    var encodedEmails by remember(content) { mutableStateOf<Elements?>(document.select(".__cf_email__")) }
+    return remember(content, encodedEmails) {
+        if (!encodedEmails.isNullOrEmpty()) {
+            encodedEmails?.forEach { fixEmailProtected(it) }
+            encodedEmails = null
+            document.outerHtml()
+        } else content
+    }
 }
 
 private fun fixEmailProtected(ele: Element) {
@@ -74,8 +76,13 @@ private fun fixEmailProtected(ele: Element) {
             if (parent != null) {
                 ele.remove()
                 parent.insertChildren(siblingIndex, TextNode(email))
+                if(parent.tagName().equals("a")){
+                    parent.attr("href", "mailto:$email")
+                }
             }
         }
+
+        Log.d(TAG, "fixEmailProtected, encodedEmail = ${ele.outerHtml()}, decodedEmail = $email")
     } catch (e: IllegalArgumentException) {
         e.printStackTrace()
         Log.d(TAG, "fixEmailProtected, encodedEmail = ${ele.outerHtml()}")

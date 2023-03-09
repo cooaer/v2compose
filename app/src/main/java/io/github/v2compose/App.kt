@@ -3,15 +3,15 @@ package io.github.v2compose
 import android.app.Application
 import coil.ImageLoader
 import coil.ImageLoaderFactory
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import com.orhanobut.logger.AndroidLogAdapter
 import com.orhanobut.logger.FormatStrategy
 import com.orhanobut.logger.Logger
 import com.orhanobut.logger.PrettyFormatStrategy
 import dagger.hilt.android.HiltAndroidApp
-import io.github.v2compose.util.WebViewProxy
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
-import java.util.concurrent.ExecutorService
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -37,6 +37,7 @@ class App : Application(), ImageLoaderFactory {
 
     private fun init() {
         initLogger()
+        Firebase.crashlytics.setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
     }
 
     private fun initLogger() {

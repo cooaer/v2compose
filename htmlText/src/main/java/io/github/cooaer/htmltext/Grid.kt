@@ -89,7 +89,7 @@ class GridRowScope(private val columnCount: Int) {
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(horizontal = 8.dp)
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {
                             contents[rowIndex * columnCount + columnIndex]()
                         }

@@ -559,7 +559,7 @@ private fun HtmlElementsScope.InlineImage(
 
     when (currentLoadState) {
         "loading" -> {
-            LoadingImage(modifier = modifier)
+            LoadingImage(modifier = Modifier.size(width, maxOf(height, 48.dp)))
         }
         "success" -> {
             val clickEnabled = clickable && onImageClick != null

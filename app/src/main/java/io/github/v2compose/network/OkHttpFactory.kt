@@ -58,7 +58,7 @@ object OkHttpFactory {
         if (BuildConfig.DEBUG) {
             builder.addInterceptor(
                 HttpLoggingInterceptor { msg: String? -> L.v(msg) }
-                    .setLevel(HttpLoggingInterceptor.Level.BODY)
+                    .setLevel(HttpLoggingInterceptor.Level.BASIC)
             )
         }
         return builder.build()
@@ -75,7 +75,7 @@ object OkHttpFactory {
         if (BuildConfig.DEBUG) {
             builder.addInterceptor(
                 HttpLoggingInterceptor { msg: String? -> L.v(msg) }
-                    .setLevel(HttpLoggingInterceptor.Level.BODY)
+                    .setLevel(HttpLoggingInterceptor.Level.BASIC)
             )
         }
         return builder.build()

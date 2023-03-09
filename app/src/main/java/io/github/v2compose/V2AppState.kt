@@ -1,6 +1,7 @@
 package io.github.v2compose
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Environment
 import android.util.Log
@@ -108,7 +109,8 @@ class V2AppState @Inject constructor(
     @OptIn(ExperimentalCoilApi::class)
     fun saveImage(url: String) = coroutineScope.launch {
         val imageName = Uri.parse(url).lastPathSegment ?: return@launch
-        val pictureDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+        val pictureDir =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
         val appImageDir = File(pictureDir, "v2compose").also {
             it.mkdirs()
         }
@@ -131,6 +133,12 @@ fun NavController.innerOpenUri(uri: String): Boolean {
         return false
     }
     val uriObj = uri.tryParse() ?: return false
+    when (uriObj.scheme) {
+        "mailto", "sms", "tel" -> {
+            context.startActivity(Intent(Intent.ACTION_VIEW, uriObj))
+            return true
+        }
+    }
     val host = uriObj.host
     if (!host.isNullOrEmpty() && !host.endsWith(Constants.host)) {
         return false

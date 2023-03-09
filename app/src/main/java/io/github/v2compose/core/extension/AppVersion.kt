@@ -14,11 +14,18 @@ fun String.toAppVersion(): Triple<Int, Int, Int> {
 }
 
 fun Triple<Int, Int, Int>.newerThan(other: Triple<Int, Int, Int>): Boolean {
-    return if (this.first > other.first) {
-        true
-    } else if (this.second > other.second) {
-        true
-    } else {
-        this.third > other.third
+    if (this.first > other.first) {
+        return true
+    } else if (this.first < other.first) {
+        return false
     }
+    if (this.second > other.second) {
+        return true
+    } else if (this.second < other.second) {
+        return false
+    }
+    if (this.third > other.third) {
+        return true
+    }
+    return false
 }

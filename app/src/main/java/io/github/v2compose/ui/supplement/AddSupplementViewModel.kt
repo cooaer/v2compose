@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.v2compose.bean.ContentFormat
 import io.github.v2compose.core.extension.isRedirect
 import io.github.v2compose.core.extension.redirectLocation
 import io.github.v2compose.datasource.AccountPreferences
@@ -41,7 +42,7 @@ class AddSupplementViewModel @Inject constructor(
         }
     }
 
-    fun addSupplement(value: String) {
+    fun addSupplement(text: String, contentFormat: ContentFormat) {
         viewModelScope.launch {
             _addSupplementState.emit(AddSupplementState.Loading)
             var once = _pageInfo.value?.once
@@ -56,7 +57,8 @@ class AddSupplementViewModel @Inject constructor(
                 }
             }
             try {
-                val newPageInfo = topicRepository.addSupplement(args.topicId, value, once!!)
+                val newPageInfo =
+                    topicRepository.addSupplement(args.topicId, text, contentFormat, once!!)
                 _pageInfo.emit(newPageInfo)
                 _addSupplementState.emit(AddSupplementState.Error(null))
             } catch (e: Exception) {

@@ -11,14 +11,18 @@ import androidx.compose.ui.Modifier
 
 @Composable
 fun LoadingImage(modifier: Modifier = Modifier) {
-    Box(modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant)) {
+    Box(
+        modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant),
+    ) {
         CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
     }
 }
 
 @Composable
 fun ErrorImage(modifier: Modifier = Modifier, error: Throwable? = null) {
-    Box(modifier = modifier.background(MaterialTheme.colorScheme.errorContainer)) {
+    Box(
+        modifier = modifier.background(MaterialTheme.colorScheme.errorContainer),
+    ) {
         Text(
             "加载出错，请重试",
             color = MaterialTheme.colorScheme.onErrorContainer,

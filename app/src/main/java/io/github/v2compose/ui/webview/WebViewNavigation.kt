@@ -9,7 +9,7 @@ import androidx.navigation.navArgument
 import com.google.accompanist.navigation.animation.composable
 
 private const val argsUrl = "url"
-private const val webViewRoute = "/webview?$argsUrl={$argsUrl}"
+const val webViewNavigationRoute = "/webview?$argsUrl={$argsUrl}"
 
 fun NavController.navigateToWebView(url: String) {
     val encodeUrl = Uri.encode(url)
@@ -19,7 +19,7 @@ fun NavController.navigateToWebView(url: String) {
 @OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.webViewScreen(onCloseClick: () -> Unit, openUri:(String) -> Unit) {
     composable(
-        webViewRoute,
+        webViewNavigationRoute,
         arguments = listOf(navArgument(argsUrl) { type = NavType.StringType })
     ) {
         val url = Uri.decode(it.arguments?.getString(argsUrl)) ?: ""

@@ -12,7 +12,7 @@ import io.github.v2compose.core.StringDecoder
 
 private const val argsCurrent = "current"
 private const val argsPics = "pics"
-private const val galleryRoute = "/gallery?$argsCurrent={$argsCurrent}&$argsPics={$argsPics}"
+const val galleryNavigationRoute = "/gallery?$argsCurrent={$argsCurrent}&$argsPics={$argsPics}"
 
 data class GalleryScreenArgs(val current: String, val pics: List<String>) {
     constructor(savedStateHandle: SavedStateHandle, stringDecoder: StringDecoder) :
@@ -34,7 +34,7 @@ fun NavController.navigateToGallery(current: String, pics: List<String>) {
 @OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.galleryScreen(onBackClick: () -> Unit) {
     composable(
-        galleryRoute,
+        galleryNavigationRoute,
         arguments = listOf(
             navArgument(argsCurrent) { type = NavType.StringType },
             navArgument(argsPics) { type = NavType.StringType },

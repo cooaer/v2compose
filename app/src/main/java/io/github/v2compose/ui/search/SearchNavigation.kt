@@ -12,7 +12,7 @@ import io.github.v2compose.core.StringDecoder
 import io.github.v2compose.network.bean.SoV2EXSearchResultInfo
 
 private const val argsKeyword = "keyword"
-private const val searchScreenRoute = "/search?keyword={$argsKeyword}"
+const val searchScreenNavigationRoute = "/search?keyword={$argsKeyword}"
 
 data class SearchArgs(val keyword: String?) {
     constructor(savedStateHandle: SavedStateHandle, stringDecoder: StringDecoder) : this(
@@ -31,7 +31,7 @@ fun NavGraphBuilder.searchScreen(
     onTopicClick: (SoV2EXSearchResultInfo.Hit) -> Unit
 ) {
     composable(
-        route = searchScreenRoute,
+        route = searchScreenNavigationRoute,
         arguments = listOf(navArgument(argsKeyword) {
             type = NavType.StringType
             nullable = true

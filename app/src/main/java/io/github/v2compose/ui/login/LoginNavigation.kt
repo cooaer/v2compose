@@ -6,7 +6,7 @@ import androidx.navigation.*
 import com.google.accompanist.navigation.animation.composable
 
 private const val argsNext = "next"
-private const val loginRoute = "/signin?next={$argsNext}"
+const val loginNavigationRoute = "/signin?next={$argsNext}"
 
 fun NavController.navigateToLogin(
     next: String? = null,
@@ -22,7 +22,7 @@ fun NavGraphBuilder.loginScreen(
     onSignInWithGoogleClick: (String) -> Unit,
 ) {
     composable(
-        route = loginRoute,
+        route = loginNavigationRoute,
         arguments = listOf(navArgument(argsNext) {
             type = NavType.StringType
             nullable = true

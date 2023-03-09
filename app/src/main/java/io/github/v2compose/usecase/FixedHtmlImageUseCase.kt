@@ -63,13 +63,14 @@ class FixedHtmlImageUseCase @Inject constructor(@ApplicationContext private val 
         val size = if (srcUri?.lastPathSegment?.endsWith("svg") == true) {
             Size.ORIGINAL
         } else {
-            Size(screenWidth, coil.size.Dimension.Undefined)
+            Size(coil.size.Dimension.Undefined, coil.size.Dimension.Undefined)
+//            Size(screenWidth, coil.size.Dimension.Undefined)
         }
 
         return ImageRequest.Builder(context)
             .data(src)
             .size(size)
-            .scale(Scale.FILL)
+            .scale(Scale.FIT)
             .build()
     }
 

@@ -9,6 +9,7 @@ import io.github.v2compose.network.bean.TopicNode
 data class DraftTopic(
     val title: String = "",
     val content: String = "",
+    val contentFormat: ContentFormat = ContentFormat.Original,
     val node: TopicNode? = null,
 ) {
 
@@ -29,3 +30,7 @@ data class DraftTopic(
     }
 }
 
+
+enum class ContentFormat {
+    Original, Markdown
+}

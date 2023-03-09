@@ -32,12 +32,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.v2compose.R
+import io.github.v2compose.bean.ContentFormat
 import io.github.v2compose.bean.DraftTopic
 import io.github.v2compose.network.bean.CreateTopicPageInfo
 import io.github.v2compose.network.bean.TopicNode
 import io.github.v2compose.ui.common.CloseButton
 import io.github.v2compose.ui.common.HtmlAlertDialog
 import io.github.v2compose.ui.common.ListDivider
+import io.github.v2compose.ui.common.TextEditor
 
 @Composable
 fun WriteTopicScreenRoute(
@@ -67,9 +69,9 @@ fun WriteTopicScreenRoute(
         snackbarHostState = screenState.snackbarHostState,
         onCloseClick = onCloseClick,
         onTopicChanged = viewModel::saveDraftTopic,
-        onSendClick = { title, content, node ->
+        onSendClick = { title, content, contentFormat, node ->
             if (screenState.check(title, content, node)) {
-                viewModel.createTopic(title, content.trim(), node!!.id)
+                viewModel.createTopic(title, content.trim(), contentFormat, node!!.id)
             }
         },
         retryLoadingNodes = viewModel::loadNodes,
@@ -84,12 +86,13 @@ private fun WriteTopicScreen(
     loadNodesState: LoadNodesState,
     snackbarHostState: SnackbarHostState,
     onCloseClick: () -> Unit,
-    onTopicChanged: (String, String, TopicNode?) -> Unit,
-    onSendClick: (title: String, content: String, node: TopicNode?) -> Unit,
+    onTopicChanged: (String, String, ContentFormat, TopicNode?) -> Unit,
+    onSendClick: (title: String, content: String, contentFormat: ContentFormat, node: TopicNode?) -> Unit,
     retryLoadingNodes: () -> Unit,
 ) {
     var title by rememberSaveable { mutableStateOf(initialDraftTopic.title) }
     var content by rememberSaveable { mutableStateOf(initialDraftTopic.content) }
+    var contentFormat by rememberSaveable { mutableStateOf(initialDraftTopic.contentFormat) }
     var node by rememberSaveable() { mutableStateOf(initialDraftTopic.node) }
 
     var showNodes by remember { mutableStateOf(false) }
@@ -105,12 +108,11 @@ private fun WriteTopicScreen(
                 TopBar(
                     createTopicState = createTopicState,
                     onCloseClick = onCloseClick,
-                    onSendClick = { onSendClick(title, content, node) },
+                    onSendClick = { onSendClick(title, content, contentFormat, node) },
                 )
             },
             contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
-            snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-        ) { insets ->
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { insets ->
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -124,7 +126,7 @@ private fun WriteTopicScreen(
                         title = title,
                         onTitleChanged = {
                             title = it
-                            onTopicChanged(title, content, node)
+                            onTopicChanged(title, content, contentFormat, node)
                         },
                         onNextAction = { contentFocusRequester.requestFocus() },
                         modifier = Modifier.focusRequester(titleFocusRequester),
@@ -132,30 +134,42 @@ private fun WriteTopicScreen(
 
                     ListDivider()
 
-                    TopicContentField(
-                        content = content,
-                        onContentChanged = {
-                            content = it
-                            onTopicChanged(title, content, node)
-                        },
-                        modifier = Modifier
-                            .focusRequester(contentFocusRequester)
-                            .weight(1f)
-                    )
+                    Box(modifier = Modifier.weight(1f)) {
+                        TextEditor(
+                            content = content,
+                            placeholder = stringResource(R.string.topic_content_placeholder),
+                            contentFormat = contentFormat,
+                            onContentChanged = {
+                                content = it
+                                onTopicChanged(title, content, contentFormat, node)
+                            },
+                            onContentFormatChanged = {
+                                contentFormat = it
+                                onTopicChanged(title, content, contentFormat, node)
+                            },
+                            contentFocusRequester = contentFocusRequester,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(bottom = 40.dp),
+                        )
 
-                    TopicNodeField(
-                        loadNodesState = loadNodesState,
-                        node = node,
-                        onNodeClick = {
-                            showNodes = true
-                            if (loadNodesState !is LoadNodesState.Success) {
-                                retryLoadingNodes()
-                            }
-                        },
-                    )
+                        TopicNodeField(
+                            loadNodesState = loadNodesState,
+                            node = node,
+                            onNodeClick = {
+                                showNodes = true
+                                if (loadNodesState !is LoadNodesState.Success) {
+                                    retryLoadingNodes()
+                                }
+                            },
+                            modifier = Modifier.align(Alignment.BottomCenter)
+                        )
+                    }
 
                     LaunchedEffect(showNodes) {
-                        titleFocusRequester.requestFocus()
+                        if (!showNodes) {
+                            titleFocusRequester.requestFocus()
+                        }
                     }
                 }
             }
@@ -168,7 +182,7 @@ private fun WriteTopicScreen(
                 onNodeClick = {
                     showNodes = false
                     node = it
-                    onTopicChanged(title, content, node)
+                    onTopicChanged(title, content, contentFormat, node)
                 },
                 onDismiss = { showNodes = false },
             )
@@ -195,9 +209,10 @@ private fun TopicTitleField(
             textFieldValue = it
             onTitleChanged(it.text)
         },
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = 80.dp),
+        modifier = modifier.fillMaxWidth(),
+//        modifier = modifier
+//            .fillMaxWidth()
+//            .heightIn(min = 80.dp),
         keyboardActions = KeyboardActions(onNext = { onNextAction() }),
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         colors = TextFieldDefaults.textFieldColors(
@@ -218,9 +233,7 @@ private fun TopicTitleField(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopicContentField(
-    content: String,
-    onContentChanged: (String) -> Unit,
-    modifier: Modifier = Modifier
+    content: String, onContentChanged: (String) -> Unit, modifier: Modifier = Modifier
 ) {
     var textFieldValue by remember {
         mutableStateOf(TextFieldValue(content, TextRange(content.length)))
@@ -232,8 +245,7 @@ fun TopicContentField(
             textFieldValue = it
             onContentChanged(it.text)
         },
-        modifier = modifier
-            .fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         colors = TextFieldDefaults.textFieldColors(
             errorIndicatorColor = Color.Transparent,
             focusedIndicatorColor = Color.Transparent,
@@ -251,12 +263,11 @@ fun TopicContentField(
     )
 }
 
+
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 private fun TopBar(
-    createTopicState: CreateTopicState,
-    onCloseClick: () -> Unit,
-    onSendClick: () -> Unit
+    createTopicState: CreateTopicState, onCloseClick: () -> Unit, onSendClick: () -> Unit
 ) {
     CenterAlignedTopAppBar(
         title = { Text(stringResource(id = R.string.create_topic)) },
@@ -291,8 +302,7 @@ private fun SendButton(
 
 @Composable
 private fun HandleLoadNodesState(
-    loadNodesState: LoadNodesState,
-    screenState: WriteTopicScreenState
+    loadNodesState: LoadNodesState, screenState: WriteTopicScreenState
 ) {
     if (loadNodesState is LoadNodesState.Error) {
         LaunchedEffect(loadNodesState) {
@@ -343,11 +353,13 @@ private fun TopicNodeField(
     loadNodesState: LoadNodesState,
     node: TopicNode?,
     onNodeClick: (TopicNode?) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .background(color = MaterialTheme.colorScheme.background)
+            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -359,15 +371,13 @@ private fun TopicNodeField(
                     color = MaterialTheme.colorScheme.surfaceVariant,
                     shape = RoundedCornerShape(20.dp)
                 )
-                .clickable { onNodeClick(node) }
+                .clickable { onNodeClick(node) },
         ) {
             val contentColor = MaterialTheme.colorScheme.onSurfaceVariant
             Spacer(Modifier.width(12.dp))
             if (loadNodesState is LoadNodesState.Loading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = contentColor,
-                    strokeWidth = 2.dp
+                    modifier = Modifier.size(24.dp), color = contentColor, strokeWidth = 2.dp
                 )
             } else {
                 Icon(Icons.Rounded.Polyline, contentDescription = "node", tint = contentColor)
@@ -399,27 +409,25 @@ private fun SelectNode(
     LaunchedEffect(nodes, searchKey) {
         currentNodes = if (searchKey.isEmpty()) nodes else {
             nodes.filter { node ->
-                node.name.contains(searchKey, true)
-                        || node.id.contains(searchKey, true)
-                        || node.aliases.any { it.contains(searchKey, true) }
+                node.name.contains(searchKey, true) || node.id.contains(
+                    searchKey, true
+                ) || node.aliases.any { it.contains(searchKey, true) }
             }
         }
     }
 
-    Box(
-        modifier = Modifier
-            .clickable { onDismiss() }
-            .background(color = MaterialTheme.colorScheme.inverseSurface.copy(alpha = ContentAlpha.medium))
-            .systemBarsPadding()
-            .imePadding()
-            .padding(32.dp)
-    ) {
+    Box(modifier = Modifier
+        .clickable { onDismiss() }
+        .background(color = MaterialTheme.colorScheme.inverseSurface.copy(alpha = ContentAlpha.medium))
+        .systemBarsPadding()
+        .imePadding()
+        .padding(32.dp)) {
         Box(
             modifier = Modifier
+                .fillMaxSize()
                 .imePadding()
                 .background(
-                    color = MaterialTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(8.dp)
+                    color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(8.dp)
                 )
                 .padding(vertical = 16.dp)
         ) {
@@ -454,8 +462,7 @@ private fun SelectNode(
 
 @Composable
 private fun NodeListItem(
-    item: TopicNode,
-    onNodeClick: (TopicNode) -> Unit
+    item: TopicNode, onNodeClick: (TopicNode) -> Unit
 ) {
     Text(
         "${item.name} / ${item.id}",

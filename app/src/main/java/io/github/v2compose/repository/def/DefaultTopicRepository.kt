@@ -4,8 +4,8 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import io.github.v2compose.V2exUri
+import io.github.v2compose.bean.ContentFormat
 import io.github.v2compose.bean.DraftTopic
-import io.github.v2compose.core.extension.isRedirect
 import io.github.v2compose.datasource.AccountPreferences
 import io.github.v2compose.datasource.AppPreferences
 import io.github.v2compose.datasource.SearchPagingSource
@@ -103,8 +103,13 @@ class DefaultTopicRepository @Inject constructor(
     override val draftTopic: Flow<DraftTopic>
         get() = accountPreferences.draftTopic
 
-    override suspend fun saveDraftTopic(title: String, content: String, node: TopicNode?) {
-        accountPreferences.draftTopic(DraftTopic(title, content, node))
+    override suspend fun saveDraftTopic(
+        title: String,
+        content: String,
+        contentFormat: ContentFormat,
+        node: TopicNode?
+    ) {
+        accountPreferences.draftTopic(DraftTopic(title, content, contentFormat, node))
     }
 
     override suspend fun getCreateTopicPageInfo(): CreateTopicPageInfo {
@@ -118,17 +123,22 @@ class DefaultTopicRepository @Inject constructor(
     override suspend fun createTopic(
         title: String,
         content: String,
+        contentFormat: ContentFormat,
         nodeId: String,
         once: String
     ): CreateTopicPageInfo {
         //syntax, default:v2ex原生格式，markdown:Markdown格式
+        val syntax = when (contentFormat) {
+            ContentFormat.Original -> "default"
+            ContentFormat.Markdown -> "markdown"
+        }
         val params =
             mapOf(
                 "title" to title,
                 "content" to content,
                 "node_name" to nodeId,
                 "once" to once,
-                "syntax" to "default",
+                "syntax" to syntax,
             )
         return v2exService.createTopic(params)
     }
@@ -141,9 +151,15 @@ class DefaultTopicRepository @Inject constructor(
     override suspend fun addSupplement(
         topicId: String,
         supplement: String,
+        contentFormat: ContentFormat,
         once: String
     ): AppendTopicPageInfo {
-        val params = mapOf("once" to once, "content" to supplement)
+        //syntax, 0: default, 1:markdown
+        val syntax = when (contentFormat) {
+            ContentFormat.Original -> 0
+            ContentFormat.Markdown -> 1
+        }
+        val params = mapOf("once" to once, "content" to supplement, "syntax" to syntax.toString())
         return v2exService.appendTopic(topicId, params)
     }
 }

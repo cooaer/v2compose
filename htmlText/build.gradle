@@ -59,9 +59,6 @@ dependencies {
     debugImplementation "androidx.compose.ui:ui-test-manifest"
 
     implementation 'org.jsoup:jsoup:1.15.1'
-    implementation 'com.github.bumptech.glide:glide:4.14.2'
-    implementation "com.github.bumptech.glide:compose:1.0.0-alpha.1"
-    kapt 'com.github.bumptech.glide:compiler:4.14.2'
 
     implementation("io.coil-kt:coil-compose:2.2.2")
     implementation 'com.pierfrancescosoffritti.androidyoutubeplayer:core:11.1.0'

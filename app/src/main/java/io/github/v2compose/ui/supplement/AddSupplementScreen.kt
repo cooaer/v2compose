@@ -17,10 +17,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.v2compose.R
+import io.github.v2compose.bean.ContentFormat
 import io.github.v2compose.network.bean.AppendTopicPageInfo
 import io.github.v2compose.ui.common.CloseButton
 import io.github.v2compose.ui.common.HtmlAlertDialog
 import io.github.v2compose.ui.common.TextAlertDialog
+import io.github.v2compose.ui.common.TextEditor
 
 @Composable
 fun AddSupplementScreenRoute(
@@ -50,9 +52,11 @@ fun AddSupplementScreenRoute(
 private fun AddSupplementScreen(
     addSupplementState: AddSupplementState,
     onCloseClick: () -> Unit,
-    onAddSupplementClick: (String) -> Unit,
+    onAddSupplementClick: (String, ContentFormat) -> Unit,
 ) {
+    val focusRequester = remember { FocusRequester() }
     var supplement by rememberSaveable { mutableStateOf("") }
+    var contentFormat by rememberSaveable { mutableStateOf(ContentFormat.Original) }
 
     AddSupplementBackHandler(supplement, onCloseClick)
 
@@ -62,7 +66,9 @@ private fun AddSupplementScreen(
                 navigationIcon = { CloseButton(onClick = onCloseClick) },
                 title = { Text(stringResource(id = R.string.add_supplement)) },
                 actions = {
-                    AddSupplementButton(addSupplementState) { onAddSupplementClick(supplement) }
+                    AddSupplementButton(addSupplementState) {
+                        onAddSupplementClick(supplement, contentFormat)
+                    }
                 }
             )
         },
@@ -73,12 +79,24 @@ private fun AddSupplementScreen(
                 .padding(contentPadding)
                 .fillMaxSize()
         ) {
-            WriteSupplementField(
-                supplement,
-                onTextChanged = { supplement = it },
-                modifier = Modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
+//            WriteSupplementField(
+//                supplement,
+//                onTextChanged = { supplement = it },
+//                modifier = Modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
+//            )
+            TextEditor(
+                content = supplement,
+                placeholder = stringResource(id = R.string.add_supplement_tips),
+                contentFormat = contentFormat,
+                onContentChanged = { supplement = it },
+                onContentFormatChanged = { contentFormat = it },
+                contentFocusRequester = focusRequester
             )
         }
+    }
+
+    LaunchedEffect(true) {
+        focusRequester.requestFocus()
     }
 }
 

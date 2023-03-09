@@ -1,6 +1,7 @@
 package io.github.v2compose.repository
 
 import androidx.paging.PagingData
+import io.github.v2compose.bean.ContentFormat
 import io.github.v2compose.bean.DraftTopic
 import io.github.v2compose.network.bean.*
 import kotlinx.coroutines.flow.Flow
@@ -40,7 +41,7 @@ interface TopicRepository {
 
     val draftTopic: Flow<DraftTopic>
 
-    suspend fun saveDraftTopic(title: String, content: String, node: TopicNode?)
+    suspend fun saveDraftTopic(title: String, content: String, contentFormat: ContentFormat, node: TopicNode?)
 
     suspend fun getCreateTopicPageInfo(): CreateTopicPageInfo
 
@@ -49,6 +50,7 @@ interface TopicRepository {
     suspend fun createTopic(
         title: String,
         content: String,
+        contentFormat: ContentFormat,
         nodeId: String,
         once: String
     ): CreateTopicPageInfo
@@ -58,6 +60,7 @@ interface TopicRepository {
     suspend fun addSupplement(
         topicId: String,
         supplement: String,
+        contentFormat: ContentFormat,
         once: String
     ): AppendTopicPageInfo
 }

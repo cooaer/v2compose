@@ -60,7 +60,7 @@ dependencies {
     def lifecycle_version = '2.6.0-alpha04'
     def hiltVersion = "2.44.2"
     def hiltAndroidXVersion = "1.1.0-alpha01"
-    def paging_version = "3.1.1"
+    def paging_version = "3.2.0-alpha04"
 
     implementation project(":htmlText")
 
@@ -70,7 +70,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-runtime-compose:$lifecycle_version"
     implementation 'androidx.activity:activity-compose:1.6.1'
-    implementation "androidx.annotation:annotation:1.5.0"
+    implementation "androidx.annotation:annotation:1.6.0"
     implementation "androidx.navigation:navigation-compose:$nav_version"
 
     implementation "com.google.dagger:hilt-android:$hiltVersion"
@@ -84,9 +84,9 @@ dependencies {
     implementation "com.google.accompanist:accompanist-webview:$accompanist_version"
 
     implementation("androidx.paging:paging-runtime:$paging_version")
-    implementation("androidx.paging:paging-compose:1.0.0-alpha17")
+    implementation("androidx.paging:paging-compose:1.0.0-alpha18")
 
-    implementation "androidx.browser:browser:1.4.0"
+    implementation "androidx.browser:browser:1.5.0"
 
     implementation "androidx.datastore:datastore-preferences:1.0.0"
 
@@ -142,6 +142,15 @@ dependencies {
     implementation "me.onebone:toolbar-compose:2.3.5"
 
     implementation("org.greenrobot:eventbus:3.3.1")
+
+    //markdown
+    final def markwon_version = '4.6.2'
+    implementation "io.noties.markwon:core:$markwon_version"
+    implementation "io.noties.markwon:ext-strikethrough:$markwon_version"
+    implementation "io.noties.markwon:ext-tables:$markwon_version"
+    implementation "io.noties.markwon:html:$markwon_version"
+    implementation "io.noties.markwon:image-coil:$markwon_version"
+    implementation "io.noties.markwon:inline-parser:$markwon_version"
 
 }
 

@@ -204,6 +204,11 @@
     <string name="load_nodes_failure">加载节点列表失败</string>
     <string name="select_node">选择节点</string>
     <string name="search_all_nodes">搜索全部节点</string>
+
+    <string name="content_body">正文</string>
+    <string name="content_preview">预览</string>
+    <string name="content_format_original">原生格式</string>
+    <string name="content_format_markdown">Markdown</string>
     <!-- Write Topic Screen End-->
 
     <!-- Add Supplement Screen Start -->

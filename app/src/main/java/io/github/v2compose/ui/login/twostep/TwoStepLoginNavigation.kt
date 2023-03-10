@@ -5,10 +5,10 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import com.google.accompanist.navigation.animation.composable
 
-private const val twoStepLoginRoute = "/2fa"
+const val twoStepLoginNavigationRoute = "/2fa"
 
 fun NavController.navigateToTwoStepLogin() {
-    navigate(twoStepLoginRoute)
+    navigate(twoStepLoginNavigationRoute)
 }
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -16,7 +16,7 @@ fun NavGraphBuilder.twoStepLoginScreen(
     onCloseClick: () -> Unit,
 ) {
     composable(
-        twoStepLoginRoute,
+        twoStepLoginNavigationRoute,
     ) {
         TwoStepLoginScreenRoute(
             onCloseClick = onCloseClick,

@@ -9,7 +9,7 @@ import androidx.navigation.navArgument
 import com.google.accompanist.navigation.animation.composable
 
 private const val argsTopicId = "topicId"
-private const val addSupplementRoute = "/append/topic/{$argsTopicId}"
+const val addSupplementNavigationRoute = "/append/topic/{$argsTopicId}"
 
 class AddSupplementArgs(val topicId: String) {
     constructor(savedStateHandle: SavedStateHandle) : this(
@@ -30,7 +30,7 @@ fun NavGraphBuilder.addSupplementScreen(
     openUri: (String) -> Unit,
 ) {
     composable(
-        addSupplementRoute,
+        addSupplementNavigationRoute,
         arguments = listOf(navArgument(argsTopicId) { type = NavType.StringType })
     ) {
         AddSupplementScreenRoute(

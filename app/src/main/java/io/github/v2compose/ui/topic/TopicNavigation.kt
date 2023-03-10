@@ -10,9 +10,7 @@ import io.github.v2compose.ui.common.OnHtmlImageClick
 
 private const val argTopicId: String = "topicId"
 
-private const val topicNavigationRoute = "/t/{$argTopicId}"
-
-fun topicRoute(topicId: String) = "/t/$topicId"
+const val topicNavigationRoute = "/t/{$argTopicId}"
 
 class TopicArgs(val topicId: String) {
     constructor(savedStateHandle: SavedStateHandle, stringDecoder: StringDecoder) : this(

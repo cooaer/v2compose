@@ -9,7 +9,7 @@ import com.google.accompanist.navigation.animation.composable
 
 private const val argsOnce = "once"
 
-private const val googleLoginRoute = "/auth/google?$argsOnce={$argsOnce}"
+const val googleLoginNavigationRoute = "/auth/google?$argsOnce={$argsOnce}"
 
 fun NavController.navigateToGoogleLogin(once: String) {
     navigate("/auth/google?$argsOnce=$once")
@@ -18,7 +18,7 @@ fun NavController.navigateToGoogleLogin(once: String) {
 @OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.googleLoginScreen(onCloseClick: () -> Unit, onLoginSuccess: () -> Unit) {
     composable(
-        googleLoginRoute,
+        googleLoginNavigationRoute,
         arguments = listOf(navArgument(argsOnce) { type = NavType.StringType })
     ) {
         val once = it.arguments?.getString(argsOnce) ?: ""

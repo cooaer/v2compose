@@ -1,5 +1,6 @@
 package io.github.v2compose
 
+import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,10 +24,11 @@ import io.github.v2compose.ui.search.navigateToSearch
 import io.github.v2compose.ui.search.searchScreen
 import io.github.v2compose.ui.settings.navigateToSettings
 import io.github.v2compose.ui.settings.settingsScreen
-import io.github.v2compose.ui.settings.settingsScreenRoute
+import io.github.v2compose.ui.settings.settingsScreenNavigationRoute
 import io.github.v2compose.ui.supplement.addSupplementScreen
 import io.github.v2compose.ui.supplement.navigateToAddSupplement
 import io.github.v2compose.ui.topic.navigateToTopic
+import io.github.v2compose.ui.topic.topicNavigationRoute
 import io.github.v2compose.ui.topic.topicScreen
 import io.github.v2compose.ui.user.navigateToUser
 import io.github.v2compose.ui.user.userScreen
@@ -34,6 +36,8 @@ import io.github.v2compose.ui.webview.navigateToWebView
 import io.github.v2compose.ui.webview.webViewScreen
 import io.github.v2compose.ui.write.navigateToWriteTopic
 import io.github.v2compose.ui.write.writeTopicScreen
+
+private const val TAG = "V2AppNavGraph"
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -97,7 +101,7 @@ fun V2AppNavGraph(
             openUri = appState::openUri,
             onLogoutSuccess = {
                 navController.navigateToLogin(navOptions = navOptions {
-                    popUpTo(settingsScreenRoute) {
+                    popUpTo(settingsScreenNavigationRoute) {
                         inclusive = true
                     }
                 })
@@ -130,7 +134,7 @@ fun V2AppNavGraph(
             onCloseClick = appState::back,
             onAddSupplementSuccess = {
                 navController.navigateToTopic(it, navOptions {
-                    popUpTo(V2exUri.topicPath(it)) {
+                    popUpTo(topicNavigationRoute) {
                         inclusive = true
                     }
                 })

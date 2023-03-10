@@ -14,7 +14,7 @@ import io.github.v2compose.network.bean.NodeTopicInfo
 private const val ArgsNodeId = "nodeId"
 private const val ArgsNodeName = "nodeName"
 
-private const val nodeNavigationRoute = "/go/{$ArgsNodeId}?nodeName={$ArgsNodeName}"
+const val nodeNavigationNavigationRoute = "/go/{$ArgsNodeId}?nodeName={$ArgsNodeName}"
 
 data class NodeArgs(val nodeId: String, val nodeName: String? = null) {
     constructor(
@@ -41,7 +41,7 @@ fun NavGraphBuilder.nodeScreen(
     openUri: (String) -> Unit,
 ) {
     composable(
-        route = nodeNavigationRoute,
+        route = nodeNavigationNavigationRoute,
         arguments = listOf(
             navArgument(ArgsNodeId) { type = NavType.StringType },
             navArgument(ArgsNodeName) {

@@ -14,7 +14,7 @@ import io.github.v2compose.ui.common.OnHtmlImageClick
 private const val argsUserName = "userName"
 private const val argsAvatar = "userAvatar"
 
-private const val userScreenRoute = "/member/{$argsUserName}?userAvatar={$argsAvatar}"
+const val userScreenNavigationRoute = "/member/{$argsUserName}?userAvatar={$argsAvatar}"
 
 data class UserArgs(val userName: String, val avatar: String? = null) {
     constructor(savedStateHandle: SavedStateHandle, stringDecoder: StringDecoder) : this(
@@ -38,7 +38,7 @@ fun NavGraphBuilder.userScreen(
     onHtmlImageClick: OnHtmlImageClick,
 ) {
     composable(
-        route = userScreenRoute,
+        route = userScreenNavigationRoute,
         arguments = listOf(
             navArgument(argsUserName) { type = NavType.StringType },
             navArgument(argsAvatar) {

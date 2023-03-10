@@ -5,10 +5,10 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import com.google.accompanist.navigation.animation.composable
 
-const val settingsScreenRoute = "/settings"
+const val settingsScreenNavigationRoute = "/settings"
 
 fun NavController.navigateToSettings() {
-    navigate(settingsScreenRoute)
+    navigate(settingsScreenNavigationRoute)
 }
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -17,7 +17,7 @@ fun NavGraphBuilder.settingsScreen(
     openUri: (String) -> Unit,
     onLogoutSuccess: () -> Unit
 ) {
-    composable(route = settingsScreenRoute) {
+    composable(route = settingsScreenNavigationRoute) {
         SettingsScreenRoute(
             onBackClick = onBackClick,
             openUri = openUri,

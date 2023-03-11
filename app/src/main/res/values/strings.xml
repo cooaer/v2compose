@@ -161,6 +161,7 @@
     <string name="logout_tips">确认退出帐号吗？</string>
     <string name="logout_success">您已退出帐号</string>
 
+
     <!-- Settings Screen End -->
 
     <!-- mine start -->
@@ -221,4 +222,13 @@
     <!-- Gallery Screen End-->
     <string name="save_image">保存</string>
     <!-- Gallery Screen End-->
+
+    <!-- Notifications start -->
+
+    <string name="auto_checking_in">自动签到中…</string>
+    <string name="request_notification_permission">申请通知权限</string>
+    <string name="request_notification_permission_message">后台自动签到时需要发送前台通知，请授予通知权限，否则无法在应用关闭后自动签到。</string>
+    <string name="notification_channel_auto_check_in">自动签到通知</string>
+
+    <!-- Notifications end -->
 </resources>

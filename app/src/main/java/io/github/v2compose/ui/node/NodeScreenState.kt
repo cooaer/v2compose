@@ -35,9 +35,9 @@ class NodeScreenState(
         val title = if (nodeUiState is NodeUiState.Success) {
             "V2EX > " + nodeUiState.nodeInfo.name + "\n" + nodeUiState.nodeInfo.title
         } else {
-            "V2EX > " + (nodeArgs.nodeName ?: "")
+            "V2EX > " + (nodeArgs.nodeTitle ?: "")
         }
-        val url = "https://www.v2ex.com/g/${nodeArgs.nodeId}"
+        val url = "https://www.v2ex.com/g/${nodeArgs.nodeName}"
         context.share(title = title, url = url)
     }
 

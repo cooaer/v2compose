@@ -43,8 +43,8 @@ class WriteTopicViewModel @Inject constructor(
                 if (local.node != null) local else
                     local.copy(
                         node = TopicNode(
-                            writeTopicArgs.nodeId ?: "",
                             writeTopicArgs.nodeName ?: "",
+                            writeTopicArgs.nodeTitle ?: "",
                         )
                     )
             }
@@ -72,7 +72,7 @@ class WriteTopicViewModel @Inject constructor(
     }
 
 
-    fun createTopic(title: String, content: String, contentFormat: ContentFormat, nodeId: String) {
+    fun createTopic(title: String, content: String, contentFormat: ContentFormat, nodeName: String) {
         viewModelScope.launch {
             val once: String =
                 _createTopicState.value.let { if (it is CreateTopicState.Failure) it.pageInfo.once else "" }
@@ -86,7 +86,7 @@ class WriteTopicViewModel @Inject constructor(
                     }
                     pageInfo.once
                 }
-                val result = topicRepository.createTopic(title, content, contentFormat, nodeId, currentOnce)
+                val result = topicRepository.createTopic(title, content, contentFormat, nodeName, currentOnce)
                 _createTopicState.emit(CreateTopicState.Failure(result))
             } catch (e: Exception) {
                 e.printStackTrace()

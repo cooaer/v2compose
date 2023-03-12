@@ -11,21 +11,21 @@ import com.google.accompanist.navigation.animation.composable
 import io.github.v2compose.core.StringDecoder
 
 private const val argsNode = "node"
-private const val argsNodeName = "node_name"
+private const val argsNodeTitle = "node_title"
 const val createTopicNavigationRoute =
-    "/write?$argsNode={$argsNode}&$argsNodeName={$argsNodeName}"
+    "/write?$argsNode={$argsNode}&$argsNodeTitle={$argsNodeTitle}"
 
-data class WriteTopicArgs(val nodeId: String?, val nodeName: String?) {
+data class WriteTopicArgs(val nodeName: String?, val nodeTitle: String?) {
     constructor(savedStateHandle: SavedStateHandle, stringDecoder: StringDecoder) : this(
         savedStateHandle.get<String>(argsNode)?.let { stringDecoder.decodeString(it) },
-        savedStateHandle.get<String>(argsNodeName)?.let { stringDecoder.decodeString(it) },
+        savedStateHandle.get<String>(argsNodeTitle)?.let { stringDecoder.decodeString(it) },
     )
 }
 
-fun NavController.navigateToWriteTopic(node: String? = null, nodeName: String? = null) {
+fun NavController.navigateToWriteTopic(node: String? = null, nodeTitle: String? = null) {
     val encodedNode = Uri.encode(node) ?: ""
-    val encodedNodeName = Uri.encode(nodeName) ?: ""
-    navigate("/write?$argsNode=$encodedNode&$argsNodeName=$encodedNodeName")
+    val encodedNodeTitle = Uri.encode(nodeTitle) ?: ""
+    navigate("/write?$argsNode=$encodedNode&$argsNodeTitle=$encodedNodeTitle")
 }
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -38,7 +38,7 @@ fun NavGraphBuilder.writeTopicScreen(
         route = createTopicNavigationRoute,
         arguments = listOf(
             navArgument(argsNode) { type = NavType.StringType },
-            navArgument(argsNodeName) { type = NavType.StringType },
+            navArgument(argsNodeTitle) { type = NavType.StringType },
         )
     ) {
         WriteTopicScreenRoute(

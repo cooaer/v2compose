@@ -11,15 +11,15 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun NodeTag(
-    nodeId: String,
     nodeName: String,
+    nodeTitle: String,
     onItemClick: ((String, String) -> Unit)? = null
 ) {
     Text(
-        nodeName,
+        nodeTitle,
         modifier = Modifier
             .clickable(enabled = onItemClick != null) {
-                onItemClick?.invoke(nodeId, nodeName)
+                onItemClick?.invoke(nodeName, nodeTitle)
             }
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(horizontal = 8.dp, vertical = 4.dp),

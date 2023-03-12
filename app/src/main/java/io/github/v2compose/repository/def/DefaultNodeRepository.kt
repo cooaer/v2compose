@@ -10,7 +10,6 @@ import io.github.v2compose.datasource.NodePagingSource
 import io.github.v2compose.network.V2exService
 import io.github.v2compose.network.bean.NodeInfo
 import io.github.v2compose.network.bean.NodeTopicInfo
-import io.github.v2compose.network.bean.NodesInfo
 import io.github.v2compose.network.bean.NodesNavInfo
 import io.github.v2compose.repository.NodeRepository
 import kotlinx.coroutines.flow.Flow
@@ -21,9 +20,9 @@ class DefaultNodeRepository @Inject constructor(
     private val appStateStore: AppStateStore,
 ) : NodeRepository {
 
-    override suspend fun getNodes(): NodesInfo {
-        return v2exService.nodes()
-    }
+    override suspend fun getNodes() = v2exService.nodes()
+
+    override suspend fun getAllNodes() = v2exService.allNodes()
 
     override val nodesNavInfo: Flow<NodesNavInfo?>
         get() = appStateStore.nodesNavInfo
@@ -34,22 +33,22 @@ class DefaultNodeRepository @Inject constructor(
         }
     }
 
-    override suspend fun getNodeInfo(nodeId: String): NodeInfo {
-        return v2exService.nodeInfo(nodeId)
+    override suspend fun getNodeInfo(nodeName: String): NodeInfo {
+        return v2exService.nodeInfo(nodeName)
     }
 
-    override fun getNodeTopicInfo(nodeId: String): Flow<PagingData<Any>> {
-        return Pager(PagingConfig(pageSize = 10)) { NodePagingSource(nodeId, v2exService) }.flow
+    override fun getNodeTopicInfo(nodeName: String): Flow<PagingData<Any>> {
+        return Pager(PagingConfig(pageSize = 10)) { NodePagingSource(nodeName, v2exService) }.flow
     }
 
-    override suspend fun doNodeAction(nodeId: String, actionUrl: String): NodeTopicInfo {
-        val nodeUrl = V2exUri.nodeUrl(nodeId)
+    override suspend fun doNodeAction(nodeName: String, actionUrl: String): NodeTopicInfo {
+        val nodeUrl = V2exUri.nodeUrl(nodeName)
         return try {
             v2exService.nodeAction(nodeUrl, actionUrl)
         } catch (e: Exception) {
             e.printStackTrace()
             if (e.isRedirect(nodeUrl)) {
-                v2exService.nodesInfo(nodeId, 1)
+                v2exService.nodesInfo(nodeName, 1)
             } else {
                 throw e
             }

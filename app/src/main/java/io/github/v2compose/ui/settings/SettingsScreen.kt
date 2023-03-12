@@ -1,5 +1,8 @@
 package io.github.v2compose.ui.settings
 
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -25,10 +28,10 @@ import io.github.v2compose.bean.AppSettings
 import io.github.v2compose.bean.DarkMode
 import io.github.v2compose.bean.ProxyInfo
 import io.github.v2compose.bean.ProxyType
+import io.github.v2compose.core.NotificationCenter
 import io.github.v2compose.network.bean.Release
 import io.github.v2compose.ui.common.*
-import io.github.v2compose.ui.settings.compoables.SelectProxyDialog
-import io.github.v2compose.ui.settings.compoables.titleResId
+import io.github.v2compose.ui.settings.compoables.*
 import kotlinx.coroutines.launch
 
 @Composable
@@ -39,6 +42,7 @@ fun SettingsScreenRoute(
     viewModel: SettingsViewModel = hiltViewModel(),
     settingsScreenState: SettingsScreenState = rememberSettingsScreenState()
 ) {
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     var newRelease by rememberSaveable(
@@ -54,39 +58,21 @@ fun SettingsScreenRoute(
     val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
 
     if (newRelease.isValid()) {
-        NewReleaseDialog(
-            release = newRelease,
-            onIgnoreClick = {
-                viewModel.ignoreRelease(newRelease)
-                newRelease = Release.Empty
-            },
-            onCancelClick = { newRelease = Release.Empty },
-            onOkClick = {
-                openUri(newRelease.htmlUrl)
-                newRelease = Release.Empty
-            }
-        )
+        NewReleaseDialog(release = newRelease, onIgnoreClick = {
+            viewModel.ignoreRelease(newRelease)
+            newRelease = Release.Empty
+        }, onCancelClick = { newRelease = Release.Empty }, onOkClick = {
+            openUri(newRelease.htmlUrl)
+            newRelease = Release.Empty
+        })
     }
 
-    var showClearCacheDialog by remember { mutableStateOf(false) }
-    if (showClearCacheDialog) {
-        TextAlertDialog(
-            title = stringResource(id = R.string.settings_clear_cache),
-            message = stringResource(id = R.string.clear_cache_tips),
-            onConfirm = {
-                showClearCacheDialog = false
-                viewModel.clearCache()
-            },
-            onDismiss = { showClearCacheDialog = false })
-    }
-
-    SettingsScreen(
-        isLoggedIn = isLoggedIn,
+    SettingsScreen(isLoggedIn = isLoggedIn,
         cacheSize = cacheSize,
         appSettings = appSettings,
         proxyInfo = proxyInfo,
         onBackClick = onBackClick,
-        onClearCacheClick = { showClearCacheDialog = true },
+        onClearCacheClick = viewModel::clearCache,
         onAutoCheckInChanged = viewModel::updateAutoCheckIn,
         onOpenInBrowserChanged = viewModel::setOpenInInternalBrowser,
         onDarkModeChanged = viewModel::setDarkMode,
@@ -100,7 +86,7 @@ fun SettingsScreenRoute(
             coroutineScope.launch {
                 settingsScreenState.checkForUpdates(
                     checkForUpdates = viewModel.checkForUpdates::invoke,
-                    onNewRelease = { newRelease = it }
+                    onNewRelease = { newRelease = it },
                 )
             }
         },
@@ -109,8 +95,7 @@ fun SettingsScreenRoute(
                 viewModel.logout()
                 onLogoutSuccess()
             }
-        }
-    )
+        })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -144,26 +129,8 @@ private fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             PreferenceGroupTitle(title = stringResource(id = R.string.settings_common))
-            ClickablePreference(
-                title = stringResource(id = R.string.settings_clear_cache),
-                summary = stringResource(id = R.string.settings_clear_cache_summary, cacheSize),
-                onPreferenceClick = onClearCacheClick
-            )
-            SwitchPreference(
-                title = stringResource(R.string.settings_auto_check_in),
-                summary = stringResource(R.string.settings_auto_check_in_description),
-                checked = appSettings.autoCheckIn,
-                onCheckedChange = onAutoCheckInChanged,
-            )
-//            DropdownPreference(
-//                title = stringResource(id = R.string.settings_open_in_browser),
-//                entries = listOf(
-//                    stringResource(id = R.string.settings_internal_browser),
-//                    stringResource(id = R.string.settings_external_browser),
-//                ),
-//                selectedIndex = if (appSettings.openInInternalBrowser) 0 else 1,
-//                onEntryClick = { selectedIndex -> onOpenInBrowserChanged(selectedIndex == 0) },
-//            )
+            ClearCachePreference(cacheSize, onClearCacheClick)
+            AutoCheckInPreference(appSettings, onAutoCheckInChanged)
             PreferenceGroupTitle(title = stringResource(id = R.string.settings_appearance))
             DropdownPreference(
                 title = stringResource(id = R.string.settings_dark_mode),
@@ -194,13 +161,10 @@ private fun SettingsScreen(
                 onProxyChanged = onProxyChanged
             )
             PreferenceGroupTitle(title = stringResource(id = R.string.settings_other))
-            ClickablePreference(
-                title = stringResource(id = R.string.settings_open_source),
+            ClickablePreference(title = stringResource(id = R.string.settings_open_source),
                 summary = Constants.source,
-                onPreferenceClick = { onSourceClick(Constants.source) }
-            )
-            ClickablePreference(
-                title = stringResource(id = R.string.settings_issues),
+                onPreferenceClick = { onSourceClick(Constants.source) })
+            ClickablePreference(title = stringResource(id = R.string.settings_issues),
                 summary = Constants.issues,
                 onPreferenceClick = { onIssuesClick(Constants.issues) })
             ClickablePreference(
@@ -221,6 +185,92 @@ private fun SettingsScreen(
     }
 }
 
+@Composable
+private fun ClearCachePreference(cacheSize: Long, onClearCacheClick: () -> Unit) {
+    var showClearCacheDialog by remember { mutableStateOf(false) }
+    if (showClearCacheDialog) {
+        TextAlertDialog(title = stringResource(id = R.string.settings_clear_cache),
+            message = stringResource(id = R.string.clear_cache_tips),
+            onConfirm = {
+                showClearCacheDialog = false
+                onClearCacheClick()
+            },
+            onDismiss = { showClearCacheDialog = false })
+    }
+
+    ClickablePreference(
+        title = stringResource(id = R.string.settings_clear_cache),
+        summary = stringResource(id = R.string.settings_clear_cache_summary, cacheSize),
+        onPreferenceClick = { showClearCacheDialog = true },
+    )
+}
+
+@Composable
+private fun AutoCheckInPreference(
+    appSettings: AppSettings, onAutoCheckInChanged: (Boolean) -> Unit
+) {
+    val context = LocalContext.current
+    var currentChecked by remember(appSettings.autoCheckIn) { mutableStateOf(appSettings.autoCheckIn) }
+
+    var showRequestNotificationPermissionRationale by remember { mutableStateOf(false) }
+    //自动签到 -> CoroutineWorker -> ForegroundNotification -> 通知权限(Android 13)
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { result ->
+        if (result) {
+            onAutoCheckInChanged(true)
+        } else {
+            currentChecked = false
+        }
+    }
+
+    val openAppNotificationSettingsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+    ) {
+        if (NotificationCenter.isAutoCheckInChannelEnabled(context)) {
+            onAutoCheckInChanged(true)
+        } else {
+            currentChecked = false
+        }
+    }
+
+    if (showRequestNotificationPermissionRationale) {
+        TextAlertDialog(
+            title = stringResource(id = R.string.request_notification_permission),
+            message = stringResource(id = R.string.request_notification_permission_message),
+            onDismiss = {
+                showRequestNotificationPermissionRationale = false
+                currentChecked = false
+            },
+            onConfirm = {
+                val intent = Intent().apply {
+                    action = "android.settings.APP_NOTIFICATION_SETTINGS"
+                    putExtra("android.provider.extra.APP_PACKAGE", context.packageName)
+                }
+                openAppNotificationSettingsLauncher.launch(intent)
+            },
+        )
+    }
+
+    SwitchPreference(
+        title = stringResource(R.string.settings_auto_check_in),
+        summary = stringResource(R.string.settings_auto_check_in_description),
+        checked = currentChecked,
+        onCheckedChange = {
+            currentChecked = it
+            if (it) {
+                checkAndRequestNotificationPermission(context,
+                    notificationPermissionLauncher,
+                    showRationale = { showRequestNotificationPermissionRationale = true },
+                    onDenied = { showRequestNotificationPermissionRationale = true },
+                    onGranted = { onAutoCheckInChanged(true) })
+            } else {
+                onAutoCheckInChanged(false)
+            }
+        },
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsTopBar(onBackClick: () -> Unit) {
@@ -228,8 +278,7 @@ private fun SettingsTopBar(onBackClick: () -> Unit) {
         navigationIcon = { BackIcon(onBackClick = onBackClick) },
         title = {
             Text(
-                stringResource(R.string.settings),
-                style = MaterialTheme.typography.titleLarge
+                stringResource(R.string.settings), style = MaterialTheme.typography.titleLarge
             )
         },
     )
@@ -239,8 +288,7 @@ private fun SettingsTopBar(onBackClick: () -> Unit) {
 private fun Logout(onLogout: () -> Unit) {
     var showLogoutDialog by remember { mutableStateOf(false) }
     if (showLogoutDialog) {
-        AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
+        AlertDialog(onDismissRequest = { showLogoutDialog = false },
             title = { Text(stringResource(id = R.string.logout)) },
             text = { Text(stringResource(id = R.string.logout_tips)) },
             confirmButton = {
@@ -285,9 +333,7 @@ private fun PreferenceGroupTitle(title: String) {
 
 @Composable
 private fun ClickablePreference(
-    title: String,
-    summary: String? = null,
-    onPreferenceClick: (() -> Unit)? = null
+    title: String, summary: String? = null, onPreferenceClick: (() -> Unit)? = null
 ) {
     Box(modifier = Modifier.clickable(enabled = onPreferenceClick != null) { onPreferenceClick?.invoke() }) {
         PreferenceContent(title, summary = summary)
@@ -330,9 +376,7 @@ private fun SwitchPreference(
     Box(modifier = Modifier.clickable { onCheckedChange(!checked) }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             PreferenceContent(
-                title = title,
-                summary = summary,
-                modifier = Modifier.weight(1.0f)
+                title = title, summary = summary, modifier = Modifier.weight(1.0f)
             )
             Switch(checked = checked, onCheckedChange = onCheckedChange)
             Spacer(Modifier.width(16.dp))
@@ -369,19 +413,18 @@ private fun DropdownPreference(
 
 @Composable
 private fun ProxyPreference(
-    title: String,
-    proxyInfo: ProxyInfo,
-    onProxyChanged: (ProxyInfo) -> Unit
+    title: String, proxyInfo: ProxyInfo, onProxyChanged: (ProxyInfo) -> Unit
 ) {
     val context = LocalContext.current
     var showSelectProxyDialog by remember { mutableStateOf(false) }
     var currentProxy by remember(proxyInfo) { mutableStateOf(proxyInfo) }
 
-    val summary = remember(proxyInfo){
+    val summary = remember(proxyInfo) {
         val typeText = context.getString(currentProxy.type.titleResId)
-        val addressText = if(proxyInfo.type == ProxyType.Http || proxyInfo.type == ProxyType.Socks){
-            proxyInfo.address + ":" + proxyInfo.port
-        }else ""
+        val addressText =
+            if (proxyInfo.type == ProxyType.Http || proxyInfo.type == ProxyType.Socks) {
+                proxyInfo.address + ":" + proxyInfo.port
+            } else ""
         "$typeText $addressText"
     }
 
@@ -389,7 +432,7 @@ private fun ProxyPreference(
         showSelectProxyDialog = true
     }
 
-    if(showSelectProxyDialog){
+    if (showSelectProxyDialog) {
         SelectProxyDialog(
             proxyInfo = currentProxy,
             onDismiss = { showSelectProxyDialog = false },

@@ -40,7 +40,7 @@ class NodeViewModel @Inject constructor(
     val nodeInfo = _nodeInfo.asStateFlow()
 
     val nodeTopicItems =
-        nodeRepository.getNodeTopicInfo(nodeArgs.nodeId).cachedIn(viewModelScope)
+        nodeRepository.getNodeTopicInfo(nodeArgs.nodeName).cachedIn(viewModelScope)
 
     //标题概览
     val topicTitleOverview: StateFlow<Boolean> = topicRepository.topicTitleOverview
@@ -61,7 +61,7 @@ class NodeViewModel @Inject constructor(
         viewModelScope.launch {
             _nodeInfo.emit(NodeUiState.Loading)
             try {
-                val nodeInfo = nodeRepository.getNodeInfo(nodeArgs.nodeId)
+                val nodeInfo = nodeRepository.getNodeInfo(nodeArgs.nodeName)
                 Log.d(TAG, "loadNodeInternal, result, nodeInfo = $nodeInfo")
                 _nodeInfo.emit(NodeUiState.Success(nodeInfo))
             } catch (e: Exception) {
@@ -86,7 +86,7 @@ class NodeViewModel @Inject constructor(
         val url = actionUrl(node)
         viewModelScope.launch {
             try {
-                val result = nodeRepository.doNodeAction(nodeArgs.nodeId, url)
+                val result = nodeRepository.doNodeAction(nodeArgs.nodeName, url)
                 _nodeTopicInfo.emit(result)
 //                val successTips =
 //                    if (result.hasStared()) R.string.node_favorite_success_tips else R.string.node_unfavorite_success_tips

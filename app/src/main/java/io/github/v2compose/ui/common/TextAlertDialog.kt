@@ -13,8 +13,8 @@ import io.github.v2compose.R
 fun TextAlertDialog(
     title: String? = null,
     message: String,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -22,8 +22,8 @@ fun TextAlertDialog(
         text = { Text(message, style = MaterialTheme.typography.bodyLarge) },
         confirmButton = {
             TextButton(onClick = {
-                onConfirm()
                 onDismiss()
+                onConfirm()
             }) {
                 Text(stringResource(id = R.string.ok))
             }

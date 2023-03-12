@@ -124,7 +124,7 @@ class DefaultTopicRepository @Inject constructor(
         title: String,
         content: String,
         contentFormat: ContentFormat,
-        nodeId: String,
+        nodeName: String,
         once: String
     ): CreateTopicPageInfo {
         //syntax, default:v2ex原生格式，markdown:Markdown格式
@@ -136,7 +136,7 @@ class DefaultTopicRepository @Inject constructor(
             mapOf(
                 "title" to title,
                 "content" to content,
-                "node_name" to nodeId,
+                "node_name" to nodeName,
                 "once" to once,
                 "syntax" to syntax,
             )

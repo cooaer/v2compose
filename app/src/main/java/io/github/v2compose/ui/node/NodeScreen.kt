@@ -261,11 +261,11 @@ private fun NodeTitle(
 ) {
     val nodeInfo =
         remember(nodeUiState) { if (nodeUiState is NodeUiState.Success) nodeUiState.nodeInfo else null }
-    val nodeName = nodeInfo?.title ?: nodeArgs.nodeName
+    val nodeTitle = nodeInfo?.title ?: nodeArgs.nodeTitle
     Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
         AsyncImage(
             model = nodeInfo?.avatar,
-            contentDescription = nodeName,
+            contentDescription = nodeTitle,
             modifier = Modifier
                 .size(48.dp)
                 .clip(CircleShape)
@@ -274,7 +274,7 @@ private fun NodeTitle(
         Spacer(modifier = Modifier.width(8.dp))
         Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
             Text(
-                nodeName ?: stringResource(id = R.string.node),
+                nodeTitle ?: stringResource(id = R.string.node),
                 style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
                 color = MaterialTheme.colorScheme.onBackground,
             )

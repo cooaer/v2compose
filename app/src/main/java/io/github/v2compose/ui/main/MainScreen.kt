@@ -14,6 +14,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringArrayResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -102,6 +103,7 @@ private fun MainScreen(
     onHtmlImageClick: OnHtmlImageClick,
 ) {
     var navBarSelectedIndex by rememberSaveable(stateSaver = autoSaver()) { mutableStateOf(0) }
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
         topBar = {
@@ -113,6 +115,7 @@ private fun MainScreen(
                         MenuItem.settings -> onSettingsClick()
                     }
                 },
+                scrollBehavior = scrollBehavior,
             )
         }, contentWindowInsets = WindowInsets(bottom = 0)
     ) { paddingValues ->
@@ -138,6 +141,7 @@ private fun MainScreen(
                     onSettingsClick = onSettingsClick,
                     onUriClick = onUriClick,
                     onHtmlImageClick = onHtmlImageClick,
+//                    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                 )
             }
             MainBottomNavigation(navBarSelectedIndex, unreadNotifications) {
@@ -153,7 +157,11 @@ private enum class MenuItem(val imageVector: ImageVector) {
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun MainTopBar(currentNavBarIndex: Int, onMenuItemClick: (MenuItem) -> Unit) {
+private fun MainTopBar(
+    currentNavBarIndex: Int,
+    scrollBehavior: TopAppBarScrollBehavior,
+    onMenuItemClick: (MenuItem) -> Unit,
+) {
     val navBarItemNames = stringArrayResource(R.array.main_navigation_items)
     val menuItem = remember(currentNavBarIndex) {
         when (currentNavBarIndex) {
@@ -161,15 +169,19 @@ private fun MainTopBar(currentNavBarIndex: Int, onMenuItemClick: (MenuItem) -> U
             else -> MenuItem.search
         }
     }
-    CenterAlignedTopAppBar(title = { Text(navBarItemNames[currentNavBarIndex]) }, actions = {
-        IconButton(onClick = { onMenuItemClick(menuItem) }) {
-            Icon(
-                menuItem.imageVector,
-                contentDescription = menuItem.name,
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    })
+    CenterAlignedTopAppBar(
+        title = { Text(navBarItemNames[currentNavBarIndex]) },
+        actions = {
+            IconButton(onClick = { onMenuItemClick(menuItem) }) {
+                Icon(
+                    menuItem.imageVector,
+                    contentDescription = menuItem.name,
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        },
+        scrollBehavior = scrollBehavior,
+    )
 }
 
 @Composable
@@ -187,6 +199,7 @@ fun MainContent(
     onSettingsClick: () -> Unit,
     onUriClick: (String) -> Unit,
     onHtmlImageClick: OnHtmlImageClick,
+    modifier: Modifier = Modifier,
 ) {
     rememberSaveableStateHolder().SaveableStateProvider(key = navBarSelectedIndex) {
         when (navBarSelectedIndex) {
@@ -194,13 +207,15 @@ fun MainContent(
                 onNewsItemClick = onNewsItemClick,
                 onNodeClick = onNodeClick,
                 onUserAvatarClick = onUserAvatarClick,
+
             )
-            1 -> NodesContent(onNodeClick = onNodeClick)
+            1 -> NodesContent(onNodeClick = onNodeClick, modifier = modifier)
             2 -> NotificationsContent(
                 onLoginClick = onLoginClick,
                 onUriClick = onUriClick,
                 onUserAvatarClick = onUserAvatarClick,
                 onHtmlImageClick = onHtmlImageClick,
+                modifier = modifier,
             )
             3 -> MineContent(
                 onLoginClick = onLoginClick,
@@ -210,6 +225,7 @@ fun MainContent(
                 onMyTopicsClick = onMyTopicsClick,
                 onMyFollowingClick = onMyFollowingClick,
                 onSettingsClick = onSettingsClick,
+                modifier = modifier,
             )
         }
     }
@@ -229,18 +245,20 @@ fun MainBottomNavigation(
     )
     NavigationBar {
         itemNames.forEachIndexed { index, name ->
-            NavigationBarItem(icon = {
-                if (index == 2 && unreadNotifications > 0) {
-                    BadgedBox(badge = { Badge { Text(unreadNotifications.toString()) } }) {
+            NavigationBarItem(
+                icon = {
+                    if (index == 2 && unreadNotifications > 0) {
+                        BadgedBox(badge = { Badge { Text(unreadNotifications.toString()) } }) {
+                            Icon(itemIcons[index], contentDescription = name)
+                        }
+                    } else {
                         Icon(itemIcons[index], contentDescription = name)
                     }
-                } else {
-                    Icon(itemIcons[index], contentDescription = name)
-                }
-            },
+                },
                 label = { Text(name) },
                 selected = index == selectedIndex,
-                onClick = { onItemSelected(index) })
+                onClick = { onItemSelected(index) },
+            )
         }
     }
 }

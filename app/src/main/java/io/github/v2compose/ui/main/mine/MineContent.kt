@@ -40,6 +40,7 @@ fun MineContent(
     onMyTopicsClick: () -> Unit,
     onMyFollowingClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    modifier: Modifier = Modifier,
     viewModel: MineViewModel = hiltViewModel(),
     mineContentState: MineContentState = rememberMineContentState(),
 ) {
@@ -50,7 +51,7 @@ fun MineContent(
 
     HandleSnackbarMessage(viewModel, mineContentState)
 
-    LaunchedEffect(true){
+    LaunchedEffect(true) {
         viewModel.refreshAccount()
     }
 
@@ -66,7 +67,8 @@ fun MineContent(
         onMyNodesClick = { mineContentState.doActionIfLoggedIn(account) { onMyNodesClick() } },
         onMyTopicsClick = { mineContentState.doActionIfLoggedIn(account) { onMyTopicsClick() } },
         onMyFollowingClick = { mineContentState.doActionIfLoggedIn(account) { onMyFollowingClick() } },
-        onSettingsClick = onSettingsClick
+        onSettingsClick = onSettingsClick,
+        modifier = Modifier
     )
 }
 
@@ -84,10 +86,10 @@ private fun MineContainer(
     onMyTopicsClick: () -> Unit,
     onMyFollowingClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = ContentAlpha.disabled))
     ) {

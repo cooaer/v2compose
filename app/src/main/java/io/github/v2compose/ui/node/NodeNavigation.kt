@@ -11,26 +11,26 @@ import com.google.accompanist.navigation.animation.composable
 import io.github.v2compose.core.StringDecoder
 import io.github.v2compose.network.bean.NodeTopicInfo
 
-private const val ArgsNodeId = "nodeId"
 private const val ArgsNodeName = "nodeName"
+private const val ArgsNodeTitle = "nodeTitle"
 
-const val nodeNavigationNavigationRoute = "/go/{$ArgsNodeId}?nodeName={$ArgsNodeName}"
+const val nodeNavigationNavigationRoute = "/go/{$ArgsNodeName}?$ArgsNodeTitle={$ArgsNodeTitle}"
 
-data class NodeArgs(val nodeId: String, val nodeName: String? = null) {
+data class NodeArgs(val nodeName: String, val nodeTitle: String? = null) {
     constructor(
         savedStateHandle: SavedStateHandle,
         stringDecoder: StringDecoder
     ) : this(
-        nodeId = stringDecoder.decodeString(checkNotNull(savedStateHandle[ArgsNodeId])),
-        nodeName = savedStateHandle.get<String>(ArgsNodeName)
+        nodeName = stringDecoder.decodeString(checkNotNull(savedStateHandle[ArgsNodeName])),
+        nodeTitle = savedStateHandle.get<String>(ArgsNodeTitle)
             .let { if (it == null) null else stringDecoder.decodeString(it) }
     )
 }
 
-fun NavController.navigateToNode(nodeId: String, nodeName: String? = null) {
-    val encodedNodeId = Uri.encode(nodeId)
+fun NavController.navigateToNode(nodeName: String, nodeTitle: String? = null) {
     val encodedNodeName = Uri.encode(nodeName)
-    navigate("/go/$encodedNodeId?nodeName=${encodedNodeName ?: ""}")
+    val encodedNodeTitle = Uri.encode(nodeTitle)
+    navigate("/go/$encodedNodeName?$ArgsNodeTitle=${encodedNodeTitle ?: ""}")
 }
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -43,8 +43,8 @@ fun NavGraphBuilder.nodeScreen(
     composable(
         route = nodeNavigationNavigationRoute,
         arguments = listOf(
-            navArgument(ArgsNodeId) { type = NavType.StringType },
-            navArgument(ArgsNodeName) {
+            navArgument(ArgsNodeName) { type = NavType.StringType },
+            navArgument(ArgsNodeTitle) {
                 type = NavType.StringType
                 nullable = true
             })

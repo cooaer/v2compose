@@ -1,6 +1,9 @@
 package io.github.v2compose
 
 import android.app.Application
+import android.app.NotificationManager
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import com.google.firebase.crashlytics.ktx.crashlytics
@@ -10,14 +13,18 @@ import com.orhanobut.logger.FormatStrategy
 import com.orhanobut.logger.Logger
 import com.orhanobut.logger.PrettyFormatStrategy
 import dagger.hilt.android.HiltAndroidApp
+import io.github.v2compose.core.NotificationCenter
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import javax.inject.Inject
 
 @HiltAndroidApp
-class App : Application(), ImageLoaderFactory {
+class App : Application(), ImageLoaderFactory, Configuration.Provider {
     @Inject
     lateinit var imageLoader: ImageLoader
+
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
 
     companion object {
         private const val TAG = "APP"
@@ -38,6 +45,7 @@ class App : Application(), ImageLoaderFactory {
     private fun init() {
         initLogger()
         Firebase.crashlytics.setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
+        NotificationCenter.init(this)
     }
 
     private fun initLogger() {
@@ -55,6 +63,9 @@ class App : Application(), ImageLoaderFactory {
     }
 
     override fun newImageLoader(): ImageLoader = imageLoader
+
+    override fun getWorkManagerConfiguration() =
+        Configuration.Builder().setWorkerFactory(workerFactory).build()
 
     private fun resetScrollableTabRowMinimumTabWidth() {
         try {

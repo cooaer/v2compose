@@ -51,7 +51,7 @@ interface TopicRepository {
         title: String,
         content: String,
         contentFormat: ContentFormat,
-        nodeId: String,
+        nodeName: String,
         once: String
     ): CreateTopicPageInfo
 

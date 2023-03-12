@@ -27,8 +27,8 @@ fun SimpleTopic(
     time: String,
     replyCount: String,
     viewCount: Int? = null,
-    nodeId: String,
     nodeName: String,
+    nodeTitle: String,
     title: String,
     titleOverview: Boolean = false,
     onItemClick: (() -> Unit)? = null,
@@ -82,8 +82,8 @@ fun SimpleTopic(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 NodeTag(
+                    nodeTitle = nodeTitle,
                     nodeName = nodeName,
-                    nodeId = nodeId,
                     onItemClick = { _, _ -> onNodeClick?.invoke() })
             }
             Spacer(modifier = Modifier.height(8.dp))

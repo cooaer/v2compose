@@ -41,11 +41,12 @@ fun NotificationsContent(
     onUriClick: (String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
     onHtmlImageClick: OnHtmlImageClick,
+    modifier: Modifier = Modifier,
     viewModel: NotificationViewModel = hiltViewModel()
 ) {
     val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
         if (isLoggedIn) {
             val unreadNotifications by viewModel.unreadNotifications.collectAsStateWithLifecycle()
             val notifications = viewModel.notifications.collectAsLazyPagingItems()

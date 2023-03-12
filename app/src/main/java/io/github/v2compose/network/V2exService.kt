@@ -46,6 +46,10 @@ interface V2exService {
     @GET("/api/nodes/s2.json")
     suspend fun nodes(): NodesInfo
 
+    @Json
+    @GET("/api/nodes/all.json")
+    suspend fun allNodes(): List<Node>
+
     //https://www.v2ex.com/api/nodes/list.json?fields=name,title,topics,aliases&sort_by=topics&reverse=1
     @Json
     @GET("api/nodes/list.json?fields=name,title,topics,aliases&sort_by=topics&reverse=1")

@@ -68,7 +68,7 @@ public class SoV2EXSearchResultInfo extends BaseInfo {
             @SerializedName("content")
             private String content;
             @SerializedName("node")
-            private String nodeId;
+            private String nodeName;
             @SerializedName("replies")
             private int replies;
             @SerializedName("created")
@@ -89,7 +89,7 @@ public class SoV2EXSearchResultInfo extends BaseInfo {
             }
 
             public String getNodeId() {
-                return nodeId;
+                return nodeName;
             }
 
             public int getReplies() {
@@ -110,7 +110,7 @@ public class SoV2EXSearchResultInfo extends BaseInfo {
                         "id='" + id + '\'' +
                         ", title='" + title + '\'' +
                         ", content='" + content + '\'' +
-                        ", nodeId='" + nodeId + '\'' +
+                        ", nodeName='" + nodeName + '\'' +
                         ", replies=" + replies +
                         ", time='" + time + '\'' +
                         ", creator='" + creator + '\'' +

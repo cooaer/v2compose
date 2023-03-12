@@ -58,24 +58,24 @@ public class NodesNavInfo extends ArrayList<NodesNavInfo.Item> implements IBase 
 
         public static class NodeItem implements Serializable {
             @Pick
-            private String name;
+            private String title;
             @Pick(attr = Attrs.HREF)
             private String link;
 
             @Override
             public String toString() {
                 return "NodeItem{" +
-                        "name='" + name + '\'' +
+                        "name='" + title + '\'' +
                         ", link='" + link + '\'' +
                         '}';
             }
 
-            public String getId() {
+            public String getName() {
                 return link.substring(4);
             }
 
-            public String getName() {
-                return name;
+            public String getTitle() {
+                return title;
             }
 
             public String getLink() {

@@ -34,11 +34,11 @@ public class CreateTopicPageInfo extends BaseInfo {
         return problem;
     }
 
-    public Map<String, String> toPostMap(String title, String content, String nodeId) {
+    public Map<String, String> toPostMap(String title, String content, String nodeName) {
         HashMap<String, String> map = new HashMap<>();
         map.put("title", title);
         map.put("content", content);
-        map.put("node_name", nodeId);
+        map.put("node_name", nodeName);
         map.put("once", once);
         return map;
     }

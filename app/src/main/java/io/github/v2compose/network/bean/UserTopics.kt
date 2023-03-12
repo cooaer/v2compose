@@ -57,7 +57,7 @@ class UserTopics : BaseInfo() {
         val nodeLink: String = ""
 
         @Pick("a.node")
-        val nodeName: String = ""
+        val nodeTitle: String = ""
 
         @Pick("span.small.fade:last-child")
         val lastReply: String = ""
@@ -66,7 +66,7 @@ class UserTopics : BaseInfo() {
         val repliesNum: Int = 0
 
         override fun toString(): String {
-            return "Item(link='$link', userName='$userName', title='$title', nodeLink='$nodeLink', nodeName='$nodeName', lastReply='$lastReply', repliesNum=$repliesNum)"
+            return "Item(link='$link', userName='$userName', title='$title', nodeLink='$nodeLink', nodeTitle='$nodeTitle', lastReply='$lastReply', repliesNum=$repliesNum)"
         }
 
     }

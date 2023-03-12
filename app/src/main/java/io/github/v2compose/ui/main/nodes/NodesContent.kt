@@ -1,96 +1,241 @@
 package io.github.v2compose.ui.main.nodes
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.pager.VerticalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.accompanist.flowlayout.FlowRow
-import io.github.v2compose.network.bean.NodesNavInfo
+import coil.compose.AsyncImage
+import com.google.accompanist.flowlayout.*
+import io.github.cooaer.htmltext.fullUrl
+import io.github.v2compose.Constants
+import io.github.v2compose.network.bean.Node
 import io.github.v2compose.ui.common.LoadError
-import io.github.v2compose.ui.common.NodeTag
 import io.github.v2compose.ui.common.PullToRefresh
+import kotlinx.coroutines.launch
+import kotlin.math.ceil
+import kotlin.math.floor
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun NodesContent(
     onNodeClick: (String, String) -> Unit,
+    modifier: Modifier = Modifier,
     viewModel: NodesViewModel = hiltViewModel(),
 ) {
     val nodesUiState by viewModel.nodesUiState.collectAsStateWithLifecycle()
-    val nodesNavInfo by viewModel.nodesNavInfo.collectAsStateWithLifecycle()
+    val nodeCategories by viewModel.nodeCategories.collectAsStateWithLifecycle()
 
-    NodesContainer(nodesUiState, nodesNavInfo, onNodeClick, viewModel::refresh)
+    NodesContainer(nodesUiState, nodeCategories, onNodeClick, viewModel::refresh, modifier)
 }
 
 @Composable
 private fun NodesContainer(
     nodesUiState: NodesUiState,
-    nodesNavInfo: NodesNavInfo?,
+    nodeCategories: List<Pair<String, List<Node>>>,
     onNodeClick: (String, String) -> Unit,
     onRefresh: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    when (nodesUiState) {
-        is NodesUiState.Error -> {
-            LoadError(error = nodesUiState.error, onRetryClick = onRefresh)
-        }
-        else -> {
-            val isRefreshing = nodesUiState is NodesUiState.Loading
-            PullToRefresh(refreshing = isRefreshing, onRefresh = onRefresh) {
-                nodesNavInfo?.let {
-                    NodesList(nodesNavInfo = it, onNodeClick = onNodeClick)
+    Box(modifier.fillMaxSize()) {
+        when (nodesUiState) {
+            is NodesUiState.Error -> {
+                LoadError(error = nodesUiState.error, onRetryClick = onRefresh)
+            }
+            else -> {
+                val isRefreshing = nodesUiState is NodesUiState.Loading
+                PullToRefresh(refreshing = isRefreshing, onRefresh = onRefresh) {
+                    NodesList(nodeCategories = nodeCategories, onNodeClick = onNodeClick)
                 }
             }
         }
     }
 }
 
+private val CategoryTitleBarWidth = 92.dp
+private val NodeMinWidth = 88.dp
+private val NodeHeight = 92.dp
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun NodesList(
-    nodesNavInfo: NodesNavInfo, onNodeClick: (String, String) -> Unit,
-) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(count = nodesNavInfo.size, key = { nodesNavInfo[it].category }) { index ->
-            NodesGroup(nodesNavInfo[index], onNodeClick = onNodeClick)
-        }
-    }
-}
-
-@Composable
-fun NodesGroup(
-    category: NodesNavInfo.Item, onNodeClick: (String, String) -> Unit,
-) {
-    Column(
-        Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        NodesGroupTitle(title = category.category)
-        Spacer(modifier = Modifier.height(8.dp))
-        NodesFlow(nodes = category.nodes, onNodeClick = onNodeClick)
-    }
-}
-
-@Composable
-fun NodesGroupTitle(title: String) {
-    Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxSize())
-}
-
-@Composable
-fun NodesFlow(
-    nodes: List<NodesNavInfo.Item.NodeItem>,
+private fun NodesList(
+    nodeCategories: List<Pair<String, List<Node>>>,
     onNodeClick: (String, String) -> Unit,
 ) {
-    FlowRow(mainAxisSpacing = 12.dp, crossAxisSpacing = 12.dp, modifier = Modifier.fillMaxWidth()) {
-        nodes.forEach { node ->
-            NodeTag(nodeName = node.name, nodeId = node.id, onItemClick = onNodeClick)
+    val coroutineScope = rememberCoroutineScope()
+    val pagerState = rememberPagerState()
+
+    BoxWithConstraints {
+        val maxPageWidth = maxWidth - CategoryTitleBarWidth
+        val nodeColumnCount = floor(maxPageWidth / NodeMinWidth).toInt()
+        val nodeWidth = floor((maxPageWidth / nodeColumnCount).value).dp
+
+        val nodeRowCount = floor(maxHeight / NodeHeight).toInt()
+        val pageNodeCount = nodeRowCount * nodeColumnCount
+        val nodeHeight = floor((maxHeight / nodeRowCount).value).dp
+
+        val categoryIndies: List<Int> = remember(nodeCategories) {
+            nodeCategories.map { category -> ceil(1f * category.second.size / pageNodeCount).toInt() }
+                .runningFold(0) { sum, pages -> sum + pages }
         }
+        val nodePages: List<List<Node>> = remember(nodeCategories) {
+            nodeCategories.map { category ->
+                val nodeCount = category.second.size
+                val pageCount = ceil(1f * nodeCount / pageNodeCount).toInt()
+                (0 until pageCount).map { index ->
+                    val toIndex = minOf((index + 1) * pageNodeCount, nodeCount)
+                    category.second.subList(index * pageNodeCount, toIndex)
+                }
+            }.flatten()
+        }
+        val selectedCategoryIndex = remember(pagerState.currentPage) {
+            val nextPage = categoryIndies.indexOfFirst { it > pagerState.currentPage }
+            if (nextPage >= 0) nextPage - 1 else categoryIndies.size - 1
+        }
+
+        Row() {
+            LazyColumn(
+                modifier = Modifier
+                    .background(color = MaterialTheme.colorScheme.surfaceVariant)
+                    .fillMaxHeight()
+                    .width(CategoryTitleBarWidth),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                itemsIndexed(
+                    items = nodeCategories,
+                    key = { _, item -> item.first }) { index, item ->
+                    CategoryTitle(
+                        selected = selectedCategoryIndex == index,
+                        title = item.first,
+                        onTitleClick = {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(categoryIndies[index])
+                            }
+                        },
+                    )
+                }
+            }
+            VerticalPager(
+                pageCount = nodePages.size,
+                modifier = Modifier.fillMaxSize(),
+                state = pagerState,
+            ) { index ->
+                NodesGroup(nodePages[index], nodeWidth, nodeHeight, onNodeClick = onNodeClick)
+            }
+        }
+    }
+}
+
+@Composable
+private fun NodesGroup(
+    nodes: List<Node>,
+    nodeWidth: Dp,
+    nodeHeight: Dp,
+    onNodeClick: (String, String) -> Unit
+) {
+    FlowRow(
+        modifier = Modifier.fillMaxSize(),
+        mainAxisAlignment = FlowMainAxisAlignment.Center,
+    ) {
+        val nodesSize = nodes.size
+        val fullSize = ceil(nodesSize / 3f).toInt() * 3
+        (0 until fullSize).forEach { index ->
+            if (index < nodesSize) {
+                val item = nodes[index]
+                NodeItem(
+                    node = item,
+                    onItemClick = { onNodeClick(item.name, item.title) },
+                    modifier = Modifier.size(nodeWidth, nodeHeight),
+                )
+            } else {
+                Spacer(Modifier.size(nodeWidth, nodeHeight))
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryTitle(selected: Boolean, title: String, onTitleClick: () -> Unit) {
+    val textColor = if (selected) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        LocalContentColor.current
+    }
+
+    val backgroundColor = if (selected) {
+        MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.1f)
+    } else {
+        Color.Transparent
+    }
+
+    val indicatorColor = MaterialTheme.colorScheme.primary
+    val indicatorWidth = with(LocalDensity.current) { 4.dp.toPx() }
+
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall,
+        modifier = Modifier
+            .clickable { onTitleClick() }
+            .drawBehind {
+                drawRect(color = backgroundColor)
+                if (selected) {
+                    drawRect(color = indicatorColor, size = size.copy(width = indicatorWidth))
+                }
+            }
+            .fillMaxWidth()
+            .padding(vertical = 16.dp),
+        color = textColor,
+        textAlign = TextAlign.Center,
+    )
+}
+
+@Composable
+fun NodeItem(node: Node, onItemClick: () -> Unit, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .clickable { onItemClick() }
+            .padding(horizontal = 2.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        AsyncImage(
+            model = node.avatar.fullUrl(baseUrl = Constants.baseUrl),
+            contentDescription = node.title,
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)),
+            contentScale = ContentScale.Crop,
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            node.title,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }

@@ -24,6 +24,7 @@ fun HomeContent(
     onNewsItemClick: (NewsInfo.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
+    modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val pagerState = rememberPagerState()
@@ -31,7 +32,7 @@ fun HomeContent(
     val coroutineScope = rememberCoroutineScope()
     val tabInfos = viewModel.newsTabInfos
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
         HorizontalPager(
             modifier = Modifier
                 .fillMaxSize()

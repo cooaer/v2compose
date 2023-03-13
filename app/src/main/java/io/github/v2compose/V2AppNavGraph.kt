@@ -1,6 +1,5 @@
 package io.github.v2compose
 
-import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -17,6 +16,8 @@ import io.github.v2compose.ui.login.navigateToLogin
 import io.github.v2compose.ui.login.twostep.twoStepLoginScreen
 import io.github.v2compose.ui.main.mainNavigationRoute
 import io.github.v2compose.ui.main.mainScreen
+import io.github.v2compose.ui.main.mine.topics.myTopicsScreen
+import io.github.v2compose.ui.main.mine.topics.navigateToMyTopics
 import io.github.v2compose.ui.main.navigateToMain
 import io.github.v2compose.ui.node.navigateToNode
 import io.github.v2compose.ui.node.nodeScreen
@@ -64,7 +65,8 @@ fun V2AppNavGraph(
                 }
             },
             onMyNodesClick = { navController.navigateToWebView(V2exUri.myNodesUrl) },
-            onMyTopicsClick = { navController.navigateToWebView(V2exUri.myTopicsUrl) },
+//            onMyTopicsClick = { navController.navigateToWebView(V2exUri.myTopicsUrl) },
+            onMyTopicsClick = navController::navigateToMyTopics,
             onMyFollowingClick = { navController.navigateToWebView(V2exUri.myFollowingUrl) },
             onCreateTopicClick = navController::navigateToWriteTopic,
             onSettingsClick = navController::navigateToSettings,
@@ -143,6 +145,12 @@ fun V2AppNavGraph(
         )
         galleryScreen(
             onBackClick = appState::back,
+        )
+        myTopicsScreen(
+            onBackClick = appState::back,
+            onTopicClick = { navController.navigateToTopic(it.id) },
+            onNodeClick = navController::navigateToNode,
+            onUserAvatarClick = navController::navigateToUser,
         )
     }
 }

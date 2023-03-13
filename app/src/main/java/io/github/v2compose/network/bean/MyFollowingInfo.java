@@ -37,10 +37,6 @@ public class MyFollowingInfo extends BaseInfo {
         return items;
     }
 
-    public void setItems(List<Item> items) {
-        this.items = items;
-    }
-
     @Override
     public boolean isValid() {
         if (Utils.listSize(items) <= 0) return true;

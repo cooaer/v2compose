@@ -45,4 +45,6 @@ interface AccountRepository {
 
     suspend fun checkIn(once: String): DailyInfo
 
+    val myTopics: Flow<PagingData<MyTopicsInfo.Item>>
+
 }

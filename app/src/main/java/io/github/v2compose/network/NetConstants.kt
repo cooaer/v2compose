@@ -16,4 +16,6 @@ object NetConstants {
     const val webUserAgent =
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4; V2er) " + "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36"
     const val keyUserAgent = "user-agent"
+
+    const val systemUserAgent = "Dalvik/2.1.0 (Linux; U; Android 12; Mi 10 Build/SKQ1.211006.001)"
 }

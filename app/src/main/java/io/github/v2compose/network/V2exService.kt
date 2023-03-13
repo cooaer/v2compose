@@ -97,6 +97,7 @@ interface V2exService {
 
     @Html
     @GET("/my/topics")
+    @Headers("user-agent: ${NetConstants.systemUserAgent}")
     suspend fun myTopicsInfo(@Query("p") page: Int): MyTopicsInfo
 
     @Html

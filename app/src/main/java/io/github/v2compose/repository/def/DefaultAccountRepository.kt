@@ -4,10 +4,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import io.github.v2compose.bean.Account
-import io.github.v2compose.datasource.AccountPreferences
-import io.github.v2compose.datasource.AppPreferences
-import io.github.v2compose.datasource.AppStateStore
-import io.github.v2compose.datasource.NotificationPagingSource
+import io.github.v2compose.datasource.*
 import io.github.v2compose.network.V2exService
 import io.github.v2compose.network.WebkitCookieManager
 import io.github.v2compose.network.bean.*
@@ -124,5 +121,8 @@ class DefaultAccountRepository @Inject constructor(
             accountPreferences.lastCheckInTime(System.currentTimeMillis())
         }
     }
+
+    override val myTopics: Flow<PagingData<MyTopicsInfo.Item>>
+        get() = Pager(PagingConfig(10)) { MyTopicsPagingSource(v2exService) }.flow
 
 }

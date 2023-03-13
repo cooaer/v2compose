@@ -3,6 +3,7 @@ package io.github.v2compose.ui.topic.composables
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -10,13 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import io.github.v2compose.R
-import io.github.v2compose.core.openInBrowser
 import io.github.v2compose.network.bean.TopicInfo
 import io.github.v2compose.ui.common.OnHtmlImageClick
 import io.github.v2compose.ui.common.TopicUserAvatar
@@ -58,12 +57,9 @@ private fun UserReplyList(
     onHtmlImageClick: OnHtmlImageClick
 ) {
     LazyColumn(
-        contentPadding = PaddingValues(bottom = 8.dp),
-        modifier = Modifier.fillMaxWidth()
+        contentPadding = PaddingValues(bottom = 8.dp), modifier = Modifier.fillMaxWidth()
     ) {
-        itemsIndexed(
-            items = userReplies,
-            key = { _, item -> item.replyId }) { index, item ->
+        itemsIndexed(items = userReplies, key = { _, item -> item.replyId }) { index, item ->
             val tag = item.replyId
             UserTopicReply(
                 index,
@@ -79,8 +75,7 @@ private fun UserReplyList(
 
 @Composable
 private fun UserRepliesTitle(
-    userReplies: List<TopicInfo.Reply>,
-    onUserAvatarClick: (String, String) -> Unit
+    userReplies: List<TopicInfo.Reply>, onUserAvatarClick: (String, String) -> Unit
 ) {
     Row(
         modifier = Modifier

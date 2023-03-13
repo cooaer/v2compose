@@ -1,5 +1,6 @@
 package io.github.v2compose.ui.topic
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.animation.*
@@ -217,7 +218,7 @@ private fun TopicScreen(
                 onTopicReplyClick = {
                     replyInputInitialText = initialReplyText(it)
                     replyInputState = ReplyInputState.Expanded
-                    clickReplyTimes ++
+                    clickReplyTimes++
                 },
                 openUri = openUri,
                 onTopicMenuItemClick = { menuItem, reply ->
@@ -281,18 +282,30 @@ private fun TopicList(
     var repliesBarIndex by remember { mutableStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
 
-    val clickUriHandler: Function2<String, Reply, Unit> = { uri, reply ->
-        val userName = uri.removePrefix("/member/")
-        val userReplies =
-            topicItems.itemSnapshotList.filter { it is Reply && it.floor < reply.floor && it.userName == userName } as List<Reply>
-        if (userReplies.isEmpty()) {
-            openUri(uri)
-        } else {
-            clickedUserReplies.add(userReplies)
-        }
-    }
-
     val repliesBarHeight = with(LocalDensity.current) { 40.dp.roundToPx() }
+    val floorRegex = "#\\d+".toRegex()
+
+    fun clickUriHandler(uri: String, reply: Reply) {
+        while (true) {
+            if (!uri.startsWith("/member/")) break
+            val userName = uri.removePrefix("/member/")
+            val userReplies =
+                topicItems.itemSnapshotList.filter { it is Reply && it.floor < reply.floor && it.userName == userName } as List<Reply>
+            if (userReplies.isEmpty()) break
+            clickedUserReplies.add(userReplies)
+            return
+        }
+        if (floorRegex.matches(uri)) {
+            Log.d(TAG, "clickUriHandler, uri = $uri")
+            val floor = uri.substring(1).toIntOrNull() ?: return
+            val floorReply =
+                topicItems.itemSnapshotList.firstOrNull { it is Reply && it.floor == floor } as Reply?
+                    ?: return
+            clickedUserReplies.add(listOf(floorReply))
+            return
+        }
+        openUri(uri)
+    }
 
     clickedUserReplies.forEachIndexed { index, item ->
         UserRepliesDialog(
@@ -300,7 +313,7 @@ private fun TopicList(
             sizedHtmls = sizedHtmls,
             onDismissRequest = { clickedUserReplies.removeAt(index) },
             onUserAvatarClick = onUserAvatarClick,
-            onUriClick = clickUriHandler,
+            onUriClick = { uri, reply -> clickUriHandler(uri, reply) },
             loadHtmlImage = loadHtmlImage,
             onHtmlImageClick = onHtmlImageClick,
         )
@@ -400,7 +413,7 @@ private fun TopicList(
                     content = sizedHtmls[tag] ?: item.replyContent,
                     highlightOpReply = highlightOpReply,
                     onUserAvatarClick = onUserAvatarClick,
-                    onUriClick = clickUriHandler,
+                    onUriClick = { uri, reply -> clickUriHandler(uri, reply) },
                     onClick = {
                         onTopicReplyClick(it)
                         coroutineScope.launch {

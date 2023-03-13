@@ -114,6 +114,7 @@ fun HtmlText(
     }
 }
 
+
 @Composable
 private fun HtmlElementsScope.BlockToInlineNodes(
     element: Element,
@@ -128,24 +129,36 @@ private fun HtmlElementsScope.BlockToInlineNodes(
         if (node is Element) {
             if (node.isBlock || node.onlyContainsImgs() || node.isIframe()) {
 //            if (node.isBlock || node.isIframe()) {
-                if (tempNodes.isNotEmpty()) {
+                if (tempNodes.isNotBlank()) {
                     InlineNodes(tempNodes.toList(), prevNode, node, textStyle)
-                    tempNodes.clear()
                 }
+                tempNodes.clear()
                 prevNode = node
                 Block(node, textStyle, clickable)
+                if (tempNodes.isNotBlank()) {
+                    InlineNodes(tempNodes.toList(), prevNode, node, textStyle)
+                }
+                tempNodes.clear()
             } else {
                 tempNodes.add(node)
             }
         } else if (node is TextNode) {
-            if (node.text().isNotBlank()) {
+            if (node.text().isNotEmpty()) {
                 tempNodes.add(node)
             }
         }
     }
-    if (tempNodes.isNotEmpty()) {
+    if (tempNodes.isNotBlank()) {
         InlineNodes(tempNodes, prevNode, null, textStyle)
     }
+}
+
+private fun Collection<Node>.isNotBlank(): Boolean {
+    return this.any { it !is TextNode || !it.isBlank }
+}
+
+private fun Collection<Node>.isLastBlock(): Boolean {
+    return this.isNotEmpty() && this.last().let { last -> last is Element && last.isBlock }
 }
 
 //=========== Block Elements Start ============
@@ -551,9 +564,7 @@ private fun HtmlElementsScope.InlineImage(
     height: Dp,
     clickable: Boolean = true
 ) {
-    var currentLoadState by remember(
-        img.loadState,
-    ) { mutableStateOf(img.loadState) }
+    var currentLoadState by remember(img.loadState) { mutableStateOf(img.loadState) }
 
     val modifier = Modifier.size(width, height)
 
@@ -655,7 +666,11 @@ private fun createInlineCheckbox(lineHeightSp: TextUnit, density: Density): Inli
 
 private fun AnnotatedString.Builder.inlineText(node: Node, scope: HtmlElementsScope) {
     if (node is TextNode) {
-        append(node.text())
+        val text = node.text()
+        if (text.isEmpty()) {
+            return
+        }
+        if (text.isBlank()) append(" ") else append(text)
     } else if (node is Element) {
         when (node.tagName().lowercase()) {
             "br" -> {

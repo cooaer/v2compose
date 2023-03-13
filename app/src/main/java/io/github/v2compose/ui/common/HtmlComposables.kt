@@ -29,12 +29,13 @@ fun HtmlContent(
         letterSpacing = 0.3.sp,
     ),
     baseUrl: String = Constants.baseUrl,
+    linkFloor: Boolean = false,
     onUriClick: ((uri: String) -> Unit)? = null,
     onClick: (() -> Unit)? = null,
     loadImage: ((String, String?) -> Unit)? = null,
     onHtmlImageClick: ((String, List<String>) -> Unit)? = null
 ) {
-    val fixedHtml = rememberFixedHtml(content = content)
+    val fixedHtml = rememberFixedHtml(content = content, linkFloor = linkFloor)
 
     HtmlText(
         html = fixedHtml,
@@ -54,16 +55,28 @@ fun HtmlContent(
 }
 
 @Composable
-private fun rememberFixedHtml(content: String): String {
+private fun rememberFixedHtml(content: String, linkFloor: Boolean): String {
     val document = remember(content) { Jsoup.parse(content) }
     var encodedEmails by remember(content) { mutableStateOf<Elements?>(document.select(".__cf_email__")) }
-    return remember(content, encodedEmails) {
+
+    val fixedContent = remember(content, encodedEmails) {
         if (!encodedEmails.isNullOrEmpty()) {
             encodedEmails?.forEach { fixEmailProtected(it) }
             encodedEmails = null
             document.outerHtml()
         } else content
     }
+    return if (linkFloor) remember(fixedContent) {
+        val regex = "(^|\\s+)(#\\d+)($|\\s+)".toRegex()
+        val result = regex.replace(fixedContent) { matchResult ->
+            val start = matchResult.groupValues[1]
+            val floor = matchResult.groupValues[2]
+            val end = matchResult.groupValues[3]
+            "$start<a href=\"$floor\">$floor</a>$end"
+        }
+//        Log.d(TAG, "rememberFixedHtml, linkFloor, result = $result")
+        result
+    } else fixedContent
 }
 
 private fun fixEmailProtected(ele: Element) {
@@ -76,7 +89,7 @@ private fun fixEmailProtected(ele: Element) {
             if (parent != null) {
                 ele.remove()
                 parent.insertChildren(siblingIndex, TextNode(email))
-                if(parent.tagName().equals("a")){
+                if (parent.tagName().equals("a")) {
                     parent.attr("href", "mailto:$email")
                 }
             }

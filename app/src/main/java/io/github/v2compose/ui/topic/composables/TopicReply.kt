@@ -48,7 +48,8 @@ fun TopicReply(
     onMenuItemClick: (ReplyMenuItem) -> Unit,
     loadHtmlImage: (String, String?) -> Unit,
     onHtmlImageClick: OnHtmlImageClick,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showActions: Boolean = true,
 ) {
     val isOp = opName == reply.userName
 
@@ -98,11 +99,12 @@ fun TopicReply(
                 HtmlContent(
                     content = content,
                     selectable = false,
+                    linkFloor = true,
                     onUriClick = { onUriClick(it, reply) },
                     onClick = { if (isLoggedIn) onClick(reply) },
                     loadImage = loadHtmlImage,
                     onHtmlImageClick = onHtmlImageClick,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -112,13 +114,15 @@ fun TopicReply(
                     .align(Alignment.BottomCenter),
             )
 
-            TopicReplyActions(
-                isLoggedIn = isLoggedIn,
-                reply = reply,
-                replyWrapper = replyWrapper,
-                onMenuItemClick = onMenuItemClick,
-                modifier = Modifier.align(Alignment.TopEnd),
-            )
+            if(showActions){
+                TopicReplyActions(
+                    isLoggedIn = isLoggedIn,
+                    reply = reply,
+                    replyWrapper = replyWrapper,
+                    onMenuItemClick = onMenuItemClick,
+                    modifier = Modifier.align(Alignment.TopEnd),
+                )
+            }
         }
     }
 
@@ -187,7 +191,7 @@ private fun TopicReplyActions(
 }
 
 @Composable
-private fun OpLabel() {
+fun OpLabel() {
     Text(
         stringResource(id = R.string.op),
         color = MaterialTheme.colorScheme.primary,
@@ -219,6 +223,7 @@ fun UserTopicReply(
         Spacer(Modifier.height(8.dp))
         HtmlContent(
             content = content,
+            linkFloor = true,
             onUriClick = { onUriClick(it, reply) },
             loadImage = loadHtmlImage,
             onHtmlImageClick = onHtmlImageClick
@@ -233,7 +238,7 @@ fun UserTopicReply(
 }
 
 @Composable
-private fun UserName(userName: String, modifier: Modifier = Modifier) {
+fun UserName(userName: String, modifier: Modifier = Modifier) {
     Text(
         userName,
         modifier = modifier,

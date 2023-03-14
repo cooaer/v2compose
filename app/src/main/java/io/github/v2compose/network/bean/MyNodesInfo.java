@@ -3,7 +3,6 @@ package io.github.v2compose.network.bean;
 import java.io.Serializable;
 import java.util.List;
 
-import io.github.v2compose.util.AvatarUtils;
 import io.github.v2compose.util.Check;
 import io.github.v2compose.util.Utils;
 import me.ghui.fruit.Attrs;
@@ -27,14 +26,14 @@ public class MyNodesInfo extends BaseInfo {
     @Override
     public boolean isValid() {
         if (Utils.listSize(items) <= 0) return true;
-        return Check.notEmpty(items.get(0).name);
+        return Check.notEmpty(items.get(0).title);
     }
 
     public static class Item implements Serializable {
         @Pick(value = "img", attr = Attrs.SRC)
-        private String img;
+        private String avatar;
         @Pick(value = "span.fav-node-name", attr = Attrs.OWN_TEXT)
-        private String name;
+        private String title;
         @Pick(value = "span.fade.f12")
         private int topicNum;
         @Pick(attr = Attrs.HREF)
@@ -43,24 +42,31 @@ public class MyNodesInfo extends BaseInfo {
         @Override
         public String toString() {
             return "Item{" +
-                    "img='" + img + '\'' +
-                    ", name='" + name + '\'' +
+                    "avatar='" + avatar + '\'' +
+                    ", title='" + title + '\'' +
                     ", topicNum=" + topicNum +
                     ", link='" + link + '\'' +
-                    ", id='" + getLink() + '\'' +
                     '}';
         }
 
-        public String getImg() {
-            return AvatarUtils.adjustAvatar(img);
+        public String getAvatar() {
+            return avatar == null ? "" : avatar;
         }
 
-        public String getName() {
-            return name;
+        public String getTitle() {
+            return title;
         }
 
         public int getTopicNum() {
             return topicNum;
+        }
+
+        private String _name;
+
+        public String getName() {
+            if (_name != null) return _name;
+            _name = link.substring("/go/".length());
+            return _name;
         }
 
         public String getLink() {

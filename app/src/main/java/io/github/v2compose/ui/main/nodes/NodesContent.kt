@@ -9,31 +9,25 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
 import com.google.accompanist.flowlayout.*
-import io.github.cooaer.htmltext.fullUrl
-import io.github.v2compose.Constants
 import io.github.v2compose.network.bean.Node
 import io.github.v2compose.ui.common.LoadError
 import io.github.v2compose.ui.common.PullToRefresh
+import io.github.v2compose.ui.common.SimpleNode
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -164,8 +158,9 @@ private fun NodesGroup(
         (0 until fullSize).forEach { index ->
             if (index < nodesSize) {
                 val item = nodes[index]
-                NodeItem(
-                    node = item,
+                SimpleNode(
+                    title = item.title,
+                    avatar = item.avatar,
                     onItemClick = { onNodeClick(item.name, item.title) },
                     modifier = Modifier.size(nodeWidth, nodeHeight),
                 )
@@ -211,31 +206,3 @@ private fun CategoryTitle(selected: Boolean, title: String, onTitleClick: () -> 
     )
 }
 
-@Composable
-fun NodeItem(node: Node, onItemClick: () -> Unit, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .clickable { onItemClick() }
-            .padding(horizontal = 2.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        AsyncImage(
-            model = node.avatar.fullUrl(baseUrl = Constants.baseUrl),
-            contentDescription = node.title,
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)),
-            contentScale = ContentScale.Crop,
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            node.title,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}

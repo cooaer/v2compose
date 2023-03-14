@@ -93,15 +93,20 @@ interface V2exService {
 
     @Html
     @GET("/my/following")
-    suspend fun myFollowingInfo(@Query("p") page: Int): MyFollowingInfo
+    suspend fun myFollowingInfo(
+        @Query("p") page: Int,
+        @Header("user-agent") userAgent: String,
+    ): MyFollowingInfo
 
     @Html
     @GET("/my/topics")
-    suspend fun myTopicsInfo(@Query("p") page: Int): MyTopicsInfo
+    suspend fun myTopicsInfo(
+        @Query("p") page: Int, @Header("user-agent") userAgent: String,
+    ): MyTopicsInfo
 
     @Html
     @GET("/my/nodes")
-    suspend fun myNodesInfo(): MyNodesInfo
+    suspend fun myNodesInfo(@Header("user-agent") userAgent: String): MyNodesInfo
 
     @Html
     @GET("/")

@@ -17,6 +17,7 @@ import io.github.v2compose.core.extension.toStringList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import java.security.KeyRep
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,6 +40,7 @@ class AppPreferences @Inject constructor(
         private val KeyAutoCheckIn = booleanPreferencesKey("auto_check_in")
         private val KeySearchKeywords = stringPreferencesKey("search_keywords")
         private val KeyHighlightOpReply = booleanPreferencesKey("highlight_op_reply")
+        private val KeyReplyWithFloor = booleanPreferencesKey("reply_with_floor")
 
         private val KeyProxyInfo = stringPreferencesKey("proxy_info")
     }
@@ -53,7 +55,8 @@ class AppPreferences @Inject constructor(
             ignoredReleaseName = it[KeyIgnoredReleaseName],
             autoCheckIn = it[KeyAutoCheckIn] ?: false,
             searchKeywords = it[KeySearchKeywords]?.toStringList(moshi) ?: listOf(),
-            highlightOpReply = it[KeyHighlightOpReply] ?: false
+            highlightOpReply = it[KeyHighlightOpReply] ?: false,
+            replyWithFloor = it[KeyReplyWithFloor] ?: true,
         )
     }.distinctUntilChanged()
 
@@ -97,6 +100,11 @@ class AppPreferences @Inject constructor(
         }
     }
 
+    suspend fun replyWithFloor(value:Boolean){
+        context.appDataStore.edit {
+            it[KeyReplyWithFloor] = value
+        }
+    }
     suspend fun searchKeywords(value: List<String>) {
         context.appDataStore.edit {
             it[KeySearchKeywords] = value.toJson(moshi)

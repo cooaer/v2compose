@@ -112,6 +112,9 @@
     <string name="settings_auto_check_in">自动签到</string>
     <string name="settings_auto_check_in_description">自动领取每日登录奖励</string>
 
+    <string name="settings_reply_with_floor">回复时附带楼层</string>
+    <string name="settings_reply_with_floor_description">点击评论中的楼层，查看被回复的评论</string>
+
     <string name="settings_open_in_browser">打开主题、回复等携带的链接</string>
     <string name="settings_internal_browser">内置浏览器</string>
     <string name="settings_external_browser">外置浏览器</string>

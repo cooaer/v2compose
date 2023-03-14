@@ -3,6 +3,7 @@ package io.github.cooaer.htmltext
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
@@ -89,7 +90,8 @@ class GridRowScope(private val columnCount: Int) {
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            contentAlignment = Alignment.Center,
                         ) {
                             contents[rowIndex * columnCount + columnIndex]()
                         }

@@ -14,7 +14,7 @@ import io.github.v2compose.repository.AccountRepository
 import io.github.v2compose.repository.TopicRepository
 import io.github.v2compose.repository.UserRepository
 import io.github.v2compose.ui.BaseViewModel
-import io.github.v2compose.usecase.FixedHtmlImageUseCase
+import io.github.v2compose.usecase.FixHtmlUseCase
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,7 +27,7 @@ class UserViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val topicRepository: TopicRepository,
     private val accountRepository: AccountRepository,
-    private val fixedHtmlImage: FixedHtmlImageUseCase,
+    private val fixedHtmlImage: FixHtmlUseCase,
 ) : BaseViewModel(application) {
 
     val userArgs = UserArgs(savedStateHandle, stringDecoder)

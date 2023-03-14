@@ -71,6 +71,8 @@ object OkHttpFactory {
                 .cookieJar(cookieJar)
                 .retryOnConnectionFailure(true)
                 .addInterceptor(ConfigInterceptor())
+                .followRedirects(true)
+                .followSslRedirects(true)
                 .proxySelector(proxySelector)
         if (BuildConfig.DEBUG) {
             builder.addInterceptor(

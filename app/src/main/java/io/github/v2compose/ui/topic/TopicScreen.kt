@@ -450,7 +450,7 @@ private fun TopicTitle(
         time = topicInfo.headerInfo.time,
         replyCount = topicInfo.headerInfo.commentNum,
         viewCount = topicInfo.headerInfo.viewCount,
-        nodeName = topicInfo.headerInfo.tagId,
+        nodeName = topicInfo.headerInfo.tagName,
         nodeTitle = topicInfo.headerInfo.tag,
         title = topicInfo.headerInfo.title,
         onUserAvatarClick = {
@@ -459,7 +459,7 @@ private fun TopicTitle(
             )
         },
         onNodeClick = {
-            onNodeClick(topicInfo.headerInfo.tagId, topicInfo.headerInfo.tag)
+            onNodeClick(topicInfo.headerInfo.tagName, topicInfo.headerInfo.tag)
         })
 }
 

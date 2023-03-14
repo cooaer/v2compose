@@ -442,22 +442,7 @@ private fun HtmlElementsScope.InlineNodes(
     nextNode: Node?,
     textStyle: TextStyle
 ) {
-    //消除将非block元素渲染为block元素后，产生的多余的换行
-    val inlineNodes = nodes.toMutableList()
-    if (prevNode != null && !prevNode.isBlock()) {
-        inlineNodes.firstOrNull()?.let {
-            if (it.nodeName().lowercase() == "br") {
-                inlineNodes.removeFirst()
-            }
-        }
-    }
-    if (nextNode != null && !nextNode.isBlock()) {
-        inlineNodes.lastOrNull()?.let {
-            if (it.nodeName().lowercase() == "br") {
-                inlineNodes.removeLast()
-            }
-        }
-    }
+    val inlineNodes = rememberInlineNodes(nodes, prevNode, nextNode)
 
     BoxWithConstraints {
         val density = LocalDensity.current
@@ -522,6 +507,37 @@ private fun HtmlElementsScope.InlineNodes(
             }
         )
     }
+}
+
+@Composable
+private fun rememberInlineNodes(
+    nodes: List<Node>,
+    prevNode: Node?,
+    nextNode: Node?
+): List<Node> {
+    return remember(nodes, prevNode, nextNode) {
+        val inlineNodes = nodes.toMutableList()
+        //消除将非block元素渲染为block元素后，产生的多余的换行
+        //消除nodes中第一个和最后一个的多余的换行
+        inlineNodes.firstOrNull()?.let { node ->
+            if (prevNode != null && !prevNode.isBlock() && node.nodeName().lowercase() == "br") {
+                inlineNodes.removeFirst()
+            } else if (node is TextNode) {
+                node.text(node.text().trimStart())
+            }
+            Unit
+        }
+        inlineNodes.lastOrNull()?.let { node ->
+            if (nextNode != null && !nextNode.isBlock() && node.nodeName().lowercase() == "br") {
+                inlineNodes.removeLast()
+            } else if (node is TextNode) {
+                node.text(node.text().trimEnd())
+            }
+            Unit
+        }
+        inlineNodes
+    }
+
 }
 
 

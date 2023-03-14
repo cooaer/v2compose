@@ -20,4 +20,6 @@ object V2exUri {
 
     fun userPath(userName: String) = "/member/$userName"
 
+    fun String.isUserPath() = this.startsWith(Constants.userPath)
+
 }

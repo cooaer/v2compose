@@ -114,6 +114,7 @@ fun HtmlText(
     }
 }
 
+
 @Composable
 private fun HtmlElementsScope.BlockToInlineNodes(
     element: Element,
@@ -128,24 +129,36 @@ private fun HtmlElementsScope.BlockToInlineNodes(
         if (node is Element) {
             if (node.isBlock || node.onlyContainsImgs() || node.isIframe()) {
 //            if (node.isBlock || node.isIframe()) {
-                if (tempNodes.isNotEmpty()) {
+                if (tempNodes.isNotBlank()) {
                     InlineNodes(tempNodes.toList(), prevNode, node, textStyle)
-                    tempNodes.clear()
                 }
+                tempNodes.clear()
                 prevNode = node
                 Block(node, textStyle, clickable)
+                if (tempNodes.isNotBlank()) {
+                    InlineNodes(tempNodes.toList(), prevNode, node, textStyle)
+                }
+                tempNodes.clear()
             } else {
                 tempNodes.add(node)
             }
         } else if (node is TextNode) {
-            if (node.text().isNotBlank()) {
+            if (node.text().isNotEmpty()) {
                 tempNodes.add(node)
             }
         }
     }
-    if (tempNodes.isNotEmpty()) {
+    if (tempNodes.isNotBlank()) {
         InlineNodes(tempNodes, prevNode, null, textStyle)
     }
+}
+
+private fun Collection<Node>.isNotBlank(): Boolean {
+    return this.any { it !is TextNode || !it.isBlank }
+}
+
+private fun Collection<Node>.isLastBlock(): Boolean {
+    return this.isNotEmpty() && this.last().let { last -> last is Element && last.isBlock }
 }
 
 //=========== Block Elements Start ============
@@ -429,22 +442,7 @@ private fun HtmlElementsScope.InlineNodes(
     nextNode: Node?,
     textStyle: TextStyle
 ) {
-    //消除将非block元素渲染为block元素后，产生的多余的换行
-    val inlineNodes = nodes.toMutableList()
-    if (prevNode != null && !prevNode.isBlock()) {
-        inlineNodes.firstOrNull()?.let {
-            if (it.nodeName().lowercase() == "br") {
-                inlineNodes.removeFirst()
-            }
-        }
-    }
-    if (nextNode != null && !nextNode.isBlock()) {
-        inlineNodes.lastOrNull()?.let {
-            if (it.nodeName().lowercase() == "br") {
-                inlineNodes.removeLast()
-            }
-        }
-    }
+    val inlineNodes = rememberInlineNodes(nodes, prevNode, nextNode)
 
     BoxWithConstraints {
         val density = LocalDensity.current
@@ -455,7 +453,7 @@ private fun HtmlElementsScope.InlineNodes(
                 .flatten()
         }
 
-        val annotatedString by remember {
+        val annotatedString by remember(inlineNodes) {
             derivedStateOf {
                 buildAnnotatedString {
                     withStyle(style = ParagraphStyle()) {
@@ -511,6 +509,37 @@ private fun HtmlElementsScope.InlineNodes(
     }
 }
 
+@Composable
+private fun rememberInlineNodes(
+    nodes: List<Node>,
+    prevNode: Node?,
+    nextNode: Node?
+): List<Node> {
+    return remember(nodes, prevNode, nextNode) {
+        val inlineNodes = nodes.toMutableList()
+        //消除将非block元素渲染为block元素后，产生的多余的换行
+        //消除nodes中第一个和最后一个的多余的换行
+        inlineNodes.firstOrNull()?.let { node ->
+            if (prevNode != null && !prevNode.isBlock() && node.nodeName().lowercase() == "br") {
+                inlineNodes.removeFirst()
+            } else if (node is TextNode) {
+                node.text(node.text().trimStart())
+            }
+            Unit
+        }
+        inlineNodes.lastOrNull()?.let { node ->
+            if (nextNode != null && !nextNode.isBlock() && node.nodeName().lowercase() == "br") {
+                inlineNodes.removeLast()
+            } else if (node is TextNode) {
+                node.text(node.text().trimEnd())
+            }
+            Unit
+        }
+        inlineNodes
+    }
+
+}
+
 
 private fun createInlineTextImage(
     img: Img,
@@ -551,9 +580,7 @@ private fun HtmlElementsScope.InlineImage(
     height: Dp,
     clickable: Boolean = true
 ) {
-    var currentLoadState by remember(
-        img.loadState,
-    ) { mutableStateOf(img.loadState) }
+    var currentLoadState by remember(img.loadState) { mutableStateOf(img.loadState) }
 
     val modifier = Modifier.size(width, height)
 
@@ -655,7 +682,11 @@ private fun createInlineCheckbox(lineHeightSp: TextUnit, density: Density): Inli
 
 private fun AnnotatedString.Builder.inlineText(node: Node, scope: HtmlElementsScope) {
     if (node is TextNode) {
-        append(node.text())
+        val text = node.text()
+        if (text.isEmpty()) {
+            return
+        }
+        if (text.isBlank()) append(" ") else append(text)
     } else if (node is Element) {
         when (node.tagName().lowercase()) {
             "br" -> {

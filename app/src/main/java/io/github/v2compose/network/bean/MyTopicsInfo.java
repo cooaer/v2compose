@@ -16,8 +16,8 @@ import me.ghui.fruit.annotations.Pick;
 
 @Pick("div#Wrapper")
 public class MyTopicsInfo extends BaseInfo {
-    @Pick("div.fr.f12 strong.gray")
-    private int total = 0;
+    @Pick(value = "input.page_input", attr = "max")
+    private String totalPageCount;
     @Pick("div.cell.item")
     private List<Item> items;
 
@@ -25,18 +25,19 @@ public class MyTopicsInfo extends BaseInfo {
         return items;
     }
 
-    public void setItems(List<Item> items) {
-        this.items = items;
-    }
-
-    public int getTotal() {
-        return total;
+    public int getTotalPageCount() {
+        try {
+            return Integer.parseInt(totalPageCount);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     @Override
     public String toString() {
         return "TopicStarInfo{" +
-                "total=" + total +
+                "total=" + totalPageCount +
                 ", items=" + items +
                 '}';
     }
@@ -59,54 +60,59 @@ public class MyTopicsInfo extends BaseInfo {
         @Pick("a[class^=count_]")
         private int commentNum;
         @Pick("a.node")
-        private String tag;
+        private String tagTitle;
         @Pick(value = "a.node", attr = Attrs.HREF)
         private String tagLink;
-        @Pick(value = "span.small.fade", attr = Attrs.OWN_TEXT)
+        @Pick(value = "span[title]", attr = Attrs.OWN_TEXT)
         private String time;
 
         @Override
         public String toString() {
             return "Item{" +
                     "userLink='" + userLink + '\'' +
-                    "userName='" + getUserName() + '\'' +
                     ", avatar='" + avatar + '\'' +
                     ", title='" + title + '\'' +
                     ", link='" + link + '\'' +
                     ", commentNum=" + commentNum +
-                    ", tag='" + tag + '\'' +
+                    ", tagTitle='" + tagTitle + '\'' +
                     ", tagLink='" + tagLink + '\'' +
+                    ", time='" + time + '\'' +
                     '}';
         }
 
-        public String getTime() {
-            //   • •  36 天前  •  最后回复来自
-            if (Check.isEmpty(time) || !time.contains("前")) return "";
-            time = time.replaceAll(" ", "");
-            int endIndex = time.indexOf("前");
-            int startIndex = 0;
-            for (int i = endIndex - 1; i >= 0; i--) {
-                if (time.charAt(i) == '•') {
-                    startIndex = i;
-                    break;
-                }
-            }
-            return time.substring(startIndex + 1, endIndex + 1).trim();
+        private String _id;
+
+        public String getId() {
+            if (_id != null) return _id;
+            if (link == null) return "";
+            _id = link.substring("/t/".length(), link.indexOf('#'));
+            return _id;
         }
 
+        public String getTime() {
+            return time == null ? "" : time;
+        }
+
+        private String _userName;
+
         public String getUserName() {
+            if (_userName != null) return _userName;
             if (Check.isEmpty(userLink)) return null;
-            else {
-                return userLink.substring(userLink.lastIndexOf("/") + 1);
-            }
+            _userName = userLink.substring(userLink.lastIndexOf("/") + 1);
+            return _userName;
         }
 
         public String getUserLink() {
             return userLink;
         }
 
+        private String _avatar;
+
         public String getAvatar() {
-            return AvatarUtils.adjustAvatar(avatar);
+            if (_avatar != null) return _avatar;
+            if (avatar == null) return "";
+            _avatar = AvatarUtils.adjustAvatar(avatar);
+            return _avatar;
         }
 
         public String getTitle() {
@@ -121,12 +127,16 @@ public class MyTopicsInfo extends BaseInfo {
             return commentNum;
         }
 
-        public String getTag() {
-            return tag;
+        private String _tagName;
+
+        public String getTagName() {
+            if (_tagName != null) return _tagName;
+            _tagName = tagLink.substring("/go/".length());
+            return _tagName;
         }
 
-        public String getTagLink() {
-            return tagLink;
+        public String getTagTitle() {
+            return tagTitle;
         }
     }
 }

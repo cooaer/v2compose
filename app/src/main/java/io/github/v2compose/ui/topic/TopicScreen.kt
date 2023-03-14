@@ -1,5 +1,6 @@
 package io.github.v2compose.ui.topic
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.animation.*
@@ -58,6 +59,7 @@ fun TopicScreenRoute(
     val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
     val repliesReversed by viewModel.repliesReversed.collectAsStateWithLifecycle(initialValue = true)
     val highlightOpReply by viewModel.highlightOpReply.collectAsStateWithLifecycle()
+    val replyWithFloor by viewModel.replyWithFloor.collectAsStateWithLifecycle()
     val topicItems = viewModel.topicItems.collectAsLazyPagingItems()
 
     val topicInfo = if (topicItems.itemCount > 0) {
@@ -90,6 +92,7 @@ fun TopicScreenRoute(
         replyWrappers = replyWrappers,
         replyTopicState = replyTopicState,
         highlightOpReply = highlightOpReply,
+        replyWithFloor = replyWithFloor,
         onBackClick = onBackClick,
         onTopicMenuClick = {
             when (it) {
@@ -136,6 +139,7 @@ private fun TopicScreen(
     replyWrappers: Map<String, ReplyWrapper>,
     replyTopicState: ReplyTopicState,
     highlightOpReply: Boolean,
+    replyWithFloor: Boolean,
     onBackClick: () -> Unit,
     onTopicMenuClick: (TopicMenuItem) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
@@ -215,14 +219,14 @@ private fun TopicScreen(
                 onNodeClick = onNodeClick,
                 onRepliedOrderClick = onRepliedOrderClick,
                 onTopicReplyClick = {
-                    replyInputInitialText = initialReplyText(it)
+                    replyInputInitialText = initialReplyText(it, replyWithFloor)
                     replyInputState = ReplyInputState.Expanded
-                    clickReplyTimes ++
+                    clickReplyTimes++
                 },
                 openUri = openUri,
                 onTopicMenuItemClick = { menuItem, reply ->
                     if (menuItem == ReplyMenuItem.Reply) {
-                        replyInputInitialText = initialReplyText(reply)
+                        replyInputInitialText = initialReplyText(reply, replyWithFloor)
                         replyInputState = ReplyInputState.Expanded
                     } else {
                         onReplyMenuItemClick(menuItem, reply)
@@ -251,9 +255,13 @@ private fun TopicScreen(
     }
 }
 
-fun initialReplyText(mention: Reply?): String {
+fun initialReplyText(mention: Reply?, replyWithFloor: Boolean): String {
     if (mention == null) return ""
-    return "@${mention.userName} "
+    var text = "@${mention.userName} "
+    if (replyWithFloor) {
+        text += "#${mention.floor} "
+    }
+    return text
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -273,7 +281,7 @@ private fun TopicList(
     onTopicReplyClick: (Reply) -> Unit,
     openUri: (String) -> Unit,
     onTopicMenuItemClick: (ReplyMenuItem, Reply) -> Unit,
-    loadHtmlImage: (String, String, String?) -> Unit,
+    loadHtmlImage: (tag: String, html: String, img: String?) -> Unit,
     onHtmlImageClick: OnHtmlImageClick,
     modifier: Modifier = Modifier,
 ) {
@@ -281,18 +289,30 @@ private fun TopicList(
     var repliesBarIndex by remember { mutableStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
 
-    val clickUriHandler: Function2<String, Reply, Unit> = { uri, reply ->
-        val userName = uri.removePrefix("/member/")
-        val userReplies =
-            topicItems.itemSnapshotList.filter { it is Reply && it.floor < reply.floor && it.userName == userName } as List<Reply>
-        if (userReplies.isEmpty()) {
-            openUri(uri)
-        } else {
-            clickedUserReplies.add(userReplies)
-        }
-    }
-
     val repliesBarHeight = with(LocalDensity.current) { 40.dp.roundToPx() }
+    val floorRegex = "#\\d+".toRegex()
+
+    fun clickUriHandler(uri: String, reply: Reply) {
+        while (true) {
+            if (!uri.startsWith("/member/")) break
+            val userName = uri.removePrefix("/member/")
+            val userReplies =
+                topicItems.itemSnapshotList.filter { it is Reply && it.floor < reply.floor && it.userName == userName } as List<Reply>
+            if (userReplies.isEmpty()) break
+            clickedUserReplies.add(userReplies)
+            return
+        }
+        if (floorRegex.matches(uri)) {
+            Log.d(TAG, "clickUriHandler, uri = $uri")
+            val floor = uri.substring(1).toIntOrNull() ?: return
+            val floorReply =
+                topicItems.itemSnapshotList.firstOrNull { it is Reply && it.floor == floor } as Reply?
+                    ?: return
+            clickedUserReplies.add(listOf(floorReply))
+            return
+        }
+        openUri(uri)
+    }
 
     clickedUserReplies.forEachIndexed { index, item ->
         UserRepliesDialog(
@@ -300,7 +320,7 @@ private fun TopicList(
             sizedHtmls = sizedHtmls,
             onDismissRequest = { clickedUserReplies.removeAt(index) },
             onUserAvatarClick = onUserAvatarClick,
-            onUriClick = clickUriHandler,
+            onUriClick = { uri, reply -> clickUriHandler(uri, reply) },
             loadHtmlImage = loadHtmlImage,
             onHtmlImageClick = onHtmlImageClick,
         )
@@ -400,7 +420,7 @@ private fun TopicList(
                     content = sizedHtmls[tag] ?: item.replyContent,
                     highlightOpReply = highlightOpReply,
                     onUserAvatarClick = onUserAvatarClick,
-                    onUriClick = clickUriHandler,
+                    onUriClick = { uri, reply -> clickUriHandler(uri, reply) },
                     onClick = {
                         onTopicReplyClick(it)
                         coroutineScope.launch {
@@ -437,7 +457,7 @@ private fun TopicTitle(
         time = topicInfo.headerInfo.time,
         replyCount = topicInfo.headerInfo.commentNum,
         viewCount = topicInfo.headerInfo.viewCount,
-        nodeName = topicInfo.headerInfo.tagId,
+        nodeName = topicInfo.headerInfo.tagName,
         nodeTitle = topicInfo.headerInfo.tag,
         title = topicInfo.headerInfo.title,
         onUserAvatarClick = {
@@ -446,7 +466,7 @@ private fun TopicTitle(
             )
         },
         onNodeClick = {
-            onNodeClick(topicInfo.headerInfo.tagId, topicInfo.headerInfo.tag)
+            onNodeClick(topicInfo.headerInfo.tagName, topicInfo.headerInfo.tag)
         })
 }
 

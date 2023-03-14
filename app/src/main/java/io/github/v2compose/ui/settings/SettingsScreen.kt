@@ -74,6 +74,7 @@ fun SettingsScreenRoute(
         onBackClick = onBackClick,
         onClearCacheClick = viewModel::clearCache,
         onAutoCheckInChanged = viewModel::updateAutoCheckIn,
+        onReplyWithFloorChanged = viewModel::updateReplyWithFloor,
         onOpenInBrowserChanged = viewModel::setOpenInInternalBrowser,
         onDarkModeChanged = viewModel::setDarkMode,
         onTopicTitleTwoLineMaxChanged = viewModel::setTopicTitleTwoLineMax,
@@ -108,6 +109,7 @@ private fun SettingsScreen(
     onBackClick: () -> Unit,
     onClearCacheClick: () -> Unit,
     onAutoCheckInChanged: (Boolean) -> Unit,
+    onReplyWithFloorChanged: (Boolean) -> Unit,
     onOpenInBrowserChanged: (Boolean) -> Unit,
     onDarkModeChanged: (DarkMode) -> Unit,
     onTopicTitleTwoLineMaxChanged: (Boolean) -> Unit,
@@ -131,6 +133,12 @@ private fun SettingsScreen(
             PreferenceGroupTitle(title = stringResource(id = R.string.settings_common))
             ClearCachePreference(cacheSize, onClearCacheClick)
             AutoCheckInPreference(appSettings, onAutoCheckInChanged)
+            SwitchPreference(
+                title = stringResource(id = R.string.settings_reply_with_floor),
+                summary = stringResource(id = R.string.settings_reply_with_floor_description),
+                checked = appSettings.replyWithFloor,
+                onCheckedChange = onReplyWithFloorChanged,
+            )
             PreferenceGroupTitle(title = stringResource(id = R.string.settings_appearance))
             DropdownPreference(
                 title = stringResource(id = R.string.settings_dark_mode),

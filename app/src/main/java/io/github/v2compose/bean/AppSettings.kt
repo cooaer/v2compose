@@ -9,6 +9,7 @@ data class AppSettings(
     val autoCheckIn: Boolean = false,
     val searchKeywords: List<String> = listOf(),
     val highlightOpReply: Boolean = false,
+    val replyWithFloor: Boolean = true,
 ) {
     companion object {
         val Default = AppSettings()

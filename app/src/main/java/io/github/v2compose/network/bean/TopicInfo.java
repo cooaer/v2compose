@@ -2,6 +2,7 @@ package io.github.v2compose.network.bean;
 
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
 import androidx.compose.runtime.Stable;
 
 import org.jsoup.Jsoup;
@@ -13,10 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.github.v2compose.network.NetConstants;
 import io.github.v2compose.util.AvatarUtils;
 import io.github.v2compose.util.Check;
-import io.github.v2compose.util.UriUtils;
 import me.ghui.fruit.Attrs;
 import me.ghui.fruit.annotations.Pick;
 
@@ -71,14 +70,6 @@ public class TopicInfo extends BaseInfo {
         return hasReported() || !TextUtils.isEmpty(reportLink);
     }
 
-    public String reportUrl() {
-        if (hasReported()) return null;
-        //if (confirm('你确认需要报告这个主题？')) { location.href = '/report/topic/390988?t=1456813618'; }
-        int sIndex = reportLink.indexOf("/report/topic/");
-        int eIndex = reportLink.lastIndexOf("'");
-        return reportLink.substring(sIndex, eIndex);
-    }
-
     public String fadeUrl() {
         if (TextUtils.isEmpty(fadeStr)) return null;
         int sIndex = fadeStr.indexOf("/fade/topic/");
@@ -112,24 +103,8 @@ public class TopicInfo extends BaseInfo {
         return contentInfo;
     }
 
-    /**
-     * replies是否已经reversed
-     *
-     * @return
-     */
-    private boolean hasReversed() {
-        if (replies.size() >= 2) {
-            return replies.get(0).floor > replies.get(1).floor;
-        }
-        return true;
-    }
-
     public HeaderInfo getHeaderInfo() {
         return headerInfo;
-    }
-
-    public void setHeaderInfo(HeaderInfo headerInfo) {
-        this.headerInfo = headerInfo;
     }
 
     public int getTotalPage() {
@@ -193,6 +168,7 @@ public class TopicInfo extends BaseInfo {
 
         /**
          * 得到处理后的html, 移除最后一个element(时间，收藏，等不需要显示的信息)
+         *
          * @return
          */
         public String getFormattedHtml() {
@@ -215,7 +191,7 @@ public class TopicInfo extends BaseInfo {
         }
 
         public List<Supplement> getSupplements() {
-            return supplements != null ? supplements : Collections.EMPTY_LIST;
+            return supplements != null ? supplements : Collections.emptyList();
         }
 
         @Override
@@ -268,7 +244,6 @@ public class TopicInfo extends BaseInfo {
         private String thankedText;// 感谢已发送
         @Pick("div.box div.inner div#topic_thank")
         private String canSendThanksText;
-        private String computedTime;
         @Pick("div.box div.header a.op")
         private String appendTxt;
 
@@ -299,6 +274,7 @@ public class TopicInfo extends BaseInfo {
 
         /**
          * new user can't send thanks
+         *
          * @return
          */
         public boolean canSendThanks() {
@@ -313,33 +289,34 @@ public class TopicInfo extends BaseInfo {
             return favoriteLink;
         }
 
-        public String getT() {
-            if (Check.isEmpty(favoriteLink)) {
-                return null;
-            }
-            return UriUtils.getParamValue(NetConstants.BASE_URL + favoriteLink, "t");
-        }
-
         public boolean hadFavorited() {
             return !Check.isEmpty(favoriteLink) && favoriteLink.contains("unfavorite/");
         }
 
+        private int _favoriteCount = -1;
+
         //17 人收藏
-        public int getFavoriteCount(){
-            if(Check.isEmpty(favoriteText)){
+        public int getFavoriteCount() {
+            if (_favoriteCount >= 0) return _favoriteCount;
+            if (Check.isEmpty(favoriteText)) {
                 return 0;
             }
-            try{
-                return Integer.parseInt(favoriteText.trim().substring(0, favoriteText.indexOf(" ")));
-            }catch (Exception e){
+            try {
+                _favoriteCount = Integer.parseInt(favoriteText.trim().substring(0, favoriteText.indexOf(" ")));
+                return _favoriteCount;
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             return 0;
         }
 
+        private String _commentNum;
+
         public String getCommentNum() {
+            if (_commentNum != null) return _commentNum;
             if (Check.isEmpty(comment)) return "";
-            return comment.split(" ")[0];
+            _commentNum = comment.split(" ")[0];
+            return _commentNum;
         }
 
         public String getTagLink() {
@@ -350,29 +327,41 @@ public class TopicInfo extends BaseInfo {
             return tag;
         }
 
-        public String getTagId() {
-            return tagLink.replace("/go/", "");
+        private String _tagName;
+
+        public String getTagName() {
+            if (_tagName != null) return _tagName;
+            _tagName = tagLink.replace("/go/", "");
+            return _tagName;
         }
 
+        private String _time;
+
         public String getTime() {
+            if (_time != null) return _time;
             try {
-                if (Check.isEmpty(computedTime) && Check.notEmpty(time) && time.contains("·")) {
-                    computedTime = time.split("·")[0].trim().substring(6).replaceAll(" ", "").trim();
-                    if (computedTime.contains("-") && computedTime.contains("+")) {
-                        computedTime = computedTime.substring(0, 10);
+                if (Check.notEmpty(time) && time.contains("·")) {
+                    String tempTime = time.split("·")[0].trim().substring(6).replaceAll(" ", "").trim();
+                    if (tempTime.contains("-") && tempTime.contains("+")) {
+                        tempTime = tempTime.substring(0, 10);
                     }
+                    _time = tempTime;
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 return null;
             }
-            return computedTime;
+            return _time == null ? "" : _time;
         }
 
+        private int _viewCount = -1;
+
         public int getViewCount() {
+            if (_viewCount >= 0) return _viewCount;
             try {
                 String count = time.split("·")[1].trim();
-                return Integer.parseInt(count.substring(0, count.indexOf(" ")));
+                _viewCount = Integer.parseInt(count.substring(0, count.indexOf(" ")));
+                return _viewCount;
             } catch (Exception e) {
                 return 0;
             }
@@ -382,8 +371,12 @@ public class TopicInfo extends BaseInfo {
             return userName;
         }
 
+        private String _avatar;
+
         public String getAvatar() {
-            return AvatarUtils.adjustAvatar(avatar);
+            if (_avatar != null) return _avatar;
+            _avatar = AvatarUtils.adjustAvatar(avatar);
+            return _avatar;
         }
 
         public String getTitle() {
@@ -414,14 +407,13 @@ public class TopicInfo extends BaseInfo {
                     ", ignoreLink='" + ignoreLink + '\'' +
                     ", thankedText='" + thankedText + '\'' +
                     ", canSendThanksText='" + canSendThanksText + '\'' +
-                    ", computedTime='" + computedTime + '\'' +
                     ", appendTxt='" + appendTxt + '\'' +
                     '}';
         }
     }
 
     @Stable
-    public static class Reply implements Serializable{
+    public static class Reply implements Serializable {
         @Pick(value = "div.reply_content", attr = Attrs.INNER_HTML)
         private String replyContent;
         @Pick("strong a.dark[href^=/member]")
@@ -438,31 +430,35 @@ public class TopicInfo extends BaseInfo {
         private String alreadyThanked;
         @Pick(attr = "id")
         private String replyId;
-        private boolean isOwner = false;
-
-        public boolean isOwner() {
-            return isOwner;
-        }
 
         public int getFloor() {
             return floor;
         }
 
+        private String _replyId;
+
         public String getReplyId() {
+            if (_replyId != null) return _replyId;
             if (Check.isEmpty(replyId)) return null;
             try {
-                return replyId.substring(replyId.indexOf("_") + 1);
+                _replyId = replyId.substring(replyId.indexOf("_") + 1);
+                return _replyId;
             } catch (Exception e) {
                 e.printStackTrace();
                 return null;
             }
         }
+
         public boolean hadThanked() {
             return Check.notEmpty(alreadyThanked);
         }
 
+        private String _replyContent;
+
         public String getReplyContent() {
-            return replyContent;
+            if (_replyContent != null) return _replyContent;
+            _replyContent = replyContent.trim();
+            return _replyContent;
         }
 
         public String getUserName() {
@@ -477,19 +473,20 @@ public class TopicInfo extends BaseInfo {
             return time;
         }
 
+        private int _thanksCount = -1;
+
         public int getThanksCount() {
-            int thanksCount = 0;
-            if (Check.isEmpty(thanksText)) {
-                return thanksCount;
-            }
+            if (_thanksCount >= 0) return _thanksCount;
+            if (Check.isEmpty(thanksText)) return 0;
             try {
-                thanksCount = Integer.parseInt(thanksText);
+                _thanksCount = Integer.parseInt(thanksText);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return thanksCount;
+            return _thanksCount;
         }
 
+        @NonNull
         @Override
         public String toString() {
             return "Reply{" +
@@ -501,7 +498,6 @@ public class TopicInfo extends BaseInfo {
                     ", floor=" + floor +
                     ", alreadyThanked='" + alreadyThanked + '\'' +
                     ", replyId='" + replyId + '\'' +
-                    ", isOwner=" + isOwner +
                     '}';
         }
     }

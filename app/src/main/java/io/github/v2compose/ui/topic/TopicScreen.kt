@@ -274,7 +274,7 @@ private fun TopicList(
     onTopicReplyClick: (Reply) -> Unit,
     openUri: (String) -> Unit,
     onTopicMenuItemClick: (ReplyMenuItem, Reply) -> Unit,
-    loadHtmlImage: (String, String, String?) -> Unit,
+    loadHtmlImage: (tag: String, html: String, img: String?) -> Unit,
     onHtmlImageClick: OnHtmlImageClick,
     modifier: Modifier = Modifier,
 ) {

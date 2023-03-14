@@ -468,7 +468,7 @@ private fun HtmlElementsScope.InlineNodes(
                 .flatten()
         }
 
-        val annotatedString by remember {
+        val annotatedString by remember(inlineNodes) {
             derivedStateOf {
                 buildAnnotatedString {
                     withStyle(style = ParagraphStyle()) {

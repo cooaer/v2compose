@@ -37,7 +37,7 @@ interface AccountRepository {
 
     val hasCheckingInTips: Flow<Boolean>
 
-    val autoCheckIn:Flow<Boolean>
+    val autoCheckIn: Flow<Boolean>
 
     val lastCheckInTime: Flow<Long>
 
@@ -46,5 +46,7 @@ interface AccountRepository {
     suspend fun checkIn(once: String): DailyInfo
 
     val myTopics: Flow<PagingData<MyTopicsInfo.Item>>
+    val myFollowing: Flow<PagingData<MyFollowingInfo.Item>>
+    suspend fun getMyNodes(): MyNodesInfo
 
 }

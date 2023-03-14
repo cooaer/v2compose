@@ -16,21 +16,21 @@ import me.ghui.fruit.annotations.Pick;
 
 @Pick("div#Wrapper")
 public class MyFollowingInfo extends BaseInfo {
-    @Pick("div.fr.f12 strong.gray")
-    private int total;
+    @Pick(value = "input.page_input", attr = "max")
+    private int totalPageCount;
     @Pick("div.cell.item")
     private List<Item> items;
 
     @Override
     public String toString() {
         return "CareInfo{" +
-                "total=" + total +
+                "totalPageCount=" + totalPageCount +
                 ", items=" + items +
                 '}';
     }
 
-    public int getTotal() {
-        return total;
+    public int getTotalPageCount() {
+        return totalPageCount;
     }
 
     public List<Item> getItems() {
@@ -48,16 +48,16 @@ public class MyFollowingInfo extends BaseInfo {
         private String avatar;
         @Pick("strong a[href^=/member/]")
         private String userName;
-        @Pick(value = "span.small.fade", attr = Attrs.OWN_TEXT)
+        @Pick(value = "span[title]", attr = Attrs.OWN_TEXT)
         private String time;
         @Pick("span.item_title a[href^=/t/]")
         private String title;
         @Pick(value = "span.item_title a[href^=/t/]", attr = Attrs.HREF)
         private String link;
         @Pick("a[class^=count_]")
-        private int comentNum;
+        private int commentNum;
         @Pick("a.node")
-        private String tagName;
+        private String tagTitle;
         @Pick(value = "a.node", attr = Attrs.HREF)
         private String tagLink;
 
@@ -66,27 +66,35 @@ public class MyFollowingInfo extends BaseInfo {
             return "Item{" +
                     "avatar='" + avatar + '\'' +
                     ", userName='" + userName + '\'' +
-                    ", time='" + getTime() + '\'' +
+                    ", time='" + time + '\'' +
                     ", title='" + title + '\'' +
                     ", link='" + link + '\'' +
-                    ", comentNum='" + comentNum + '\'' +
-                    ", tagName='" + tagName + '\'' +
+                    ", comentNum=" + commentNum +
+                    ", tagTitle='" + tagTitle + '\'' +
                     ", tagLink='" + tagLink + '\'' +
                     '}';
         }
 
-        public String getTime() {
-            //  •  36 天前  •  最后回复来自
-            String result = null;
-            try {
-                result = time.trim().split("•")[2].trim().replaceAll(" ", "");
-            } catch (Exception e) {
-            }
-            return result;
+        private String _id;
+
+        public String getId() {
+            if (_id != null) return _id;
+            if (link == null) return "";
+            _id = link.substring("/t/".length(), link.indexOf('#'));
+            return _id;
         }
 
+        public String getTime() {
+            return time == null ? "" : time;
+        }
+
+        private String _avatar;
+
         public String getAvatar() {
-            return AvatarUtils.adjustAvatar(avatar);
+            if (_avatar != null) return _avatar;
+            if (avatar == null) return "";
+            _avatar = AvatarUtils.adjustAvatar(avatar);
+            return _avatar;
         }
 
         public String getUserName() {
@@ -101,12 +109,20 @@ public class MyFollowingInfo extends BaseInfo {
             return link;
         }
 
-        public int getComentNum() {
-            return comentNum;
+        public int getCommentNum() {
+            return commentNum;
         }
 
+        private String _tagName;
+
         public String getTagName() {
-            return tagName;
+            if (_tagName != null) return _tagName;
+            _tagName = tagLink.substring("/go/".length());
+            return _tagName;
+        }
+
+        public String getTagTitle() {
+            return tagTitle;
         }
 
         public String getTagLink() {

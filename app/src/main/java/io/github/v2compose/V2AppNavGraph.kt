@@ -16,6 +16,10 @@ import io.github.v2compose.ui.login.navigateToLogin
 import io.github.v2compose.ui.login.twostep.twoStepLoginScreen
 import io.github.v2compose.ui.main.mainNavigationRoute
 import io.github.v2compose.ui.main.mainScreen
+import io.github.v2compose.ui.main.mine.following.myFollowingScreen
+import io.github.v2compose.ui.main.mine.following.navigateToMyFollowing
+import io.github.v2compose.ui.main.mine.nodes.myNodesScreen
+import io.github.v2compose.ui.main.mine.nodes.navigateToMyNodes
 import io.github.v2compose.ui.main.mine.topics.myTopicsScreen
 import io.github.v2compose.ui.main.mine.topics.navigateToMyTopics
 import io.github.v2compose.ui.main.navigateToMain
@@ -33,7 +37,6 @@ import io.github.v2compose.ui.topic.topicNavigationRoute
 import io.github.v2compose.ui.topic.topicScreen
 import io.github.v2compose.ui.user.navigateToUser
 import io.github.v2compose.ui.user.userScreen
-import io.github.v2compose.ui.webview.navigateToWebView
 import io.github.v2compose.ui.webview.webViewScreen
 import io.github.v2compose.ui.write.navigateToWriteTopic
 import io.github.v2compose.ui.write.writeTopicScreen
@@ -64,10 +67,12 @@ fun V2AppNavGraph(
                     )
                 }
             },
-            onMyNodesClick = { navController.navigateToWebView(V2exUri.myNodesUrl) },
+//            onMyNodesClick = { navController.navigateToWebView(V2exUri.myNodesUrl) },
+            onMyNodesClick = navController::navigateToMyNodes,
 //            onMyTopicsClick = { navController.navigateToWebView(V2exUri.myTopicsUrl) },
             onMyTopicsClick = navController::navigateToMyTopics,
-            onMyFollowingClick = { navController.navigateToWebView(V2exUri.myFollowingUrl) },
+//            onMyFollowingClick = { navController.navigateToWebView(V2exUri.myFollowingUrl) },
+            onMyFollowingClick = navController::navigateToMyFollowing,
             onCreateTopicClick = navController::navigateToWriteTopic,
             onSettingsClick = navController::navigateToSettings,
             openUri = appState::openUri,
@@ -151,6 +156,16 @@ fun V2AppNavGraph(
             onTopicClick = { navController.navigateToTopic(it.id) },
             onNodeClick = navController::navigateToNode,
             onUserAvatarClick = navController::navigateToUser,
+        )
+        myFollowingScreen(
+            onBackClick = appState::back,
+            onTopicClick = { navController.navigateToTopic(it.id) },
+            onNodeClick = navController::navigateToNode,
+            onUserAvatarClick = navController::navigateToUser,
+        )
+        myNodesScreen(
+            onBackClick = appState::back,
+            onNodeClick = { navController.navigateToNode(it.name) },
         )
     }
 }

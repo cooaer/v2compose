@@ -17,7 +17,7 @@ import me.ghui.fruit.annotations.Pick;
 @Pick("div#Wrapper")
 public class MyTopicsInfo extends BaseInfo {
     @Pick(value = "input.page_input", attr = "max")
-    private String total;
+    private String totalPageCount;
     @Pick("div.cell.item")
     private List<Item> items;
 
@@ -25,20 +25,19 @@ public class MyTopicsInfo extends BaseInfo {
         return items;
     }
 
-    public int getTotal() {
+    public int getTotalPageCount() {
         try {
-            return Integer.parseInt(total);
+            return Integer.parseInt(totalPageCount);
         } catch (NumberFormatException e) {
             e.printStackTrace();
         }
         return 0;
     }
 
-
     @Override
     public String toString() {
         return "TopicStarInfo{" +
-                "total=" + total +
+                "total=" + totalPageCount +
                 ", items=" + items +
                 '}';
     }
@@ -64,20 +63,20 @@ public class MyTopicsInfo extends BaseInfo {
         private String tagTitle;
         @Pick(value = "a.node", attr = Attrs.HREF)
         private String tagLink;
-        @Pick(value = "span.small.fade", attr = Attrs.OWN_TEXT)
+        @Pick(value = "span[title]", attr = Attrs.OWN_TEXT)
         private String time;
 
         @Override
         public String toString() {
             return "Item{" +
                     "userLink='" + userLink + '\'' +
-                    "userName='" + getUserName() + '\'' +
                     ", avatar='" + avatar + '\'' +
                     ", title='" + title + '\'' +
                     ", link='" + link + '\'' +
                     ", commentNum=" + commentNum +
-                    ", tag='" + tagTitle + '\'' +
+                    ", tagTitle='" + tagTitle + '\'' +
                     ", tagLink='" + tagLink + '\'' +
+                    ", time='" + time + '\'' +
                     '}';
         }
 
@@ -90,23 +89,8 @@ public class MyTopicsInfo extends BaseInfo {
             return _id;
         }
 
-        private String _time;
-
         public String getTime() {
-            if (_time != null) return _time;
-            //   • •  36 天前  •  最后回复来自
-            if (Check.isEmpty(time) || !time.contains("前")) return "";
-            time = time.replaceAll(" ", "");
-            int endIndex = time.indexOf("前");
-            int startIndex = 0;
-            for (int i = endIndex - 1; i >= 0; i--) {
-                if (time.charAt(i) == '•') {
-                    startIndex = i;
-                    break;
-                }
-            }
-            _time = time.substring(startIndex + 1, endIndex + 1).trim();
-            return _time;
+            return time == null ? "" : time;
         }
 
         private String _userName;

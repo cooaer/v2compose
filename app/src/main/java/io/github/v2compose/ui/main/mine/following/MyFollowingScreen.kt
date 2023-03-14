@@ -1,4 +1,4 @@
-package io.github.v2compose.ui.main.mine.topics
+package io.github.v2compose.ui.main.mine.following
 
 import android.util.Log
 import androidx.compose.foundation.layout.Box
@@ -17,25 +17,25 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import io.github.v2compose.R
-import io.github.v2compose.network.bean.MyTopicsInfo
+import io.github.v2compose.network.bean.MyFollowingInfo
 import io.github.v2compose.ui.common.*
 
-private const val TAG = "MyFollowingScreen"
+private const val TAG = "MyTopicsScreen"
 
 @Composable
-fun MyTopicsScreenRoute(
+fun MyFollowingScreenRoute(
     onBackClick: () -> Unit,
-    onTopicClick: (MyTopicsInfo.Item) -> Unit,
+    onTopicClick: (MyFollowingInfo.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
-    viewModel: MyTopicsViewModel = hiltViewModel(),
+    viewModel: MyFollowingViewModel = hiltViewModel()
 ) {
     val topicTitleOverview by viewModel.topicTitleOverview.collectAsStateWithLifecycle()
-    val myTopics = viewModel.myTopics.collectAsLazyPagingItems()
+    val myFollowing = viewModel.myFollowing.collectAsLazyPagingItems()
 
-    MyTopicsScreen(
+    MyFollowingScreen(
         topicTitleOverview = topicTitleOverview,
-        myTopics = myTopics,
+        myFollowing = myFollowing,
         onBackClick = onBackClick,
         onTopicClick = onTopicClick,
         onNodeClick = onNodeClick,
@@ -45,20 +45,19 @@ fun MyTopicsScreenRoute(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MyTopicsScreen(
+private fun MyFollowingScreen(
     topicTitleOverview: Boolean,
-    myTopics: LazyPagingItems<MyTopicsInfo.Item>,
+    myFollowing: LazyPagingItems<MyFollowingInfo.Item>,
     onBackClick: () -> Unit,
-    onTopicClick: (MyTopicsInfo.Item) -> Unit,
+    onTopicClick: (MyFollowingInfo.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(text = stringResource(id = R.string.my_topics)) },
+                title = { Text(text = stringResource(id = R.string.my_following)) },
                 navigationIcon = { BackIcon(onBackClick = onBackClick) },
                 scrollBehavior = scrollBehavior
             )
@@ -71,26 +70,26 @@ private fun MyTopicsScreen(
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
             LazyColumn() {
-                pagingRefreshItem(myTopics)
-                itemsIndexed(myTopics, key = { _, item -> item.id }) { index, item ->
+                pagingRefreshItem(myFollowing)
+                itemsIndexed(myFollowing, key = { _, item -> item.id }) { index, item ->
                     item?.let {
-                        Log.d(TAG, "mytopics, index = $index, item = $item")
+                        Log.d(TAG, "myfollowing, index = $index, item = $item")
                         SimpleTopic(
                             title = item.title,
                             userName = item.userName,
                             userAvatar = item.avatar,
                             time = item.time,
                             replyCount = item.commentNum.toString(),
-                            nodeName = item.tagName,
+                            nodeName = item.tagTitle,
                             nodeTitle = item.tagTitle,
                             titleOverview = topicTitleOverview,
                             onItemClick = { onTopicClick(item) },
-                            onNodeClick = { onNodeClick(item.tagName, item.tagTitle) },
+                            onNodeClick = { onNodeClick(item.tagTitle, item.tagTitle) },
                             onUserAvatarClick = { onUserAvatarClick(item.userName, item.avatar) }
                         )
                     }
                 }
-                pagingAppendMoreItem(myTopics)
+                pagingAppendMoreItem(myFollowing)
             }
         }
     }

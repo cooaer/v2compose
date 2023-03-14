@@ -5,6 +5,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import io.github.v2compose.bean.Account
 import io.github.v2compose.datasource.*
+import io.github.v2compose.network.NetConstants
 import io.github.v2compose.network.V2exService
 import io.github.v2compose.network.WebkitCookieManager
 import io.github.v2compose.network.bean.*
@@ -125,4 +126,10 @@ class DefaultAccountRepository @Inject constructor(
     override val myTopics: Flow<PagingData<MyTopicsInfo.Item>>
         get() = Pager(PagingConfig(10)) { MyTopicsPagingSource(v2exService) }.flow
 
+    override val myFollowing: Flow<PagingData<MyFollowingInfo.Item>>
+        get() = Pager(PagingConfig(10)) { MyFollowingPagingSource(v2exService) }.flow
+
+    override suspend fun getMyNodes(): MyNodesInfo {
+        return v2exService.myNodesInfo(NetConstants.systemUserAgent)
+    }
 }

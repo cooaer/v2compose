@@ -20,6 +20,8 @@ interface TopicRepository {
 
     val topicTitleOverview: Flow<Boolean>
 
+    val replyWithFloor:Flow<Boolean>
+
     suspend fun doTopicAction(
         action: String,
         method: ActionMethod,

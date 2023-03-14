@@ -59,6 +59,7 @@ fun TopicScreenRoute(
     val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
     val repliesReversed by viewModel.repliesReversed.collectAsStateWithLifecycle(initialValue = true)
     val highlightOpReply by viewModel.highlightOpReply.collectAsStateWithLifecycle()
+    val replyWithFloor by viewModel.replyWithFloor.collectAsStateWithLifecycle()
     val topicItems = viewModel.topicItems.collectAsLazyPagingItems()
 
     val topicInfo = if (topicItems.itemCount > 0) {
@@ -91,6 +92,7 @@ fun TopicScreenRoute(
         replyWrappers = replyWrappers,
         replyTopicState = replyTopicState,
         highlightOpReply = highlightOpReply,
+        replyWithFloor = replyWithFloor,
         onBackClick = onBackClick,
         onTopicMenuClick = {
             when (it) {
@@ -137,6 +139,7 @@ private fun TopicScreen(
     replyWrappers: Map<String, ReplyWrapper>,
     replyTopicState: ReplyTopicState,
     highlightOpReply: Boolean,
+    replyWithFloor: Boolean,
     onBackClick: () -> Unit,
     onTopicMenuClick: (TopicMenuItem) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
@@ -216,14 +219,14 @@ private fun TopicScreen(
                 onNodeClick = onNodeClick,
                 onRepliedOrderClick = onRepliedOrderClick,
                 onTopicReplyClick = {
-                    replyInputInitialText = initialReplyText(it)
+                    replyInputInitialText = initialReplyText(it, replyWithFloor)
                     replyInputState = ReplyInputState.Expanded
                     clickReplyTimes++
                 },
                 openUri = openUri,
                 onTopicMenuItemClick = { menuItem, reply ->
                     if (menuItem == ReplyMenuItem.Reply) {
-                        replyInputInitialText = initialReplyText(reply)
+                        replyInputInitialText = initialReplyText(reply, replyWithFloor)
                         replyInputState = ReplyInputState.Expanded
                     } else {
                         onReplyMenuItemClick(menuItem, reply)
@@ -252,9 +255,13 @@ private fun TopicScreen(
     }
 }
 
-fun initialReplyText(mention: Reply?): String {
+fun initialReplyText(mention: Reply?, replyWithFloor: Boolean): String {
     if (mention == null) return ""
-    return "@${mention.userName} "
+    var text = "@${mention.userName} "
+    if (replyWithFloor) {
+        text += "#${mention.floor} "
+    }
+    return text
 }
 
 @OptIn(ExperimentalFoundationApi::class)

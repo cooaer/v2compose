@@ -76,6 +76,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun updateReplyWithFloor(value: Boolean) {
+        viewModelScope.launch {
+            appPreferences.replyWithFloor(value)
+        }
+    }
+
     fun setOpenInInternalBrowser(value: Boolean) {
         viewModelScope.launch {
             appPreferences.openInInternalBrowser(value)

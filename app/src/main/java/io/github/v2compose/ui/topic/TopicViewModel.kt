@@ -65,6 +65,13 @@ class TopicViewModel @Inject constructor(
             initialValue = false
         )
 
+    val replyWithFloor: StateFlow<Boolean> = topicRepository.replyWithFloor
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(),
+            initialValue = false
+        )
+
     //缓存评论的收藏、感谢、忽略等状态
     private val _topicInfoWrapper = mutableStateOf(TopicInfoWrapper())
     val topicInfoWrapper: State<TopicInfoWrapper> = _topicInfoWrapper

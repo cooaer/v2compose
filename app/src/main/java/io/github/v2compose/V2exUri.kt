@@ -2,7 +2,7 @@ package io.github.v2compose
 
 object V2exUri {
 
-    const val myTopicsUrl= "https://v2ex.com/my/topics"
+    const val myTopicsUrl = "https://v2ex.com/my/topics"
     const val myNodesUrl = "https://v2ex.com/my/nodes"
     const val myFollowingUrl = "https://v2ex.com/my/following"
 
@@ -21,5 +21,4 @@ object V2exUri {
     fun userPath(userName: String) = "/member/$userName"
 
     fun String.isUserPath() = this.startsWith(Constants.userPath)
-
 }

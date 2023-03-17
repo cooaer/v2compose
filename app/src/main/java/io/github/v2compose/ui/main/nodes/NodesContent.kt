@@ -40,15 +40,13 @@ fun NodesContent(
     viewModel: NodesViewModel = hiltViewModel(),
 ) {
     val nodesUiState by viewModel.nodesUiState.collectAsStateWithLifecycle()
-    val nodeCategories by viewModel.nodeCategories.collectAsStateWithLifecycle()
 
-    NodesContainer(nodesUiState, nodeCategories, onNodeClick, viewModel::refresh, modifier)
+    NodesContainer(nodesUiState, onNodeClick, viewModel::refresh, modifier)
 }
 
 @Composable
 private fun NodesContainer(
     nodesUiState: NodesUiState,
-    nodeCategories: List<Pair<String, List<Node>>>,
     onNodeClick: (String, String) -> Unit,
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
@@ -60,8 +58,15 @@ private fun NodesContainer(
             }
             else -> {
                 val isRefreshing = nodesUiState is NodesUiState.Loading
+                val nodeCategories = when (nodesUiState) {
+                    is NodesUiState.Loading -> nodesUiState.data
+                    is NodesUiState.Success -> nodesUiState.data
+                    else -> null
+                }
                 PullToRefresh(refreshing = isRefreshing, onRefresh = onRefresh) {
-                    NodesList(nodeCategories = nodeCategories, onNodeClick = onNodeClick)
+                    nodeCategories?.let {
+                        NodesList(nodeCategories = nodeCategories, onNodeClick = onNodeClick)
+                    }
                 }
             }
         }

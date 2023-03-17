@@ -8,19 +8,19 @@ import kotlinx.coroutines.flow.Flow
 
 interface TopicRepository {
     suspend fun getTopicInfo(topicId: String): TopicInfo
-    fun getTopic(topicId: String, reversed: Boolean): Flow<PagingData<Any>>
+    fun getTopic(topicId: String, initialPage: Int?, reversed: Boolean): Flow<PagingData<Any>>
 
     val repliesOrderReversed: Flow<Boolean>
 
     suspend fun toggleRepliesReversed()
 
-    val highlightOpReply:Flow<Boolean>
+    val highlightOpReply: Flow<Boolean>
 
     fun search(keyword: String): Flow<PagingData<SoV2EXSearchResultInfo.Hit>>
 
     val topicTitleOverview: Flow<Boolean>
 
-    val replyWithFloor:Flow<Boolean>
+    val replyWithFloor: Flow<Boolean>
 
     suspend fun doTopicAction(
         action: String,
@@ -43,7 +43,12 @@ interface TopicRepository {
 
     val draftTopic: Flow<DraftTopic>
 
-    suspend fun saveDraftTopic(title: String, content: String, contentFormat: ContentFormat, node: TopicNode?)
+    suspend fun saveDraftTopic(
+        title: String,
+        content: String,
+        contentFormat: ContentFormat,
+        node: TopicNode?
+    )
 
     suspend fun getCreateTopicPageInfo(): CreateTopicPageInfo
 

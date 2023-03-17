@@ -40,6 +40,7 @@ import io.github.v2compose.ui.user.userScreen
 import io.github.v2compose.ui.webview.webViewScreen
 import io.github.v2compose.ui.write.navigateToWriteTopic
 import io.github.v2compose.ui.write.writeTopicScreen
+import io.github.v2compose.util.UriUtils
 
 private const val TAG = "V2AppNavGraph"
 
@@ -67,11 +68,8 @@ fun V2AppNavGraph(
                     )
                 }
             },
-//            onMyNodesClick = { navController.navigateToWebView(V2exUri.myNodesUrl) },
             onMyNodesClick = navController::navigateToMyNodes,
-//            onMyTopicsClick = { navController.navigateToWebView(V2exUri.myTopicsUrl) },
             onMyTopicsClick = navController::navigateToMyTopics,
-//            onMyFollowingClick = { navController.navigateToWebView(V2exUri.myFollowingUrl) },
             onMyFollowingClick = navController::navigateToMyFollowing,
             onCreateTopicClick = navController::navigateToWriteTopic,
             onSettingsClick = navController::navigateToSettings,
@@ -98,8 +96,12 @@ fun V2AppNavGraph(
         )
         userScreen(
             onBackClick = appState::back,
-            onTopicClick = appState::openUri,
-            onNodeClick = { nodePath, _ -> appState.openUri(nodePath) },
+            onTopicClick = { topicPath ->
+                UriUtils.getLastSegment(topicPath).let { topicId ->
+                    navController.navigateToTopic(topicId)
+                }
+            },
+            onNodeClick = { path, _ -> appState.openUri(path) },
             openUri = appState::openUri,
             onHtmlImageClick = navController::navigateToGallery,
         )
@@ -140,7 +142,7 @@ fun V2AppNavGraph(
         addSupplementScreen(
             onCloseClick = appState::back,
             onAddSupplementSuccess = {
-                navController.navigateToTopic(it, navOptions {
+                navController.navigateToTopic(it, navOptions = navOptions {
                     popUpTo(topicNavigationRoute) {
                         inclusive = true
                     }

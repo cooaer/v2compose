@@ -146,7 +146,10 @@ fun NavController.innerOpenUri(uri: String): Boolean {
     val screenType = uriObj.pathSegments.getOrNull(0) ?: ""
     val screenId = uriObj.pathSegments.getOrNull(1) ?: ""
     when (screenType) {
-        "t" -> navigateToTopic(screenId)
+        "t" -> {
+            val replyFloor = uriObj.fragment?.replace("reply", "")?.toIntOrNull() ?: 0
+            navigateToTopic(screenId, replyFloor)
+        }
         "go" -> navigateToNode(screenId)
         "member" -> navigateToUser(userName = screenId)
         else -> navigateToWebView(uri.fullUrl(Constants.baseUrl))

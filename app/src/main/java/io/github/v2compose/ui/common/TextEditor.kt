@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -184,12 +185,18 @@ private fun ContentEditor(
 private fun MarkdownPreview(content: String) {
     val markdown = rememberMarkwon()
     val contentPadding = with(LocalDensity.current) { 16.dp.roundToPx() }
+    val contentColor = LocalContentColor.current
+    val bodyLineSpacing = with(LocalDensity.current) { 6.sp.toPx() }
     AndroidView(
         factory = { context ->
+            val bodyView = TextView(context).apply {
+                setPadding(contentPadding)
+                setTextColor(contentColor.toArgb())
+                textSize = 15f
+                setLineSpacing(bodyLineSpacing, 1f)
+            }
             ScrollView(context).apply {
-                addView(TextView(context).apply {
-                    setPadding(contentPadding)
-                })
+                addView(bodyView)
             }
         },
         modifier = Modifier.fillMaxSize(),
@@ -203,7 +210,7 @@ private fun MarkdownPreview(content: String) {
 }
 
 @Composable
-private fun rememberMarkwon(): Markwon {
+fun rememberMarkwon(): Markwon {
     val context = LocalContext.current
     return remember(context) {
         Markwon.builder(context).usePlugin(StrikethroughPlugin.create())

@@ -29,7 +29,7 @@ class NewsViewModel @Inject constructor(
     val isRefreshing = _isRefreshing.asStateFlow()
 
     private val _newsInfoFlow = MutableStateFlow<NewsUiState>(NewsUiState.Loading)
-    val newsInfoFlow = _newsInfoFlow.asStateFlow()
+    val newsUiState = _newsInfoFlow.asStateFlow()
 
     val topicTitleOverview: StateFlow<Boolean> = topicRepository.topicTitleOverview.stateIn(
         viewModelScope,

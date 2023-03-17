@@ -34,7 +34,7 @@ import io.github.v2compose.ui.common.HtmlContent
 import io.github.v2compose.ui.common.ListDivider
 import io.github.v2compose.ui.common.OnHtmlImageClick
 import io.github.v2compose.ui.common.TopicUserAvatar
-import io.github.v2compose.ui.topic.ReplyWrapper
+import io.github.v2compose.ui.topic.bean.ReplyWrapper
 
 @Composable
 fun TopicReply(

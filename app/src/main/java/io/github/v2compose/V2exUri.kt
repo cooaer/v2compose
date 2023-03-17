@@ -14,11 +14,22 @@ object V2exUri {
 
     fun nodeUrl(nodeName: String) = Constants.baseUrl + nodePath(nodeName)
 
-    fun topicPath(topicId: String) = "/t/$topicId"
+    fun topicPath(topicId: String, replyFloor: Int = 0): String {
+        return "/t/$topicId#reply$replyFloor"
+    }
 
     fun nodePath(nodeName: String) = "/go/$nodeName"
 
     fun userPath(userName: String) = "/member/$userName"
 
     fun String.isUserPath() = this.startsWith(Constants.userPath)
+
+
+    fun fixUriWithTopicPath(uri: String, topicPath: String): String {
+        return if (uri.startsWith("#reply")) {
+            topicPath.replace("#reply\\d+".toRegex(), "") + uri
+        } else {
+            uri
+        }
+    }
 }

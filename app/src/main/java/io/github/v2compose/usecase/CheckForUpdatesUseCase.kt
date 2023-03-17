@@ -14,7 +14,7 @@ class CheckForUpdatesUseCase @Inject constructor(
     private val appPreferences: AppPreferences,
 ) {
 
-    suspend operator fun invoke(): Release {
+    suspend operator fun invoke(force: Boolean = false): Release {
         val release = try {
             appRepository.getAppLatestRelease()
         } catch (e: Exception) {
@@ -22,7 +22,7 @@ class CheckForUpdatesUseCase @Inject constructor(
             return Release.Empty
         }
         val appSettings = appPreferences.appSettings.first()
-        if (appSettings.ignoredReleaseName == release.tagName) {
+        if (!force && appSettings.ignoredReleaseName == release.tagName) {
             return Release.Empty
         }
         if (release.tagName.toAppVersion().newerThan(BuildConfig.VERSION_NAME.toAppVersion())) {

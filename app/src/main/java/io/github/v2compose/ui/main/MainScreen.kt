@@ -207,7 +207,6 @@ fun MainContent(
                 onNewsItemClick = onNewsItemClick,
                 onNodeClick = onNodeClick,
                 onUserAvatarClick = onUserAvatarClick,
-
             )
             1 -> NodesContent(onNodeClick = onNodeClick, modifier = modifier)
             2 -> NotificationsContent(

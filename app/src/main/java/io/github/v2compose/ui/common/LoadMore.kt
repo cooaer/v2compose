@@ -29,6 +29,22 @@ fun <T : Any> LazyListScope.pagingRefreshItem(
     }
 }
 
+fun <T : Any> LazyListScope.pagingPrependMoreItem(
+    lazyPagingItems: LazyPagingItems<T>,
+    modifier: Modifier = Modifier,
+) {
+    if (lazyPagingItems.loadState.prepend.endOfPaginationReached) return
+    if (lazyPagingItems.loadState.prepend is LoadState.NotLoading) return
+
+    item(key = "prependMore${lazyPagingItems.itemCount}", contentType = "prependMore") {
+        PagingLoadState(
+            state = lazyPagingItems.loadState.prepend,
+            onRetryClick = { lazyPagingItems.retry() },
+            modifier = modifier,
+        )
+    }
+}
+
 fun <T : Any> LazyListScope.pagingAppendMoreItem(
     lazyPagingItems: LazyPagingItems<T>,
     modifier: Modifier = Modifier,

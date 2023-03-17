@@ -86,7 +86,7 @@ fun SettingsScreenRoute(
         onCheckForUpdatesClick = {
             coroutineScope.launch {
                 settingsScreenState.checkForUpdates(
-                    checkForUpdates = viewModel.checkForUpdates::invoke,
+                    checkForUpdates = { viewModel.checkForUpdates.invoke(true) },
                     onNewRelease = { newRelease = it },
                 )
             }

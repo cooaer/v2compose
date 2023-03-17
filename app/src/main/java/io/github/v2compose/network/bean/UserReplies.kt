@@ -49,7 +49,7 @@ class UserReplies : BaseInfo() {
     }
 
 
-    class ReplyDockItem : Serializable {
+    class ReplyDockItem {
         @Pick("span.gray")
         val title: String = ""
 

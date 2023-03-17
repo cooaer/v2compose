@@ -218,7 +218,7 @@
     <!-- Add Supplement Screen Start -->
     <string name="add_supplement">添加附言</string>
     <string name="add_supplement_fail_tips">添加附言失败，请重试</string>
-    <string name="add_supplement_tips">关于为主题创建附言：\n请在确有必要的情况下再使用此功能为原主题补充信息；\n每个主题至多可以附加 3 条附言；\n创建附言价格为每千字 20 铜币；</string>
+    <string name="add_supplement_tips">关于为主题创建附言：\n请在确有必要的情况下再使用此功能为原主题补充信息；\n每个主题至多可以附加 10 条附言；\n创建附言价格为每千字 20 铜币；</string>
     <string name="add_supplement_back_tips">返回将丢弃当前编写的附言，确认返回吗？</string>
     <!-- Add Supplement Screen End-->
 

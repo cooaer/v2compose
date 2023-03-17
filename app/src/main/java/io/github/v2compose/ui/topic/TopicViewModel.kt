@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import retrofit2.HttpException
 import javax.inject.Inject
+import kotlin.math.ceil
 
 private const val TAG = "TopicViewModel"
 
@@ -42,7 +43,15 @@ class TopicViewModel @Inject constructor(
     private val fixedHtmlImage: FixHtmlUseCase,
 ) : BaseViewModel(application) {
 
+    companion object {
+        const val topicCountPerPage = 100
+    }
+
     val topicArgs = TopicArgs(savedStateHandle, stringDecoder)
+
+    //默认的其实页为1
+    private val initialPage: Int?
+        get() = topicArgs.replyFloor.let { if (it == 0) null else ceil(1f * it / topicCountPerPage).toInt() }
 
     val isLoggedIn = accountRepository.isLoggedIn
         .stateIn(
@@ -57,6 +66,23 @@ class TopicViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(),
             replay = 1,
         )
+
+    fun toggleRepliesReversed() {
+        viewModelScope.launch {
+            topicRepository.toggleRepliesReversed()
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val topicItems: Flow<PagingData<Any>> =
+        repliesReversed.flatMapLatest {
+            topicRepository.getTopic(
+                topicArgs.topicId,
+                initialPage,
+                it
+            )
+        }.cachedIn(viewModelScope)
+
 
     val highlightOpReply: StateFlow<Boolean> = topicRepository.highlightOpReply
         .stateIn(
@@ -222,16 +248,6 @@ class TopicViewModel @Inject constructor(
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val topicItems: Flow<PagingData<Any>> =
-        repliesReversed.flatMapLatest { topicRepository.getTopic(topicArgs.topicId, it) }
-            .cachedIn(viewModelScope)
-
-    fun toggleRepliesReversed() {
-        viewModelScope.launch {
-            topicRepository.toggleRepliesReversed()
-        }
-    }
 
     val sizedHtmls = mutableStateMapOf<String, String>()
 

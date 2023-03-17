@@ -1,5 +1,6 @@
 package io.github.v2compose.repository.def
 
+import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -18,6 +19,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
+private const val TAG = "DefaultTopic"
+
 class DefaultTopicRepository @Inject constructor(
     private val v2exService: V2exService,
     private val appPreferences: AppPreferences,
@@ -28,8 +31,13 @@ class DefaultTopicRepository @Inject constructor(
         return v2exService.topicDetails(topicId, 1)
     }
 
-    override fun getTopic(topicId: String, reversed: Boolean): Flow<PagingData<Any>> {
-        return Pager(PagingConfig(pageSize = 10)) {
+    override fun getTopic(
+        topicId: String,
+        initialPage: Int?,
+        reversed: Boolean,
+    ): Flow<PagingData<Any>> {
+        Log.d(TAG, "getTopic, topicId = $topicId, initialPage = $initialPage, reversed = $reversed")
+        return Pager(PagingConfig(pageSize = 10), initialKey = initialPage) {
             TopicPagingSource(
                 v2exService,
                 topicId,

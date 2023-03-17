@@ -79,6 +79,8 @@ fun TopicScreenRoute(
         }
     }
 
+    Log.d(TAG, "topic args = $args")
+
     HandleReplyTopicState(replyTopicState, topicItems, openUri)
 
     HandleSnackbarMessage(viewModel, screenState)

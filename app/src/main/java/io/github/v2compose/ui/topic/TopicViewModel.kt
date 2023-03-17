@@ -45,15 +45,13 @@ class TopicViewModel @Inject constructor(
 
     companion object {
         const val topicCountPerPage = 100
-        const val firstPageIndex = 1
     }
 
     val topicArgs = TopicArgs(savedStateHandle, stringDecoder)
 
     //默认的其实页为1
-    val initialPage: Int
-        get() = maxOf(firstPageIndex, ceil(1f * topicArgs.replyFloor / topicCountPerPage).toInt())
-
+    private val initialPage: Int?
+        get() = topicArgs.replyFloor.let { if (it == 0) null else ceil(1f * it / topicCountPerPage).toInt() }
 
     val isLoggedIn = accountRepository.isLoggedIn
         .stateIn(
@@ -83,8 +81,7 @@ class TopicViewModel @Inject constructor(
                 initialPage,
                 it
             )
-        }
-            .cachedIn(viewModelScope)
+        }.cachedIn(viewModelScope)
 
 
     val highlightOpReply: StateFlow<Boolean> = topicRepository.highlightOpReply

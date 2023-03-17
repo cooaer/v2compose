@@ -2,7 +2,10 @@ package io.github.v2compose.ui.topic.composables
 
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -50,6 +53,8 @@ fun TopicReply(
     onHtmlImageClick: OnHtmlImageClick,
     modifier: Modifier = Modifier,
     showActions: Boolean = true,
+    shakeable: Boolean = false,
+    onShakeFinished: (() -> Unit)? = null,
 ) {
     val isOp = opName == reply.userName
 
@@ -59,69 +64,71 @@ fun TopicReply(
         Color.Transparent
     }
 
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(enabled = isLoggedIn) { onClick(reply) }
-            .background(color = containerColor)
-            .padding(start = 16.dp)
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            TopicUserAvatar(
-                userName = reply.userName,
-                userAvatar = reply.avatar,
-                modifier = Modifier.padding(top = 12.dp),
-                onUserAvatarClick = { onUserAvatarClick(reply.userName, reply.avatar) })
-            ReplyFloor(
-                floor = reply.floor,
-                modifier = Modifier.padding(bottom = 12.dp, top = 8.dp)
-            )
-        }
-        Spacer(modifier = Modifier.width(8.dp))
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(top = 12.dp, end = 16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    UserName(userName = reply.userName)
-                    Spacer(Modifier.width(4.dp))
-                    if (isOp) {
-                        OpLabel()
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(2.dp))
-
-                Text(
-                    text = reply.time,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = ContentAlpha.medium),
+    ShakeAnimation(shake = shakeable, onShakeFinished = { onShakeFinished?.invoke() }) {
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .clickable(enabled = isLoggedIn) { onClick(reply) }
+                .background(color = containerColor)
+                .padding(start = 16.dp)
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                TopicUserAvatar(
+                    userName = reply.userName,
+                    userAvatar = reply.avatar,
+                    modifier = Modifier.padding(top = 12.dp),
+                    onUserAvatarClick = { onUserAvatarClick(reply.userName, reply.avatar) })
+                ReplyFloor(
+                    floor = reply.floor,
+                    modifier = Modifier.padding(bottom = 12.dp, top = 8.dp)
                 )
-
-                HtmlContent(
-                    content = content,
-                    selectable = false,
-                    linkFloor = true,
-                    onUriClick = { onUriClick(it, reply) },
-                    onClick = { if (isLoggedIn) onClick(reply) },
-                    loadImage = loadHtmlImage,
-                    onHtmlImageClick = onHtmlImageClick,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(modifier = Modifier.height(8.dp))
             }
-            ListDivider(
-                modifier = Modifier
-                    .padding(end = 16.dp)
-                    .align(Alignment.BottomCenter),
-            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(top = 12.dp, end = 16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        UserName(userName = reply.userName)
+                        Spacer(Modifier.width(4.dp))
+                        if (isOp) {
+                            OpLabel()
+                        }
+                    }
 
-            if(showActions){
-                TopicReplyActions(
-                    isLoggedIn = isLoggedIn,
-                    reply = reply,
-                    replyWrapper = replyWrapper,
-                    onMenuItemClick = onMenuItemClick,
-                    modifier = Modifier.align(Alignment.TopEnd),
+                    Spacer(modifier = Modifier.height(2.dp))
+
+                    Text(
+                        text = reply.time,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = ContentAlpha.medium),
+                    )
+
+                    HtmlContent(
+                        content = content,
+                        selectable = false,
+                        linkFloor = true,
+                        onUriClick = { onUriClick(it, reply) },
+                        onClick = { if (isLoggedIn) onClick(reply) },
+                        loadImage = loadHtmlImage,
+                        onHtmlImageClick = onHtmlImageClick,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+                ListDivider(
+                    modifier = Modifier
+                        .padding(end = 16.dp)
+                        .align(Alignment.BottomCenter),
                 )
+
+                if (showActions) {
+                    TopicReplyActions(
+                        isLoggedIn = isLoggedIn,
+                        reply = reply,
+                        replyWrapper = replyWrapper,
+                        onMenuItemClick = onMenuItemClick,
+                        modifier = Modifier.align(Alignment.TopEnd),
+                    )
+                }
             }
         }
     }
@@ -364,5 +371,29 @@ fun ReplySheetItem(item: ReplyMenuItem, modifier: Modifier = Modifier) {
             )
         }
         ListDivider(modifier = Modifier.align(Alignment.BottomCenter))
+    }
+}
+
+@Composable
+fun ShakeAnimation(
+    shake: Boolean,
+    onShakeFinished: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val offsetX = remember { Animatable(0f) }
+    if (shake) {
+        LaunchedEffect(true) {
+            (0 until 3).forEach { _ ->
+                offsetX.animateTo(10f, tween(100, easing = LinearEasing))
+                offsetX.animateTo(0f, tween(100, easing = LinearEasing))
+                offsetX.animateTo(-10f, tween(100, easing = LinearEasing))
+                offsetX.animateTo(0f, tween(100, easing = LinearEasing))
+            }
+            onShakeFinished()
+        }
+    }
+    Box(modifier.offset(x = offsetX.value.dp)) {
+        content()
     }
 }

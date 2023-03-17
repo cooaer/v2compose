@@ -28,8 +28,12 @@ class DefaultTopicRepository @Inject constructor(
         return v2exService.topicDetails(topicId, 1)
     }
 
-    override fun getTopic(topicId: String, reversed: Boolean): Flow<PagingData<Any>> {
-        return Pager(PagingConfig(pageSize = 10)) {
+    override fun getTopic(
+        topicId: String,
+        initialPage: Int?,
+        reversed: Boolean,
+    ): Flow<PagingData<Any>> {
+        return Pager(PagingConfig(pageSize = 10), initialKey = initialPage) {
             TopicPagingSource(
                 v2exService,
                 topicId,

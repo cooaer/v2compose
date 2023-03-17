@@ -84,6 +84,7 @@ fun TopicScreenRoute(
     HandleSnackbarMessage(viewModel, screenState)
 
     TopicScreen(
+        targetFloor = args.replyFloor,
         isLoggedIn = isLoggedIn,
         topicInfo = topicInfoWrapper,
         repliesOrder = if (repliesReversed) RepliesOrder.Negative else RepliesOrder.Positive,
@@ -131,6 +132,7 @@ fun TopicScreenRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopicScreen(
+    targetFloor: Int,
     isLoggedIn: Boolean,
     topicInfo: TopicInfoWrapper,
     repliesOrder: RepliesOrder,
@@ -209,6 +211,7 @@ private fun TopicScreen(
             TopicList(
                 topicInfo = topicInfo,
                 repliesOrder = repliesOrder,
+                targetFloor = targetFloor,
                 topicItems = topicItems,
                 lazyListState = scrollState,
                 sizedHtmls = sizedHtmls,
@@ -234,8 +237,7 @@ private fun TopicScreen(
                 },
                 loadHtmlImage = loadHtmlImage,
                 onHtmlImageClick = onHtmlImageClick,
-                modifier = Modifier
-                    .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
+                modifier = Modifier.nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
             )
 
             ReplyInput(
@@ -269,6 +271,7 @@ fun initialReplyText(mention: Reply?, replyWithFloor: Boolean): String {
 private fun TopicList(
     topicInfo: TopicInfoWrapper,
     repliesOrder: RepliesOrder,
+    targetFloor: Int,
     topicItems: LazyPagingItems<Any>,
     lazyListState: LazyListState,
     sizedHtmls: SnapshotStateMap<String, String>,
@@ -286,11 +289,12 @@ private fun TopicList(
     modifier: Modifier = Modifier,
 ) {
     val clickedUserReplies = rememberMutableStateListOf<List<Reply>>()
-    var repliesBarIndex by remember { mutableStateOf(0) }
+    val repliesBarIndex = rememberRepliesBarIndex(topicInfo)
     val coroutineScope = rememberCoroutineScope()
 
     val repliesBarHeight = with(LocalDensity.current) { 40.dp.roundToPx() }
     val floorRegex = "#\\d+".toRegex()
+    var hasShakeTargetFloor by remember(targetFloor) { mutableStateOf(false) }
 
     fun clickUriHandler(uri: String, reply: Reply) {
         while (true) {
@@ -332,7 +336,7 @@ private fun TopicList(
         contentPadding = PaddingValues(bottom = if (isLoggedIn) fabSizeWithMargin else 0.dp),
     ) {
         pagingRefreshItem(topicItems)
-        var listItemIndex = 0
+
         if (topicInfo.topic != null) {
             if (!topicInfo.topic.isValid) {
                 //TODO 非登录状态，触发某些关键字（如 fg ），重定向到首页，导致解析失败
@@ -346,7 +350,6 @@ private fun TopicList(
                     onNodeClick = onNodeClick
                 )
             }
-            listItemIndex++
 
             if (topicInfo.topic.contentInfo.content.isNotEmpty()) {
                 val tag = "content"
@@ -359,7 +362,6 @@ private fun TopicList(
                         onHtmlImageClick = onHtmlImageClick,
                     )
                 }
-                listItemIndex++
             }
 
             if (topicInfo.topic.contentInfo.supplements.isNotEmpty()) {
@@ -376,7 +378,6 @@ private fun TopicList(
                         onHtmlImageClick = onHtmlImageClick,
                     )
                 }
-                listItemIndex += topicInfo.topic.contentInfo.supplements.size
             }
 
             if (topicInfo.topic.contentInfo.content.isNotEmpty() && topicInfo.topic.contentInfo.supplements.isEmpty()) {
@@ -385,10 +386,8 @@ private fun TopicList(
                         modifier = Modifier.padding(end = 16.dp),
                     )
                 }
-                listItemIndex++
             }
 
-            repliesBarIndex = listItemIndex
             stickyHeader(key = "repliesBar", contentType = "repliesBar") {
                 TopicRepliesBar(
                     replyNum = topicInfo.topic.headerInfo.commentNum,
@@ -401,8 +400,10 @@ private fun TopicList(
                     },
                 )
             }
-            listItemIndex++
         }
+
+        pagingPrependMoreItem(lazyPagingItems = topicItems)
+
         itemsIndexed(items = topicItems,
             key = { index, item -> if (item is Reply) item.replyId else "item#$index" }) { index, item ->
             if (item is Reply) {
@@ -419,19 +420,19 @@ private fun TopicList(
                     isLoggedIn = isLoggedIn,
                     content = sizedHtmls[tag] ?: item.replyContent,
                     highlightOpReply = highlightOpReply,
+                    shakeable = item.floor == targetFloor && !hasShakeTargetFloor,
+                    onShakeFinished = { hasShakeTargetFloor = true },
                     onUserAvatarClick = onUserAvatarClick,
                     onUriClick = { uri, reply -> clickUriHandler(uri, reply) },
                     onClick = {
                         onTopicReplyClick(it)
                         coroutineScope.launch {
                             lazyListState.animateScrollToItem(
-                                listItemIndex + index,
-                                -repliesBarHeight
+                                repliesBarIndex + index, -repliesBarHeight
                             )
                             delay(400)
                             lazyListState.animateScrollToItem(
-                                listItemIndex + index,
-                                -repliesBarHeight
+                                repliesBarIndex + index, -repliesBarHeight
                             )
                         }
                     },
@@ -439,10 +440,46 @@ private fun TopicList(
                     loadHtmlImage = { html, src -> loadHtmlImage(tag, html, src) },
                     onHtmlImageClick = onHtmlImageClick,
                 )
+
             }
         }
         pagingAppendMoreItem(lazyPagingItems = topicItems)
     }
+
+    val targetFloorIndex = remember(topicItems.itemSnapshotList, targetFloor) {
+        topicItems.itemSnapshotList.indexOfFirst { it is Reply && it.floor == targetFloor }
+    }
+    if (repliesBarIndex >= 0 && targetFloorIndex >= 0) {
+//        Log.d(TAG, "repliesBarIndex = $repliesBarIndex, targetFloorIndex = $targetFloorIndex")
+        LaunchedEffect(repliesBarIndex, targetFloorIndex) {
+            //滚动至目标楼层的上一个楼层
+            lazyListState.animateScrollToItem(
+                repliesBarIndex + targetFloorIndex, -repliesBarHeight
+            )
+        }
+    }
+}
+
+@Composable
+fun rememberRepliesBarIndex(topicInfo: TopicInfoWrapper): Int {
+    return remember(topicInfo) {
+        if (topicInfo.topic == null || !topicInfo.topic.isValid) {
+            -1
+        } else {
+            var index = 0 //title
+            if (topicInfo.topic.contentInfo.content.isNotEmpty()) {
+                index++ //content
+            }
+            if (topicInfo.topic.contentInfo.supplements.isNotEmpty()) {
+                index += topicInfo.topic.contentInfo.supplements.size //supplements
+            }
+            if (topicInfo.topic.contentInfo.content.isNotEmpty() && topicInfo.topic.contentInfo.supplements.isEmpty()) {
+                index++ //divider
+            }
+            ++index//repliesBar
+        }
+    }
+
 }
 
 @Composable

@@ -42,7 +42,7 @@ class UserTopics : BaseInfo() {
     }
 
 
-    class Item : java.io.Serializable {
+    class Item {
 
         @Pick(value = "span.item_title a", attr = Attrs.HREF)
         val link: String = ""

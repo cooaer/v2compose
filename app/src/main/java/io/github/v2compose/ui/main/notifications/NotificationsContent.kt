@@ -98,7 +98,7 @@ private fun NotificationList(
     }
 
     PullToRefresh(refreshing = refreshing, onRefresh = { notifications.refresh() }) {
-        LazyColumn() {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
             //pagingRefreshItem(lazyPagingItems = notifications)
             itemsIndexed(items = notifications, key = { _, item -> item.id }) { _, item ->
                 item?.let {

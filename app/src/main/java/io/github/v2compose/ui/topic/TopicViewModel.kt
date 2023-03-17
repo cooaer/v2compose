@@ -22,6 +22,8 @@ import io.github.v2compose.repository.AccountRepository
 import io.github.v2compose.repository.ActionMethod
 import io.github.v2compose.repository.TopicRepository
 import io.github.v2compose.ui.BaseViewModel
+import io.github.v2compose.ui.topic.bean.ReplyWrapper
+import io.github.v2compose.ui.topic.bean.TopicInfoWrapper
 import io.github.v2compose.usecase.FixHtmlUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*

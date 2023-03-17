@@ -40,7 +40,6 @@ import io.github.v2compose.ui.user.userScreen
 import io.github.v2compose.ui.webview.webViewScreen
 import io.github.v2compose.ui.write.navigateToWriteTopic
 import io.github.v2compose.ui.write.writeTopicScreen
-import io.github.v2compose.util.UriUtils
 
 private const val TAG = "V2AppNavGraph"
 
@@ -96,11 +95,7 @@ fun V2AppNavGraph(
         )
         userScreen(
             onBackClick = appState::back,
-            onTopicClick = { topicPath ->
-                UriUtils.getLastSegment(topicPath).let { topicId ->
-                    navController.navigateToTopic(topicId)
-                }
-            },
+            onTopicClick = appState::openUri,
             onNodeClick = { path, _ -> appState.openUri(path) },
             openUri = appState::openUri,
             onHtmlImageClick = navController::navigateToGallery,

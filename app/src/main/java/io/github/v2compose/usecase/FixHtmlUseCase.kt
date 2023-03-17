@@ -29,7 +29,7 @@ class FixHtmlUseCase @Inject constructor(@ApplicationContext private val context
         const val LoadImagesCountEveryTime = 4
     }
 
-    private val floorRegex = "(^|\\s+)(#\\d+)($|\\s+)".toRegex()
+    private val floorRegex = "(^|\\s+)#(\\d+)($|\\s+)".toRegex()
 
     suspend fun loadHtmlImages(html: String, src: String?): Flow<String> {
         return if (src == null) {
@@ -134,7 +134,7 @@ class FixHtmlUseCase @Inject constructor(@ApplicationContext private val context
                 val start = matchResult.groupValues[1]
                 val floor = matchResult.groupValues[2]
                 val end = matchResult.groupValues[3]
-                "$start<a href=\"$floor\">$floor</a>$end"
+                "$start<a href=\"#reply$floor\">#$floor</a>$end"
             }
         } else content
 

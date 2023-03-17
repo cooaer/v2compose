@@ -29,6 +29,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import io.github.v2compose.R
+import io.github.v2compose.V2exUri
 import io.github.v2compose.network.bean.NotificationInfo
 import io.github.v2compose.ui.common.*
 import io.github.v2compose.ui.gallery.composables.PopupImage
@@ -170,7 +171,7 @@ private fun NotificationItem(
                     Spacer(Modifier.height(4.dp))
                     HtmlContent(
                         content = content,
-                        onUriClick = onUriClick,
+                        onUriClick = { onUriClick(V2exUri.fixUriWithTopicPath(it, item.link)) },
                         loadImage = loadHtmlImage,
                         onHtmlImageClick = onHtmlImageClick,
                         onClick = { onUriClick(item.link) },

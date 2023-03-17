@@ -297,7 +297,9 @@ fun UserTopicItem(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 NodeTag(
-                    nodeTitle = topic.nodeTitle, nodeName = topic.nodeLink, onItemClick = onNodeClick
+                    nodeTitle = topic.nodeTitle,
+                    nodeName = topic.nodeLink,
+                    onItemClick = onNodeClick
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -383,6 +385,7 @@ fun UserReplyItem(
                 onUriClick = openUri,
                 loadImage = loadHtmlImage,
                 onHtmlImageClick = onHtmlImageClick,
+                onClick = { onTopicClick(reply.dock.link) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .drawBehind {

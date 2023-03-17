@@ -173,6 +173,7 @@ private fun NotificationItem(
                         onUriClick = onUriClick,
                         loadImage = loadHtmlImage,
                         onHtmlImageClick = onHtmlImageClick,
+                        onClick = { onUriClick(item.link) },
                         modifier = Modifier
                             .background(
                                 color = MaterialTheme.colorScheme.surfaceVariant,

@@ -38,6 +38,8 @@ import io.github.v2compose.network.bean.TopicInfo.Reply
 import io.github.v2compose.ui.HandleSnackbarMessage
 import io.github.v2compose.ui.common.*
 import io.github.v2compose.ui.gallery.composables.PopupImage
+import io.github.v2compose.ui.topic.bean.ReplyWrapper
+import io.github.v2compose.ui.topic.bean.TopicInfoWrapper
 import io.github.v2compose.ui.topic.composables.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -290,13 +292,14 @@ private fun TopicList(
     onHtmlImageClick: OnHtmlImageClick,
     modifier: Modifier = Modifier,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val clickedUserReplies = rememberMutableStateListOf<List<Reply>>()
     val repliesBarIndex = rememberRepliesBarIndex(topicInfo)
-    val coroutineScope = rememberCoroutineScope()
+    var currentTargetFloor by rememberSaveable { mutableStateOf(targetFloor) }
 
     val repliesBarHeight = with(LocalDensity.current) { 40.dp.roundToPx() }
-    val floorRegex = "#\\d+".toRegex()
-    var hasShakeTargetFloor by remember(targetFloor) { mutableStateOf(false) }
+    val floorRegex = "#reply\\d+".toRegex()
+    val hasShakeTargetFloor by rememberSaveable(currentTargetFloor) { mutableStateOf(false) }
 
     fun clickUriHandler(uri: String, reply: Reply) {
         while (true) {
@@ -310,7 +313,7 @@ private fun TopicList(
         }
         if (floorRegex.matches(uri)) {
             Log.d(TAG, "clickUriHandler, uri = $uri")
-            val floor = uri.substring(1).toIntOrNull() ?: return
+            val floor = uri.substring("#reply".length).toIntOrNull() ?: return
             val floorReply =
                 topicItems.itemSnapshotList.firstOrNull { it is Reply && it.floor == floor } as Reply?
                     ?: return
@@ -375,7 +378,15 @@ private fun TopicList(
                         index = supplementIndex,
                         supplement = item,
                         content = sizedHtmls[tag] ?: item.content,
-                        openUri = openUri,
+                        openUri = { uri ->
+                            if (uri.startsWith("#reply")) {
+                                uri.substring("#reply".length).toIntOrNull()?.let {
+                                    currentTargetFloor = it
+                                }
+                            } else {
+                                openUri(uri)
+                            }
+                        },
                         loadHtmlImage = { html, src -> loadHtmlImage(tag, html, src) },
                         onHtmlImageClick = onHtmlImageClick,
                     )
@@ -422,8 +433,8 @@ private fun TopicList(
                     isLoggedIn = isLoggedIn,
                     content = sizedHtmls[tag] ?: item.replyContent,
                     highlightOpReply = highlightOpReply,
-                    shakeable = item.floor == targetFloor && !hasShakeTargetFloor,
-                    onShakeFinished = { hasShakeTargetFloor = true },
+                    shakeable = item.floor == currentTargetFloor && !hasShakeTargetFloor,
+                    onShakeFinished = { currentTargetFloor = -1 },
                     onUserAvatarClick = onUserAvatarClick,
                     onUriClick = { uri, reply -> clickUriHandler(uri, reply) },
                     onClick = {
@@ -448,15 +459,13 @@ private fun TopicList(
         pagingAppendMoreItem(lazyPagingItems = topicItems)
     }
 
-    val targetFloorIndex = remember(topicItems.itemSnapshotList, targetFloor) {
-        topicItems.itemSnapshotList.indexOfFirst { it is Reply && it.floor == targetFloor }
+    val targetFloorIndex = remember(topicItems.itemSnapshotList, currentTargetFloor) {
+        topicItems.itemSnapshotList.indexOfFirst { it is Reply && it.floor == currentTargetFloor }
     }
     if (repliesBarIndex >= 0 && targetFloorIndex >= 0) {
-//        Log.d(TAG, "repliesBarIndex = $repliesBarIndex, targetFloorIndex = $targetFloorIndex")
         LaunchedEffect(repliesBarIndex, targetFloorIndex) {
-            //滚动至目标楼层的上一个楼层
             lazyListState.animateScrollToItem(
-                repliesBarIndex + targetFloorIndex, -repliesBarHeight
+                repliesBarIndex + targetFloorIndex + 1, -repliesBarHeight
             )
         }
     }
@@ -652,4 +661,3 @@ private fun HandleReplyTopicState(
         HtmlAlertDialog(content = problem, onUriClick = onUriClick)
     }
 }
-

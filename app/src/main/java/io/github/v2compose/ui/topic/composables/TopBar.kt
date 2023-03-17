@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.v2compose.R
 import io.github.v2compose.ui.common.BackIcon
-import io.github.v2compose.ui.topic.TopicInfoWrapper
+import io.github.v2compose.ui.topic.bean.TopicInfoWrapper
 
 
 enum class TopicMenuItem(val icon: ImageVector, @StringRes val textResId: Int) {

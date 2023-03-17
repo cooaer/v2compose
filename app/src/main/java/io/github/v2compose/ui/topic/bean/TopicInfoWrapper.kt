@@ -1,4 +1,4 @@
-package io.github.v2compose.ui.topic
+package io.github.v2compose.ui.topic.bean
 
 import io.github.v2compose.network.bean.TopicInfo
 
@@ -35,8 +35,3 @@ data class TopicInfoWrapper(
         get() = reported ?: topic?.hasReported() ?: false
 }
 
-data class ReplyWrapper(
-    val reply: TopicInfo.Reply,
-    val thanked: Boolean = false,
-    val ignored: Boolean = false,
-)

@@ -1,5 +1,6 @@
 package io.github.v2compose.ui.user
 
+import android.util.Log
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -39,6 +40,8 @@ import io.github.v2compose.ui.gallery.composables.PopupImage
 import io.github.v2compose.ui.user.composables.UserToolbar
 import kotlinx.coroutines.launch
 import me.onebone.toolbar.*
+
+private const val TAG = "UserScreen"
 
 @Composable
 fun UserScreenRoute(
@@ -231,8 +234,8 @@ fun UserPager(
             }
         }
 
-        HorizontalPager(pageCount = 2, state = pagerState) {
-            when (it) {
+        HorizontalPager(pageCount = 2, state = pagerState) { index ->
+            when (index) {
                 0 -> UserTopicsList(
                     items = userTopics,
                     topicTitleOverview = topicTitleOverview,
@@ -259,7 +262,7 @@ private fun UserTopicsList(
     onTopicClick: (String) -> Unit,
     onNodeClick: (String, String) -> Unit
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(modifier = Modifier.fillMaxSize(), state = items.rememberLazyListState()) {
         pagingRefreshItem(lazyPagingItems = items)
 
         itemsIndexed(items = items, key = { index, item -> item.link }) { index, item ->
@@ -324,10 +327,8 @@ private fun UserRepliesList(
     loadHtmlImage: (String, String, String?) -> Unit,
     onHtmlImageClick: OnHtmlImageClick,
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        item(key = "refresh", contentType = "loadState") {
-            PagingLoadState(state = items.loadState.refresh, onRetryClick = { items.retry() })
-        }
+    LazyColumn(modifier = Modifier.fillMaxSize(), state = items.rememberLazyListState()) {
+        pagingRefreshItem(items)
 
         itemsIndexed(
             items = items,
@@ -344,9 +345,7 @@ private fun UserRepliesList(
             )
         }
 
-        item(key = "append", contentType = "loadState") {
-            PagingLoadState(state = items.loadState.append, onRetryClick = { items.retry() })
-        }
+        pagingAppendMoreItem(items)
     }
 }
 
@@ -382,7 +381,7 @@ fun UserReplyItem(
             val leftBorderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f)
             HtmlContent(
                 content = content,
-                onUriClick = openUri,
+                onUriClick = { openUri(V2exUri.fixUriWithTopicPath(it, reply.dock.link)) },
                 loadImage = loadHtmlImage,
                 onHtmlImageClick = onHtmlImageClick,
                 onClick = { onTopicClick(reply.dock.link) },

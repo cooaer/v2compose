@@ -17,8 +17,8 @@ android {
         applicationId "io.github.v2compose"
         minSdk 26
         targetSdk 33
-        versionCode 30
-        versionName "0.3.0"
+        versionCode 40
+        versionName "0.4.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

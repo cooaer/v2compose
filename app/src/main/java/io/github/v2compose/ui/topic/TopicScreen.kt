@@ -120,7 +120,6 @@ fun TopicScreenRoute(
         onReplyMenuItemClick = { menuItem, reply ->
             when (menuItem) {
                 ReplyMenuItem.Thank -> viewModel.thankReply(reply)
-                ReplyMenuItem.Thanked -> viewModel.unFavoriteReply(reply)
                 ReplyMenuItem.Ignore -> viewModel.ignoreReply(reply)
                 ReplyMenuItem.Copy -> screenState.copy(reply)
                 ReplyMenuItem.HomePage -> onUserAvatarClick(reply.userName, reply.avatar)

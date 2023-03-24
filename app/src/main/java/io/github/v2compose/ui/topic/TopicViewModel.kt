@@ -274,15 +274,6 @@ class TopicViewModel @Inject constructor(
             onSuccess = { updateReplyWrapper(reply = reply, thanked = true) })
     }
 
-    fun unFavoriteReply(reply: Reply) {
-        doReplyAction(
-            reply,
-            "unthank",
-            R.string.menu_item_unthank,
-            ActionMethod.Post,
-            onSuccess = { updateReplyWrapper(reply = reply, thanked = false) })
-    }
-
     fun ignoreReply(reply: Reply) {
         val topic = topicInfoWrapper.value.topic ?: return
         val actionName = context.getString(R.string.ignore_comment)
@@ -382,11 +373,7 @@ class TopicViewModel @Inject constructor(
                     thanked = thanked ?: it.thanked,
                     ignored = ignored ?: it.ignored,
                 )
-            } ?: ReplyWrapper(
-                reply = reply,
-                thanked = thanked ?: false,
-                ignored = ignored ?: false
-            )
+            } ?: ReplyWrapper(reply, thanked, ignored)
             _replyWrappers[reply.replyId] = replyWrapper
         }
     }

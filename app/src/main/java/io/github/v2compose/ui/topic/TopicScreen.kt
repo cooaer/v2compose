@@ -440,11 +440,11 @@ private fun TopicList(
                         onTopicReplyClick(it)
                         coroutineScope.launch {
                             lazyListState.animateScrollToItem(
-                                repliesBarIndex + index, -repliesBarHeight
+                                repliesBarIndex + index + 1, -repliesBarHeight
                             )
                             delay(400)
                             lazyListState.animateScrollToItem(
-                                repliesBarIndex + index, -repliesBarHeight
+                                repliesBarIndex + index + 1, -repliesBarHeight
                             )
                         }
                     },

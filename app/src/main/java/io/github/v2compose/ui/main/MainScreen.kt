@@ -1,5 +1,6 @@
 package io.github.v2compose.ui.main
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home
@@ -9,13 +10,12 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.autoSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.v2compose.R
@@ -24,10 +24,12 @@ import io.github.v2compose.network.bean.RecentTopics
 import io.github.v2compose.ui.HandleSnackbarMessage
 import io.github.v2compose.ui.common.NewReleaseDialog
 import io.github.v2compose.ui.common.OnHtmlImageClick
+import io.github.v2compose.ui.common.SelectNode
 import io.github.v2compose.ui.main.home.HomeContent
 import io.github.v2compose.ui.main.mine.MineContent
 import io.github.v2compose.ui.main.nodes.NodesContent
 import io.github.v2compose.ui.main.notifications.NotificationsContent
+import io.github.v2compose.usecase.LoadNodesState
 
 @Composable
 fun MainScreenRoute(
@@ -49,6 +51,7 @@ fun MainScreenRoute(
     screenState: MainScreenState = rememberMainScreenState()
 ) {
     val unreadNotifications by viewModel.unreadNotifications.collectAsStateWithLifecycle()
+    val loadNodesState by viewModel.loadNodes.state.collectAsStateWithLifecycle()
 
     HandleSnackbarMessage(viewModel, screenState)
 
@@ -70,6 +73,7 @@ fun MainScreenRoute(
 
     MainScreen(
         unreadNotifications = unreadNotifications,
+        loadNodesState = loadNodesState,
         onSearchClick = onSearchClick,
         onSettingsClick = onSettingsClick,
         onNewsItemClick = onNewsItemClick,
@@ -84,6 +88,7 @@ fun MainScreenRoute(
         onMyFollowingClick = onMyFollowingClick,
         onUriClick = openUri,
         onHtmlImageClick = onHtmlImageClick,
+        loadNodes = viewModel::loadNodes,
     )
 }
 
@@ -91,6 +96,7 @@ fun MainScreenRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 private fun MainScreen(
     unreadNotifications: Int,
+    loadNodesState: LoadNodesState,
     onSearchClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onNewsItemClick: (NewsInfo.Item) -> Unit,
@@ -105,9 +111,15 @@ private fun MainScreen(
     onMyFollowingClick: () -> Unit,
     onUriClick: (String) -> Unit,
     onHtmlImageClick: OnHtmlImageClick,
+    loadNodes: () -> Unit,
 ) {
-    var navBarSelectedIndex by rememberSaveable(stateSaver = autoSaver()) { mutableStateOf(0) }
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    var navBarSelectedIndex by rememberSaveable { mutableStateOf(0) }
+    var showNodes by rememberSaveable { mutableStateOf(false) }
+    val hasNodes = rememberSaveable(loadNodesState) { loadNodesState is LoadNodesState.Success }
+
+    BackHandler(enabled = showNodes) {
+        showNodes = false
+    }
 
     Scaffold(
         topBar = {
@@ -115,14 +127,23 @@ private fun MainScreen(
                 currentNavBarIndex = navBarSelectedIndex,
                 onMenuItemClick = {
                     when (it) {
-                        MenuItem.search -> onSearchClick()
-                        MenuItem.settings -> onSettingsClick()
+                        MenuItem.Search -> {
+                            if (navBarSelectedIndex == MainBottomTab.Nodes.ordinal) {
+                                showNodes = true
+                                if (!hasNodes) {
+                                    loadNodes()
+                                }
+                            } else {
+                                onSearchClick()
+                            }
+                        }
+                        MenuItem.Settings -> onSettingsClick()
                     }
                 },
-                scrollBehavior = scrollBehavior,
             )
         }, contentWindowInsets = WindowInsets(bottom = 0)
     ) { paddingValues ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -146,7 +167,6 @@ private fun MainScreen(
                     onSettingsClick = onSettingsClick,
                     onUriClick = onUriClick,
                     onHtmlImageClick = onHtmlImageClick,
-//                    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                 )
             }
             MainBottomNavigation(navBarSelectedIndex, unreadNotifications) {
@@ -154,24 +174,36 @@ private fun MainScreen(
             }
         }
     }
+
+    if (showNodes && hasNodes) {
+        val nodes = (loadNodesState as LoadNodesState.Success).data
+        SelectNode(
+            nodes = nodes,
+            onNodeClick = {
+                showNodes = false
+                onNodeClick(it.name, it.title)
+            },
+            onDismiss = { showNodes = false },
+        )
+    }
+
 }
 
 private enum class MenuItem(val imageVector: ImageVector) {
-    search(Icons.Rounded.Search), settings(Icons.Rounded.Settings)
+    Search(Icons.Rounded.Search), Settings(Icons.Rounded.Settings)
 }
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 private fun MainTopBar(
     currentNavBarIndex: Int,
-    scrollBehavior: TopAppBarScrollBehavior,
     onMenuItemClick: (MenuItem) -> Unit,
 ) {
     val navBarItemNames = stringArrayResource(R.array.main_navigation_items)
     val menuItem = remember(currentNavBarIndex) {
         when (currentNavBarIndex) {
-            3 -> MenuItem.settings
-            else -> MenuItem.search
+            3 -> MenuItem.Settings
+            else -> MenuItem.Search
         }
     }
     CenterAlignedTopAppBar(
@@ -185,7 +217,6 @@ private fun MainTopBar(
                 )
             }
         },
-        scrollBehavior = scrollBehavior,
     )
 }
 
@@ -242,29 +273,29 @@ fun MainContent(
 fun MainBottomNavigation(
     selectedIndex: Int, unreadNotifications: Int, onItemSelected: (Int) -> Unit
 ) {
-    val itemNames = stringArrayResource(R.array.main_navigation_items)
-    val itemIcons: List<ImageVector> = listOf(
-        Icons.Outlined.Home,
-        Icons.Outlined.List,
-        Icons.Outlined.Notifications,
-        Icons.Outlined.Person
-    )
     NavigationBar {
-        itemNames.forEachIndexed { index, name ->
+        MainBottomTab.values().forEachIndexed { index, item ->
             NavigationBarItem(
                 icon = {
                     if (index == 2 && unreadNotifications > 0) {
                         BadgedBox(badge = { Badge { Text(unreadNotifications.toString()) } }) {
-                            Icon(itemIcons[index], contentDescription = name)
+                            Icon(item.icon, contentDescription = item.name)
                         }
                     } else {
-                        Icon(itemIcons[index], contentDescription = name)
+                        Icon(item.icon, contentDescription = item.name)
                     }
                 },
-                label = { Text(name) },
+                label = { Text(stringResource(item.title)) },
                 selected = index == selectedIndex,
                 onClick = { onItemSelected(index) },
             )
         }
     }
+}
+
+enum class MainBottomTab(val title: Int, val icon: ImageVector) {
+    Home(R.string.main_home, Icons.Outlined.Home),
+    Nodes(R.string.main_nodes, Icons.Outlined.List),
+    Notifications(R.string.main_notifications, Icons.Outlined.Notifications),
+    Mine(R.string.main_mine, Icons.Outlined.Person)
 }

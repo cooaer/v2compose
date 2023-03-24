@@ -7,10 +7,11 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor() : ViewModel() {
     private val TAB_NAMES =
-        arrayOf("全部", "最热", "技术", "创意", "好玩", "Apple", "酷工作", "交易", "城市", "问与答", "R2", "节点", "关注")
+        arrayOf("全部", "最热", "最近", "技术", "创意", "好玩", "Apple", "酷工作", "交易", "城市", "问与答", "R2", "节点", "关注")
     private val TAB_VALUES = arrayOf(
         "all",
         "hot",
+        "recent",
         "tech",
         "creative",
         "play",
@@ -27,4 +28,8 @@ class HomeViewModel @Inject constructor() : ViewModel() {
         TAB_NAMES.mapIndexed { index, title -> NewsTabInfo(title, TAB_VALUES[index]) }
 }
 
-data class NewsTabInfo(val name: String, val value: String)
+data class NewsTabInfo(val name: String, val value: String){
+    companion object{
+        const val recent = "recent"
+    }
+}

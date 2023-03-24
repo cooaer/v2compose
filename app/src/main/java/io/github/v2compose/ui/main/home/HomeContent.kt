@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import io.github.v2compose.network.bean.NewsInfo
+import io.github.v2compose.network.bean.RecentTopics
+import io.github.v2compose.ui.main.home.recent.RecentTab
 import io.github.v2compose.ui.main.home.tab.NewsTab
 import kotlinx.coroutines.launch
 
@@ -22,6 +24,7 @@ private const val TAG = "HomeContent"
 @Composable
 fun HomeContent(
     onNewsItemClick: (NewsInfo.Item) -> Unit,
+    onRecentItemClick: (RecentTopics.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
     modifier: Modifier = Modifier,
@@ -40,13 +43,22 @@ fun HomeContent(
             pageCount = tabInfos.size,
             state = pagerState,
             key = { tabInfos[it].value },
-        ) { page ->
-            NewsTab(
-                newsTabInfo = tabInfos[page],
-                onNewsItemClick = onNewsItemClick,
-                onNodeClick = onNodeClick,
-                onUserAvatarClick = onUserAvatarClick,
-            )
+        ) { pageIndex ->
+            val tabInfo = tabInfos[pageIndex]
+            if(tabInfo.value == NewsTabInfo.recent){
+                RecentTab(
+                    onRecentItemClick = onRecentItemClick,
+                    onNodeClick = onNodeClick,
+                    onUserAvatarClick = onUserAvatarClick
+                )
+            }else{
+                NewsTab(
+                    newsTabInfo = tabInfo,
+                    onNewsItemClick = onNewsItemClick,
+                    onNodeClick = onNodeClick,
+                    onUserAvatarClick = onUserAvatarClick,
+                )
+            }
         }
 
         ScrollableTabRow(

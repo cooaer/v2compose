@@ -20,6 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.v2compose.R
 import io.github.v2compose.network.bean.NewsInfo
+import io.github.v2compose.network.bean.RecentTopics
 import io.github.v2compose.ui.HandleSnackbarMessage
 import io.github.v2compose.ui.common.NewReleaseDialog
 import io.github.v2compose.ui.common.OnHtmlImageClick
@@ -31,6 +32,7 @@ import io.github.v2compose.ui.main.notifications.NotificationsContent
 @Composable
 fun MainScreenRoute(
     onNewsItemClick: (NewsInfo.Item) -> Unit,
+    onRecentItemClick: (RecentTopics.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
     onSearchClick: () -> Unit,
@@ -71,6 +73,7 @@ fun MainScreenRoute(
         onSearchClick = onSearchClick,
         onSettingsClick = onSettingsClick,
         onNewsItemClick = onNewsItemClick,
+        onRecentItemClick = onRecentItemClick,
         onNodeClick = onNodeClick,
         onUserAvatarClick = onUserAvatarClick,
         onLoginClick = onLoginClick,
@@ -91,6 +94,7 @@ private fun MainScreen(
     onSearchClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onNewsItemClick: (NewsInfo.Item) -> Unit,
+    onRecentItemClick: (RecentTopics.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
     onLoginClick: () -> Unit,
@@ -130,6 +134,7 @@ private fun MainScreen(
                 MainContent(
                     navBarSelectedIndex = navBarSelectedIndex,
                     onNewsItemClick = onNewsItemClick,
+                    onRecentItemClick = onRecentItemClick,
                     onNodeClick = onNodeClick,
                     onUserAvatarClick = onUserAvatarClick,
                     onLoginClick = onLoginClick,
@@ -188,6 +193,7 @@ private fun MainTopBar(
 fun MainContent(
     navBarSelectedIndex: Int,
     onNewsItemClick: (NewsInfo.Item) -> Unit,
+    onRecentItemClick: (RecentTopics.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
     onLoginClick: () -> Unit,
@@ -205,6 +211,7 @@ fun MainContent(
         when (navBarSelectedIndex) {
             0 -> HomeContent(
                 onNewsItemClick = onNewsItemClick,
+                onRecentItemClick = onRecentItemClick,
                 onNodeClick = onNodeClick,
                 onUserAvatarClick = onUserAvatarClick,
             )

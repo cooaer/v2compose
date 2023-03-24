@@ -5,6 +5,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import com.google.accompanist.navigation.animation.composable
 import io.github.v2compose.network.bean.NewsInfo
+import io.github.v2compose.network.bean.RecentTopics
 import io.github.v2compose.ui.common.OnHtmlImageClick
 
 const val mainNavigationRoute = "/"
@@ -20,6 +21,7 @@ fun NavController.navigateToMain() {
 @OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.mainScreen(
     onNewsItemClick: (NewsInfo.Item) -> Unit,
+    onRecentItemClick: (RecentTopics.Item) -> Unit,
     onNodeClick: (String, String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
     onSearchClick: () -> Unit,
@@ -36,6 +38,7 @@ fun NavGraphBuilder.mainScreen(
     composable(route = mainNavigationRoute) {
         MainScreenRoute(
             onNewsItemClick = onNewsItemClick,
+            onRecentItemClick = onRecentItemClick,
             onNodeClick = onNodeClick,
             onUserAvatarClick = onUserAvatarClick,
             onSearchClick = onSearchClick,

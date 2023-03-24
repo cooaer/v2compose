@@ -73,6 +73,10 @@ interface V2exService {
     suspend fun homeNews(@Query("tab") tab: String): NewsInfo
 
     @Html
+    @GET("/recent")
+    suspend fun recentTopics(@Query("p") page: Int): RecentTopics
+
+    @Html
     @GET("/signin")
     suspend fun loginParam(): LoginParam
 

@@ -30,7 +30,6 @@ fun RecentTab(
         PagingLoadState(
             state = recentTopics.loadState.refresh,
             onRetryClick = { recentTopics.retry() },
-            modifier = Modifier.fillMaxSize(),
         )
     } else {
         RecentTopicsList(

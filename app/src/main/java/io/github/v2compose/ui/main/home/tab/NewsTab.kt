@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSavedStateRegistryOwner
 import androidx.core.os.bundleOf
@@ -103,7 +102,7 @@ fun NewsContent(
         is NewsUiState.Success -> {
             NewsList(
                 refreshing = refreshing,
-                newsInfo = newsUiState.newsInfo,
+                newsInfo = newsUiState.data,
                 topicTitleOverview = topicTitleOverview,
                 onRefresh = onRefreshList,
                 onNewsItemClick = onNewsItemClick,
@@ -114,8 +113,7 @@ fun NewsContent(
         else -> {
             LoadMore(
                 hasError = newsUiState is NewsUiState.Error,
-                error = if (newsUiState is NewsUiState.Error) newsUiState.throwable else null,
-                modifier = Modifier.fillMaxSize(),
+                error = if (newsUiState is NewsUiState.Error) newsUiState.error else null,
                 onRetryClick = onRetryClick
             )
         }

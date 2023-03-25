@@ -75,6 +75,6 @@ class NewsViewModel @Inject constructor(
 @Stable
 sealed interface NewsUiState {
     object Loading : NewsUiState
-    data class Success(val newsInfo: NewsInfo) : NewsUiState
-    data class Error(val throwable: Throwable?) : NewsUiState
+    data class Success(val data: NewsInfo) : NewsUiState
+    data class Error(val error: Throwable?) : NewsUiState
 }

@@ -25,7 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.flowlayout.*
 import io.github.v2compose.network.bean.Node
-import io.github.v2compose.ui.common.LoadError
+import io.github.v2compose.ui.common.LoadMore
 import io.github.v2compose.ui.common.PullToRefresh
 import io.github.v2compose.ui.common.SimpleNode
 import kotlinx.coroutines.launch
@@ -41,7 +41,12 @@ fun NodesContent(
 ) {
     val nodesUiState by viewModel.nodesUiState.collectAsStateWithLifecycle()
 
-    NodesContainer(nodesUiState, onNodeClick, viewModel::refresh, modifier)
+    NodesContainer(
+        nodesUiState = nodesUiState,
+        onNodeClick = onNodeClick,
+        onRefresh = viewModel::refresh,
+        modifier = modifier,
+    )
 }
 
 @Composable
@@ -52,23 +57,24 @@ private fun NodesContainer(
     modifier: Modifier = Modifier,
 ) {
     Box(modifier.fillMaxSize()) {
-        when (nodesUiState) {
-            is NodesUiState.Error -> {
-                LoadError(error = nodesUiState.error, onRetryClick = onRefresh)
+        val nodeCategories = remember(nodesUiState) {
+            when (nodesUiState) {
+                is NodesUiState.Success -> nodesUiState.data
+                is NodesUiState.Loading -> nodesUiState.data
+                is NodesUiState.Error -> null
             }
-            else -> {
-                val isRefreshing = nodesUiState is NodesUiState.Loading
-                val nodeCategories = when (nodesUiState) {
-                    is NodesUiState.Loading -> nodesUiState.data
-                    is NodesUiState.Success -> nodesUiState.data
-                    else -> null
-                }
-                PullToRefresh(refreshing = isRefreshing, onRefresh = onRefresh) {
-                    nodeCategories?.let {
-                        NodesList(nodeCategories = nodeCategories, onNodeClick = onNodeClick)
-                    }
-                }
+        }
+        if (nodeCategories != null) {
+            val refreshing = nodesUiState is NodesUiState.Loading
+            PullToRefresh(refreshing = refreshing, onRefresh = onRefresh) {
+                NodesList(nodeCategories = nodeCategories, onNodeClick = onNodeClick)
             }
+        } else {
+            LoadMore(
+                hasError = nodesUiState is NodesUiState.Error,
+                error = if (nodesUiState is NodesUiState.Error) nodesUiState.error else null,
+                onRetryClick = onRefresh
+            )
         }
     }
 }

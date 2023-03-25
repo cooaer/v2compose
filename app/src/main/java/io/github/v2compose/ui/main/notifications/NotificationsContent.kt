@@ -46,34 +46,64 @@ fun NotificationsContent(
     viewModel: NotificationViewModel = hiltViewModel()
 ) {
     val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
+    val unreadNotifications by viewModel.unreadNotifications.collectAsStateWithLifecycle()
+    val notifications = viewModel.notifications.collectAsLazyPagingItems()
+
+    NotificationsContainer(
+        isLoggedIn = isLoggedIn,
+        unreadNotifications = unreadNotifications,
+        notifications = notifications,
+        sizedHtmls = viewModel.sizedHtmls,
+        onUriClick = onUriClick,
+        onUserAvatarClick = onUserAvatarClick,
+        onLoginClick = onLoginClick,
+        loadHtmlImage = viewModel::loadHtmlImage,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun NotificationsContainer(
+    isLoggedIn: Boolean,
+    unreadNotifications: Int,
+    notifications: LazyPagingItems<NotificationInfo.Reply>,
+    sizedHtmls: SnapshotStateMap<String, String>,
+    onUriClick: (String) -> Unit,
+    onUserAvatarClick: (String, String) -> Unit,
+    onLoginClick: () -> Unit,
+    loadHtmlImage: (String, String, String?) -> Unit,
+    modifier: Modifier,
+) {
+    var htmlImageUrl by rememberSaveable { mutableStateOf("") }
+    if (htmlImageUrl.isNotEmpty()) {
+        PopupImage(imageUrl = htmlImageUrl) {
+            htmlImageUrl = ""
+        }
+    }
+
+    LaunchedEffect(unreadNotifications) {
+        if (unreadNotifications > 0) {
+            notifications.refresh()
+        }
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         if (isLoggedIn) {
-            val unreadNotifications by viewModel.unreadNotifications.collectAsStateWithLifecycle()
-            val notifications = viewModel.notifications.collectAsLazyPagingItems()
-            var htmlImageUrl by rememberSaveable { mutableStateOf("") }
-
-            if (htmlImageUrl.isNotEmpty()) {
-                PopupImage(imageUrl = htmlImageUrl) {
-                    htmlImageUrl = ""
-                }
+            if (notifications.itemCount > 0) {
+                NotificationList(
+                    notifications = notifications,
+                    sizedHtmls = sizedHtmls,
+                    onUriClick = onUriClick,
+                    onUserAvatarClick = onUserAvatarClick,
+                    loadHtmlImage = loadHtmlImage,
+                    onHtmlImageClick = { current, _ -> htmlImageUrl = current }
+                )
+            } else {
+                PagingLoadState(
+                    state = notifications.loadState.refresh,
+                    onRetryClick = notifications::refresh,
+                )
             }
-
-            LaunchedEffect(unreadNotifications) {
-                if (unreadNotifications > 0) {
-                    notifications.refresh()
-                }
-            }
-
-            NotificationList(
-                notifications = notifications,
-                sizedHtmls = viewModel.sizedHtmls,
-                onUriClick = onUriClick,
-                onUserAvatarClick = onUserAvatarClick,
-                loadHtmlImage = viewModel::loadHtmlImage,
-//                onHtmlImageClick = onHtmlImageClick,
-                onHtmlImageClick = { current, _ -> htmlImageUrl = current }
-            )
         } else {
             ElevatedButton(onClick = onLoginClick, modifier = Modifier.align(Alignment.Center)) {
                 Text(stringResource(id = R.string.login))

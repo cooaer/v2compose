@@ -1,11 +1,10 @@
 package io.github.v2compose.ui.main.home.recent
 
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
@@ -14,6 +13,8 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import io.github.v2compose.network.bean.RecentTopics
 import io.github.v2compose.ui.common.*
+import io.github.v2compose.ui.main.composables.ClickHandler
+import kotlinx.coroutines.launch
 
 @Composable
 fun RecentTab(
@@ -50,11 +51,26 @@ private fun RecentTopicsList(
     onNodeClick: (String, String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val refreshing = remember(recentTopics.loadState) {
         recentTopics.loadState.refresh is LoadState.Loading
     }
+
     PullToRefresh(refreshing = refreshing, onRefresh = { recentTopics.refresh() }) {
         val lazyListState = recentTopics.rememberLazyListState()
+        ClickHandler(enabled = !refreshing) {
+            coroutineScope.launch {
+                if (lazyListState.isScrollInProgress) {
+                    lazyListState.animateScrollToItem(0)
+                    recentTopics.refresh()
+                } else if (lazyListState.canScrollBackward) {
+                    lazyListState.animateScrollToItem(0)
+                } else {
+                    recentTopics.refresh()
+                }
+            }
+        }
+
         LazyColumn(state = lazyListState) {
             pagingPrependMoreItem(recentTopics)
             itemsIndexed(recentTopics, key = { _, item -> item.id }) { index, item ->

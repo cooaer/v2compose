@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.ElevatedButton
@@ -33,6 +32,8 @@ import io.github.v2compose.V2exUri
 import io.github.v2compose.network.bean.NotificationInfo
 import io.github.v2compose.ui.common.*
 import io.github.v2compose.ui.gallery.composables.PopupImage
+import io.github.v2compose.ui.main.composables.ClickHandler
+import kotlinx.coroutines.launch
 
 private const val TAG = "NotificationsContent"
 
@@ -47,30 +48,34 @@ fun NotificationsContent(
 ) {
     val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
     val unreadNotifications by viewModel.unreadNotifications.collectAsStateWithLifecycle()
-    val notifications = viewModel.notifications.collectAsLazyPagingItems()
 
-    NotificationsContainer(
-        isLoggedIn = isLoggedIn,
-        unreadNotifications = unreadNotifications,
-        notifications = notifications,
-        sizedHtmls = viewModel.sizedHtmls,
-        onUriClick = onUriClick,
-        onUserAvatarClick = onUserAvatarClick,
-        onLoginClick = onLoginClick,
-        loadHtmlImage = viewModel::loadHtmlImage,
-        modifier = modifier,
-    )
+    if (isLoggedIn) {
+        val notifications = viewModel.notifications.collectAsLazyPagingItems()
+        NotificationsContainer(
+            unreadNotifications = unreadNotifications,
+            notifications = notifications,
+            sizedHtmls = viewModel.sizedHtmls,
+            onUriClick = onUriClick,
+            onUserAvatarClick = onUserAvatarClick,
+            loadHtmlImage = viewModel::loadHtmlImage,
+            modifier = modifier,
+        )
+    } else {
+        Box(modifier = Modifier.fillMaxSize()) {
+            ElevatedButton(onClick = onLoginClick, modifier = Modifier.align(Alignment.Center)) {
+                Text(stringResource(id = R.string.login))
+            }
+        }
+    }
 }
 
 @Composable
 private fun NotificationsContainer(
-    isLoggedIn: Boolean,
     unreadNotifications: Int,
     notifications: LazyPagingItems<NotificationInfo.Reply>,
     sizedHtmls: SnapshotStateMap<String, String>,
     onUriClick: (String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
-    onLoginClick: () -> Unit,
     loadHtmlImage: (String, String, String?) -> Unit,
     modifier: Modifier,
 ) {
@@ -88,26 +93,20 @@ private fun NotificationsContainer(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        if (isLoggedIn) {
-            if (notifications.itemCount > 0) {
-                NotificationList(
-                    notifications = notifications,
-                    sizedHtmls = sizedHtmls,
-                    onUriClick = onUriClick,
-                    onUserAvatarClick = onUserAvatarClick,
-                    loadHtmlImage = loadHtmlImage,
-                    onHtmlImageClick = { current, _ -> htmlImageUrl = current }
-                )
-            } else {
-                PagingLoadState(
-                    state = notifications.loadState.refresh,
-                    onRetryClick = notifications::refresh,
-                )
-            }
+        if (notifications.itemCount > 0) {
+            NotificationList(
+                notifications = notifications,
+                sizedHtmls = sizedHtmls,
+                onUriClick = onUriClick,
+                onUserAvatarClick = onUserAvatarClick,
+                loadHtmlImage = loadHtmlImage,
+                onHtmlImageClick = { current, _ -> htmlImageUrl = current }
+            )
         } else {
-            ElevatedButton(onClick = onLoginClick, modifier = Modifier.align(Alignment.Center)) {
-                Text(stringResource(id = R.string.login))
-            }
+            PagingLoadState(
+                state = notifications.loadState.refresh,
+                onRetryClick = notifications::refresh,
+            )
         }
     }
 }
@@ -121,10 +120,24 @@ private fun NotificationList(
     loadHtmlImage: (String, String, String?) -> Unit,
     onHtmlImageClick: OnHtmlImageClick,
 ) {
-    val lazyListState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+    val lazyListState = notifications.rememberLazyListState()
     val refreshing = remember(notifications.loadState.refresh) {
         with(notifications.loadState.refresh) {
             !endOfPaginationReached && this is LoadState.Loading
+        }
+    }
+
+    ClickHandler(enabled = !refreshing) {
+        coroutineScope.launch {
+            if (lazyListState.isScrollInProgress) {
+                lazyListState.animateScrollToItem(0)
+                notifications.refresh()
+            } else if (lazyListState.canScrollBackward) {
+                lazyListState.animateScrollToItem(0)
+            } else {
+                notifications.refresh()
+            }
         }
     }
 

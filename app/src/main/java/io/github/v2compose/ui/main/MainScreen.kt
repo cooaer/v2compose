@@ -25,6 +25,8 @@ import io.github.v2compose.ui.HandleSnackbarMessage
 import io.github.v2compose.ui.common.NewReleaseDialog
 import io.github.v2compose.ui.common.OnHtmlImageClick
 import io.github.v2compose.ui.common.SelectNode
+import io.github.v2compose.ui.main.composables.ClickDispatcher
+import io.github.v2compose.ui.main.composables.LocalClickDispatcher
 import io.github.v2compose.ui.main.home.HomeContent
 import io.github.v2compose.ui.main.mine.MineContent
 import io.github.v2compose.ui.main.nodes.NodesContent
@@ -71,25 +73,31 @@ fun MainScreenRoute(
         )
     }
 
-    MainScreen(
-        unreadNotifications = unreadNotifications,
-        loadNodesState = loadNodesState,
-        onSearchClick = onSearchClick,
-        onSettingsClick = onSettingsClick,
-        onNewsItemClick = onNewsItemClick,
-        onRecentItemClick = onRecentItemClick,
-        onNodeClick = onNodeClick,
-        onUserAvatarClick = onUserAvatarClick,
-        onLoginClick = onLoginClick,
-        onMyHomePageClick = onMyHomePageClick,
-        onCreateTopicClick = onCreateTopicClick,
-        onMyNodesClick = onMyNodesClick,
-        onMyTopicsClick = onMyTopicsClick,
-        onMyFollowingClick = onMyFollowingClick,
-        onUriClick = openUri,
-        onHtmlImageClick = onHtmlImageClick,
-        loadNodes = viewModel::loadNodes,
-    )
+    val clickDispatcher = remember { ClickDispatcher() }
+
+    CompositionLocalProvider(LocalClickDispatcher provides clickDispatcher) {
+        MainScreen(
+            unreadNotifications = unreadNotifications,
+            loadNodesState = loadNodesState,
+            onSearchClick = onSearchClick,
+            onSettingsClick = onSettingsClick,
+            onNewsItemClick = onNewsItemClick,
+            onRecentItemClick = onRecentItemClick,
+            onNodeClick = onNodeClick,
+            onUserAvatarClick = onUserAvatarClick,
+            onLoginClick = onLoginClick,
+            onMyHomePageClick = onMyHomePageClick,
+            onCreateTopicClick = onCreateTopicClick,
+            onMyNodesClick = onMyNodesClick,
+            onMyTopicsClick = onMyTopicsClick,
+            onMyFollowingClick = onMyFollowingClick,
+            onUriClick = openUri,
+            onHtmlImageClick = onHtmlImageClick,
+            loadNodes = viewModel::loadNodes,
+            onBottomTabClickAgain = clickDispatcher::dispatch
+        )
+    }
+
 }
 
 @Composable
@@ -112,6 +120,7 @@ private fun MainScreen(
     onUriClick: (String) -> Unit,
     onHtmlImageClick: OnHtmlImageClick,
     loadNodes: () -> Unit,
+    onBottomTabClickAgain: () -> Unit,
 ) {
     var navBarSelectedIndex by rememberSaveable { mutableStateOf(0) }
     var showNodes by rememberSaveable { mutableStateOf(false) }
@@ -130,9 +139,7 @@ private fun MainScreen(
                         MenuItem.Search -> {
                             if (navBarSelectedIndex == MainBottomTab.Nodes.ordinal) {
                                 showNodes = true
-                                if (!hasNodes) {
-                                    loadNodes()
-                                }
+                                if (!hasNodes) loadNodes()
                             } else {
                                 onSearchClick()
                             }
@@ -169,9 +176,13 @@ private fun MainScreen(
                     onHtmlImageClick = onHtmlImageClick,
                 )
             }
-            MainBottomNavigation(navBarSelectedIndex, unreadNotifications) {
-                navBarSelectedIndex = it
-            }
+            MainBottomNavigation(
+                selectedIndex = navBarSelectedIndex,
+                unreadNotifications = unreadNotifications,
+                onItemSelected = { index ->
+                    if (index == navBarSelectedIndex) onBottomTabClickAgain()
+                    navBarSelectedIndex = index
+                })
         }
     }
 

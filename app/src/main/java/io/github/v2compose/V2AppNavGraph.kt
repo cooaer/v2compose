@@ -55,6 +55,7 @@ fun V2AppNavGraph(
     AnimatedNavHost(navController = navController, startDestination = mainNavigationRoute) {
         mainScreen(
             onNewsItemClick = { navController.navigateToTopic(it.id) },
+            onRecentItemClick = { navController.navigateToTopic(it.id) },
             onNodeClick = navController::navigateToNode,
             onUserAvatarClick = navController::navigateToUser,
             onSearchClick = navController::navigateToSearch,

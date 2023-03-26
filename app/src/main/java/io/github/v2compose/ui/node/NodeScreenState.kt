@@ -37,7 +37,7 @@ class NodeScreenState(
         } else {
             "V2EX > " + (nodeArgs.nodeTitle ?: "")
         }
-        val url = "https://www.v2ex.com/g/${nodeArgs.nodeName}"
+        val url = "https://www.v2ex.com/go/${nodeArgs.nodeName}"
         context.share(title = title, url = url)
     }
 

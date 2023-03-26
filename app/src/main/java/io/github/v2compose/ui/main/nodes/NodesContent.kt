@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.LocalContentColor
@@ -25,9 +26,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.flowlayout.*
 import io.github.v2compose.network.bean.Node
-import io.github.v2compose.ui.common.LoadError
+import io.github.v2compose.ui.common.LoadMore
 import io.github.v2compose.ui.common.PullToRefresh
 import io.github.v2compose.ui.common.SimpleNode
+import io.github.v2compose.ui.main.composables.ClickHandler
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -41,9 +43,15 @@ fun NodesContent(
 ) {
     val nodesUiState by viewModel.nodesUiState.collectAsStateWithLifecycle()
 
-    NodesContainer(nodesUiState, onNodeClick, viewModel::refresh, modifier)
+    NodesContainer(
+        nodesUiState = nodesUiState,
+        onNodeClick = onNodeClick,
+        onRefresh = viewModel::refresh,
+        modifier = modifier,
+    )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun NodesContainer(
     nodesUiState: NodesUiState,
@@ -51,24 +59,46 @@ private fun NodesContainer(
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val pagerState = rememberPagerState()
+
     Box(modifier.fillMaxSize()) {
-        when (nodesUiState) {
-            is NodesUiState.Error -> {
-                LoadError(error = nodesUiState.error, onRetryClick = onRefresh)
+        val nodeCategories = remember(nodesUiState) {
+            when (nodesUiState) {
+                is NodesUiState.Success -> nodesUiState.data
+                is NodesUiState.Loading -> nodesUiState.data
+                is NodesUiState.Error -> null
             }
-            else -> {
-                val isRefreshing = nodesUiState is NodesUiState.Loading
-                val nodeCategories = when (nodesUiState) {
-                    is NodesUiState.Loading -> nodesUiState.data
-                    is NodesUiState.Success -> nodesUiState.data
-                    else -> null
-                }
-                PullToRefresh(refreshing = isRefreshing, onRefresh = onRefresh) {
-                    nodeCategories?.let {
-                        NodesList(nodeCategories = nodeCategories, onNodeClick = onNodeClick)
+        }
+        if (nodeCategories != null) {
+            val refreshing = nodesUiState is NodesUiState.Loading
+
+            ClickHandler(enabled = !refreshing) {
+                coroutineScope.launch {
+                    if (pagerState.isScrollInProgress) {
+                        pagerState.animateScrollToPage(0)
+                        onRefresh()
+                    } else if (pagerState.canScrollBackward) {
+                        pagerState.animateScrollToPage(0)
+                    } else {
+                        onRefresh()
                     }
                 }
             }
+
+            PullToRefresh(refreshing = refreshing, onRefresh = onRefresh) {
+                NodesList(
+                    nodeCategories = nodeCategories,
+                    pagerState = pagerState,
+                    onNodeClick = onNodeClick,
+                )
+            }
+        } else {
+            LoadMore(
+                hasError = nodesUiState is NodesUiState.Error,
+                error = if (nodesUiState is NodesUiState.Error) nodesUiState.error else null,
+                onRetryClick = onRefresh
+            )
         }
     }
 }
@@ -81,10 +111,10 @@ private val NodeHeight = 92.dp
 @Composable
 private fun NodesList(
     nodeCategories: List<Pair<String, List<Node>>>,
+    pagerState: PagerState,
     onNodeClick: (String, String) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val pagerState = rememberPagerState()
 
     BoxWithConstraints {
         val maxPageWidth = maxWidth - CategoryTitleBarWidth
@@ -116,6 +146,7 @@ private fun NodesList(
 
         Row() {
             LazyColumn(
+
                 modifier = Modifier
                     .background(color = MaterialTheme.colorScheme.surfaceVariant)
                     .fillMaxHeight()

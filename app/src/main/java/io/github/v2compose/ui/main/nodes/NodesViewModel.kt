@@ -29,35 +29,41 @@ class NodesViewModel @Inject constructor(private val nodeRepository: NodeReposit
     }
 
     fun refresh() {
-        loadNodeCategories()
+        viewModelScope.launch {
+            loadNodeCategoriesInternal()
+        }
     }
 
     private fun loadNodeCategories() {
         viewModelScope.launch {
-            val currentData = _nodesUiState.value.castOrNull<NodesUiState.Success>()?.data
-            _nodesUiState.emit(NodesUiState.Loading(currentData))
-            try {
-                val startMills = System.currentTimeMillis()
+            loadNodeCategoriesInternal()
+        }
+    }
 
-                val nodesNavInfo =
-                    nodeRepository.nodesNavInfo.first() ?: nodeRepository.getNodesNavInfo()
-                val allNodes = nodeRepository.getAllNodes().associateBy { it.name }
-                val result = nodesNavInfo.map { category ->
-                    val nodes = category.nodes
-                        .map { node -> allNodes[node.name] }
-                        .filterIsInstance<Node>()
-                    Pair(category.category, nodes)
-                }
+    private suspend fun loadNodeCategoriesInternal() {
+        val currentData = _nodesUiState.value.castOrNull<NodesUiState.Success>()?.data
+        _nodesUiState.emit(NodesUiState.Loading(currentData))
+        try {
+            val startMills = System.currentTimeMillis()
 
-                val requestMills = System.currentTimeMillis() - startMills
-                if (requestMills < minRequestMills) {
-                    delay(minRequestMills - requestMills)
-                }
-                _nodesUiState.emit(NodesUiState.Success(result))
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _nodesUiState.emit(NodesUiState.Error(e))
+            val nodesNavInfo =
+                nodeRepository.nodesNavInfo.first() ?: nodeRepository.getNodesNavInfo()
+            val allNodes = nodeRepository.getAllNodes().associateBy { it.name }
+            val result = nodesNavInfo.map { category ->
+                val nodes = category.nodes
+                    .map { node -> allNodes[node.name] }
+                    .filterIsInstance<Node>()
+                Pair(category.category, nodes)
             }
+
+            val requestMills = System.currentTimeMillis() - startMills
+            if (requestMills < minRequestMills) {
+                delay(minRequestMills - requestMills)
+            }
+            _nodesUiState.emit(NodesUiState.Success(result))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _nodesUiState.emit(NodesUiState.Error(e))
         }
     }
 

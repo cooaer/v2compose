@@ -1,6 +1,9 @@
 package io.github.v2compose.network.bean;
 
+import androidx.annotation.NonNull;
+
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 import io.github.v2compose.util.AvatarUtils;
@@ -21,8 +24,9 @@ public class MyTopicsInfo extends BaseInfo {
     @Pick("div.cell.item")
     private List<Item> items;
 
+    @NonNull
     public List<Item> getItems() {
-        return items;
+        return items != null ? items : Collections.emptyList();
     }
 
     public int getTotalPageCount() {

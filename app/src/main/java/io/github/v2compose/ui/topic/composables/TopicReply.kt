@@ -143,20 +143,28 @@ private fun TopicReplyActions(
     onMenuItemClick: (ReplyMenuItem) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val thanksCount = reply.thanksCount + (if (replyWrapper?.thanked == true) 1 else 0)
+    val hadThanked = replyWrapper?.thanked ?: reply.hadThanked()
+    val thanksCount = remember(reply, replyWrapper) {
+        val thanked = replyWrapper?.thanked
+        var thanksDiff = 0
+        if (thanked != null && reply.hadThanked() != thanked) {
+            thanksDiff = if (thanked) 1 else -1
+        }
+        reply.thanksCount + thanksDiff
+    }
     var bottomSheetVisible by remember { mutableStateOf(false) }
 
     val actionContentColor =
         MaterialTheme.colorScheme.secondary.copy(alpha = ContentAlpha.medium)
+
     Box(modifier = modifier.padding(end = 4.dp)) {
         Row {
             if (isLoggedIn || thanksCount > 0) {
-                val menuItem = remember(reply) {
-                    if (reply.hadThanked()) ReplyMenuItem.Thanked else ReplyMenuItem.Thank
+                val menuItem = remember(hadThanked) {
+                    if (hadThanked) ReplyMenuItem.Thanked else ReplyMenuItem.Thank
                 }
-
                 IconButton(
-                    enabled = isLoggedIn,
+                    enabled = isLoggedIn && !hadThanked,
                     onClick = { onMenuItemClick(menuItem) }) {
                     Icon(
                         imageVector = menuItem.icon,

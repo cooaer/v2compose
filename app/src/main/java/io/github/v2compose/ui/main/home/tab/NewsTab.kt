@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSavedStateRegistryOwner
 import androidx.core.os.bundleOf
@@ -24,7 +23,11 @@ import io.github.v2compose.network.bean.NewsInfo
 import io.github.v2compose.ui.common.LoadMore
 import io.github.v2compose.ui.common.PullToRefresh
 import io.github.v2compose.ui.common.SimpleTopic
+import io.github.v2compose.ui.main.composables.ClickHandler
 import io.github.v2compose.ui.main.home.NewsTabInfo
+import kotlinx.coroutines.launch
+
+private const val TAG = "NewTab"
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
@@ -103,7 +106,7 @@ fun NewsContent(
         is NewsUiState.Success -> {
             NewsList(
                 refreshing = refreshing,
-                newsInfo = newsUiState.newsInfo,
+                newsInfo = newsUiState.data,
                 topicTitleOverview = topicTitleOverview,
                 onRefresh = onRefreshList,
                 onNewsItemClick = onNewsItemClick,
@@ -114,8 +117,7 @@ fun NewsContent(
         else -> {
             LoadMore(
                 hasError = newsUiState is NewsUiState.Error,
-                error = if (newsUiState is NewsUiState.Error) newsUiState.throwable else null,
-                modifier = Modifier.fillMaxSize(),
+                error = if (newsUiState is NewsUiState.Error) newsUiState.error else null,
                 onRetryClick = onRetryClick
             )
         }
@@ -132,8 +134,24 @@ private fun NewsList(
     onNodeClick: (String, String) -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
 ) {
+    val coroutineScope = rememberCoroutineScope()
+
     PullToRefresh(refreshing = refreshing, onRefresh = onRefresh) {
         val lazyListState = rememberLazyListState()
+
+        ClickHandler(enabled = !refreshing) {
+            coroutineScope.launch {
+                if (lazyListState.isScrollInProgress) {
+                    lazyListState.animateScrollToItem(0)
+                    onRefresh()
+                } else if (lazyListState.canScrollBackward) {
+                    lazyListState.animateScrollToItem(0)
+                } else {
+                    onRefresh()
+                }
+            }
+        }
+
         LazyColumn(state = lazyListState) {
             items(newsInfo.items, key = { it.id }) { item ->
                 SimpleTopic(

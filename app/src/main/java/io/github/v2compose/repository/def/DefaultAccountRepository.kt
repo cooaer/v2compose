@@ -41,7 +41,7 @@ class DefaultAccountRepository @Inject constructor(
     override fun getNotifications(): Flow<PagingData<NotificationInfo.Reply>> {
         return Pager(
             PagingConfig(pageSize = 20, enablePlaceholders = false)
-        ) { NotificationPagingSource(v2exService, accountPreferences) }.flow
+        ) { NotificationsPagingSource(v2exService, accountPreferences) }.flow
     }
 
     override suspend fun resetNotificationCount() {

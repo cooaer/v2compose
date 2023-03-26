@@ -5,7 +5,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import io.github.v2compose.R
+import kotlinx.coroutines.delay
 
 fun <T : Any> LazyListScope.pagingRefreshItem(
     lazyPagingItems: LazyPagingItems<T>,
@@ -69,7 +70,16 @@ fun PagingLoadState(
 ) {
     if (state is LoadState.NotLoading) return
     if (state is LoadState.Loading) {
-        Loading(modifier = modifier)
+        var showLoading by remember { mutableStateOf(false) }
+        LaunchedEffect(state) {
+            //修复：缓存 Pager 的数据后，再次使用缓存数据，会从loading状态快速切换到loaded状态，loading状态会闪现；
+            //延迟 20ms 展示loading状态可以避免这种情况；
+            delay(20)
+            showLoading = true
+        }
+        if (showLoading) {
+            Loading(modifier = modifier)
+        }
     } else if (state is LoadState.Error) {
         LoadError(error = state.error, onRetryClick = onRetryClick, modifier = modifier)
     }

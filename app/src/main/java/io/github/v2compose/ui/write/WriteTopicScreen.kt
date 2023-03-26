@@ -4,8 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -36,10 +34,8 @@ import io.github.v2compose.bean.ContentFormat
 import io.github.v2compose.bean.DraftTopic
 import io.github.v2compose.network.bean.CreateTopicPageInfo
 import io.github.v2compose.network.bean.TopicNode
-import io.github.v2compose.ui.common.CloseButton
-import io.github.v2compose.ui.common.HtmlAlertDialog
-import io.github.v2compose.ui.common.ListDivider
-import io.github.v2compose.ui.common.TextEditor
+import io.github.v2compose.ui.common.*
+import io.github.v2compose.usecase.LoadNodesState
 
 @Composable
 fun WriteTopicScreenRoute(
@@ -49,7 +45,7 @@ fun WriteTopicScreenRoute(
     viewModel: WriteTopicViewModel = hiltViewModel(),
     screenState: WriteTopicScreenState = rememberWriteTopicScreenState(),
 ) {
-    val loadNodesState by viewModel.loadNodesState.collectAsStateWithLifecycle()
+    val loadNodesState by viewModel.loadNodes.state.collectAsStateWithLifecycle()
     val createTopicState by viewModel.createTopicState.collectAsStateWithLifecycle()
     val initialDraftTopic = remember { viewModel.draftTopic }
 
@@ -71,7 +67,7 @@ fun WriteTopicScreenRoute(
         onTopicChanged = viewModel::saveDraftTopic,
         onSendClick = { title, content, contentFormat, node ->
             if (screenState.check(title, content, node)) {
-                viewModel.createTopic(title, content.trim(), contentFormat, node!!.id)
+                viewModel.createTopic(title, content.trim(), contentFormat, node!!.name)
             }
         },
         retryLoadingNodes = viewModel::loadNodes,
@@ -384,7 +380,7 @@ private fun TopicNodeField(
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                if (node?.name.isNullOrEmpty()) stringResource(R.string.select_node) else node?.name!!,
+                if (node?.title.isNullOrEmpty()) stringResource(R.string.select_node) else node?.title!!,
                 color = contentColor,
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
@@ -395,84 +391,3 @@ private fun TopicNodeField(
     }
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SelectNode(
-    nodes: List<TopicNode>,
-    onNodeClick: (TopicNode) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var searchKey by remember { mutableStateOf("") }
-    var currentNodes by remember(searchKey) { mutableStateOf(nodes) }
-
-    LaunchedEffect(nodes, searchKey) {
-        currentNodes = if (searchKey.isEmpty()) nodes else {
-            nodes.filter { node ->
-                node.name.contains(searchKey, true) || node.id.contains(
-                    searchKey, true
-                ) || node.aliases.any { it.contains(searchKey, true) }
-            }
-        }
-    }
-
-    Box(modifier = Modifier
-        .clickable { onDismiss() }
-        .background(color = MaterialTheme.colorScheme.inverseSurface.copy(alpha = ContentAlpha.medium))
-        .systemBarsPadding()
-        .imePadding()
-        .padding(32.dp)) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .imePadding()
-                .background(
-                    color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(8.dp)
-                )
-                .padding(vertical = 16.dp)
-        ) {
-            Column {
-                val focusRequester = remember { FocusRequester() }
-                TextField(
-                    value = searchKey,
-                    onValueChange = { searchKey = it },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onSearch = {}),
-                    modifier = Modifier
-                        .focusRequester(focusRequester)
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    placeholder = { Text(text = stringResource(id = R.string.search_all_nodes)) },
-                    colors = TextFieldDefaults.textFieldColors(containerColor = Color.Transparent)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                LazyColumn {
-                    itemsIndexed(items = currentNodes, key = { _, item -> item.id }) { _, item ->
-                        NodeListItem(item, onNodeClick)
-                    }
-                }
-
-                LaunchedEffect(true) {
-                    focusRequester.requestFocus()
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun NodeListItem(
-    item: TopicNode, onNodeClick: (TopicNode) -> Unit
-) {
-    Text(
-        "${item.name} / ${item.id}",
-        modifier = Modifier
-            .clickable { onNodeClick(item) }
-            .fillMaxWidth()
-            .height(40.dp)
-            .padding(horizontal = 16.dp)
-            .wrapContentHeight(align = Alignment.CenterVertically),
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-    )
-}

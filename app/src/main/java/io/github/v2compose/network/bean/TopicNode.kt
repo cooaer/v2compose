@@ -8,10 +8,8 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 @JsonClass(generateAdapter = true)
 data class TopicNode(
-    @SerializedName("name")
-    val id: String = "",
-    @SerializedName("title")
     val name: String = "",
+    val title: String = "",
     val topics: Int = 0,
     val aliases: List<String> = listOf(),
 ) : Parcelable

@@ -156,10 +156,6 @@ public class NewsInfo extends BaseInfo {
             return time;
         }
 
-        public void setTime(String time) {
-            this.time = time;
-        }
-
         public String getTagName() {
             return tagName;
         }

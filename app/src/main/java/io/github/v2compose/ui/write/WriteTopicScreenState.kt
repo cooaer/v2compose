@@ -9,7 +9,6 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
-import io.github.v2compose.LocalSnackbarHostState
 import io.github.v2compose.R
 import io.github.v2compose.network.bean.TopicNode
 import kotlinx.coroutines.CoroutineScope
@@ -38,7 +37,7 @@ class WriteTopicScreenState(
             showMessage(R.string.topic_title_empty)
             return false
         }
-        if (node?.id.isNullOrEmpty()) {
+        if (node?.name.isNullOrEmpty()) {
             showMessage(R.string.node_empty)
             return false
         }

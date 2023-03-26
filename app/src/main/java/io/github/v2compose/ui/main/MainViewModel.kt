@@ -15,6 +15,7 @@ import io.github.v2compose.repository.AccountRepository
 import io.github.v2compose.ui.BaseViewModel
 import io.github.v2compose.usecase.CheckForUpdatesUseCase
 import io.github.v2compose.usecase.CheckInUseCase
+import io.github.v2compose.usecase.LoadNodesUseCase
 import io.github.v2compose.util.WebViewProxy
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -30,6 +31,7 @@ class MainViewModel @Inject constructor(
     private val appPreferences: AppPreferences,
     private val accountRepository: AccountRepository,
     private val appExecutorService: ExecutorService,
+    val loadNodes: LoadNodesUseCase,
 ) : BaseViewModel(application) {
 
     private val _newRelease = MutableStateFlow(Release.Empty)
@@ -125,7 +127,6 @@ class MainViewModel @Inject constructor(
         }
     }
 
-
     fun resetNewRelease() {
         viewModelScope.launch {
             _newRelease.emit(Release.Empty)
@@ -135,6 +136,12 @@ class MainViewModel @Inject constructor(
     fun ignoreRelease(release: Release) {
         viewModelScope.launch {
             appPreferences.ignoredReleaseName(release.tagName)
+        }
+    }
+
+    fun loadNodes() {
+        viewModelScope.launch {
+            loadNodes.execute()
         }
     }
 

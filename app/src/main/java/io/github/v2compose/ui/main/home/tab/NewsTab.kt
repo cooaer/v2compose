@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSavedStateRegistryOwner
 import androidx.core.os.bundleOf
@@ -102,26 +103,29 @@ fun NewsContent(
     onRefreshList: () -> Unit,
     onUserAvatarClick: (String, String) -> Unit,
 ) {
-    when (newsUiState) {
-        is NewsUiState.Success -> {
-            NewsList(
-                refreshing = refreshing,
-                newsInfo = newsUiState.data,
-                topicTitleOverview = topicTitleOverview,
-                onRefresh = onRefreshList,
-                onNewsItemClick = onNewsItemClick,
-                onNodeClick = onNodeClick,
-                onUserAvatarClick = onUserAvatarClick,
-            )
-        }
-        else -> {
-            LoadMore(
-                hasError = newsUiState is NewsUiState.Error,
-                error = if (newsUiState is NewsUiState.Error) newsUiState.error else null,
-                onRetryClick = onRetryClick
-            )
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (newsUiState) {
+            is NewsUiState.Success -> {
+                NewsList(
+                    refreshing = refreshing,
+                    newsInfo = newsUiState.data,
+                    topicTitleOverview = topicTitleOverview,
+                    onRefresh = onRefreshList,
+                    onNewsItemClick = onNewsItemClick,
+                    onNodeClick = onNodeClick,
+                    onUserAvatarClick = onUserAvatarClick,
+                )
+            }
+            else -> {
+                LoadMore(
+                    hasError = newsUiState is NewsUiState.Error,
+                    error = if (newsUiState is NewsUiState.Error) newsUiState.error else null,
+                    onRetryClick = onRetryClick
+                )
+            }
         }
     }
+
 }
 
 @Composable

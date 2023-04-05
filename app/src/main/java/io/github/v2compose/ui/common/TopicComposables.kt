@@ -55,7 +55,7 @@ fun SimpleTopic(
                                 alignment = LineHeightStyle.Alignment.Center,
                                 trim = LineHeightStyle.Trim.FirstLineTop,
                             )
-                        )
+                        ),
                     )
 
                     Row {

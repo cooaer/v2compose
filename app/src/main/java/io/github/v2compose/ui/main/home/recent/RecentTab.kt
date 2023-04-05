@@ -1,10 +1,13 @@
 package io.github.v2compose.ui.main.home.recent
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
@@ -27,19 +30,21 @@ fun RecentTab(
     val recentTopics = viewModel.recentTopics.collectAsLazyPagingItems()
     val topicTitleOverview by viewModel.topicTitleOverview.collectAsStateWithLifecycle()
 
-    if (recentTopics.itemSnapshotList.isEmpty()) {
-        PagingLoadState(
-            state = recentTopics.loadState.refresh,
-            onRetryClick = { recentTopics.retry() },
-        )
-    } else {
-        RecentTopicsList(
-            recentTopics = recentTopics,
-            topicTitleOverview = topicTitleOverview,
-            onRecentItemClick = onRecentItemClick,
-            onNodeClick = onNodeClick,
-            onUserAvatarClick = onUserAvatarClick,
-        )
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (recentTopics.itemSnapshotList.isEmpty()) {
+            PagingLoadState(
+                state = recentTopics.loadState.refresh,
+                onRetryClick = { recentTopics.retry() },
+            )
+        } else {
+            RecentTopicsList(
+                recentTopics = recentTopics,
+                topicTitleOverview = topicTitleOverview,
+                onRecentItemClick = onRecentItemClick,
+                onNodeClick = onNodeClick,
+                onUserAvatarClick = onUserAvatarClick,
+            )
+        }
     }
 }
 
@@ -71,7 +76,7 @@ private fun RecentTopicsList(
             }
         }
 
-        LazyColumn(state = lazyListState) {
+        LazyColumn(state = lazyListState, modifier = Modifier.fillMaxSize()) {
             pagingPrependMoreItem(recentTopics)
             itemsIndexed(recentTopics, key = { _, item -> item.id }) { index, item ->
                 if (item == null) return@itemsIndexed

@@ -56,6 +56,17 @@ android {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
     }
+    flavorDimensions 'tracking'
+    productFlavors {
+        foss {
+            dimension 'tracking'
+            multiDexEnabled true
+        }
+        google {
+            dimension 'tracking'
+            multiDexEnabled true
+        }
+    }
 }
 
 dependencies {
@@ -114,9 +125,9 @@ dependencies {
     implementation "androidx.compose.material:material-icons-extended"
 
     //firebase
-    implementation platform('com.google.firebase:firebase-bom:31.2.3')
-    implementation 'com.google.firebase:firebase-crashlytics-ktx'
-    implementation 'com.google.firebase:firebase-analytics-ktx'
+    googleImplementation platform('com.google.firebase:firebase-bom:31.3.0')
+    googleImplementation 'com.google.firebase:firebase-crashlytics-ktx'
+    googleImplementation 'com.google.firebase:firebase-analytics-ktx'
 
     //test
     testImplementation 'junit:junit:4.13.2'
@@ -163,7 +174,6 @@ dependencies {
     implementation "io.noties.markwon:html:$markwon_version"
     implementation "io.noties.markwon:image-coil:$markwon_version"
     implementation "io.noties.markwon:inline-parser:$markwon_version"
-
 }
 
 // Allow references to generated code

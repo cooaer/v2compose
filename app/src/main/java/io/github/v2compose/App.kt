@@ -1,19 +1,17 @@
 package io.github.v2compose
 
 import android.app.Application
-import android.app.NotificationManager
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import coil.ImageLoader
 import coil.ImageLoaderFactory
-import com.google.firebase.crashlytics.ktx.crashlytics
-import com.google.firebase.ktx.Firebase
 import com.orhanobut.logger.AndroidLogAdapter
 import com.orhanobut.logger.FormatStrategy
 import com.orhanobut.logger.Logger
 import com.orhanobut.logger.PrettyFormatStrategy
 import dagger.hilt.android.HiltAndroidApp
 import io.github.v2compose.core.NotificationCenter
+import io.github.v2compose.core.analytics.IAnalytics
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import javax.inject.Inject
@@ -25,6 +23,9 @@ class App : Application(), ImageLoaderFactory, Configuration.Provider {
 
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
+
+    @Inject
+    lateinit var analytics: IAnalytics
 
     companion object {
         private const val TAG = "APP"
@@ -44,7 +45,7 @@ class App : Application(), ImageLoaderFactory, Configuration.Provider {
 
     private fun init() {
         initLogger()
-        Firebase.crashlytics.setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
+        if (BuildConfig.DEBUG) analytics.stopTracking()
         NotificationCenter.init(this)
     }
 

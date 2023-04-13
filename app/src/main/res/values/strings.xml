@@ -67,7 +67,7 @@
 
     <!-- Node Screen Start -->
     <string name="node">节点</string>
-    <string name="node_topics_and_favorites">%d条主题  %d次收藏</string>
+    <string name="node_topics_and_favorites" formatted="false">%d条主题  %d次收藏</string>
     <string name="node_click_times">%d 次点击</string>
     <string name="node_favorite">加入收藏</string>
     <string name="node_favorited">已收藏</string>

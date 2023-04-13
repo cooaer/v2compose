@@ -2,6 +2,7 @@ package io.github.v2compose.core.analytics
 
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
+import javax.inject.Inject
 
 class VendorAnalytics @Inject constructor() : IAnalytics {
 

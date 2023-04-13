@@ -1,5 +1,6 @@
 # V2Compose
-使用 Compose 构建的一个 V2ex 的 Android 客户端！
+
+一个 Material You 风格的 V2ex Android 客户端！完全使用 Compose 构建 UI！
 
 该项目是一个练手项目，欢迎大家使用！如有发现体验的问题或者对 Android、Compose 使用不正确的地方，欢迎大家的批评和指正！
 
@@ -12,11 +13,9 @@
 
 ## 一些页面预览
 
-| ![news](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/news.jpg?raw=true)     | ![nodes](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/nodes.jpg?raw=true)             | ![notifications](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/notifications.jpg?raw=true) |
-|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
-| ![topic](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/topic.jpg?raw=true)   | ![node](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/node.jpg?raw=true)               | ![user](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/user.jpg?raw=true)                 |
-| ![search](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/search.jpg?raw=true) | ![mine](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/mine.jpg?raw=true)               | ![settings](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/settings.jpg?raw=true) |
-| ![create](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/create.jpg?raw=true) | ![select_node](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/select_node.jpg?raw=true) | ![append](https://github.com/cooaer/v2compose/blob/master/.github/screenshots/append.jpg?raw=true)             |
+| ![news](https://raw.githubusercontent.com/cooaer/v2compose/master/metadata/zh-CN/images/phoneScreenshots/1.jpg)  | ![topic](https://raw.githubusercontent.com/cooaer/v2compose/master/metadata/zh-CN/images/phoneScreenshots/2.jpg) | ![nodes](https://raw.githubusercontent.com/cooaer/v2compose/master/metadata/zh-CN/images/phoneScreenshots/3.jpg)    |
+|------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| ![write](https://raw.githubusercontent.com/cooaer/v2compose/master/metadata/zh-CN/images/phoneScreenshots/4.jpg) | ![mine](https://raw.githubusercontent.com/cooaer/v2compose/master/metadata/zh-CN/images/phoneScreenshots/5.jpg)  | ![settings](https://raw.githubusercontent.com/cooaer/v2compose/master/metadata/zh-CN/images/phoneScreenshots/6.jpg) |
 
 ## 已完成功能
 
@@ -50,14 +49,17 @@ V2compose 集成了 Firebase 的 Crashlytics 和 Analytics 功能，仅用于收
 
 ## 构建须知
 
-V2compose 集成了 Firebase，开放的源码中不包含 Firebase 的密钥。如果你需要构建自己的 V2compose 版本，请创建自己 Firebase 应用，添加 google-services.json 至 app 目录下。
+V2compose 集成了 Firebase，开放的源码中不包含 Firebase 的密钥。如果你需要构建自己的 V2compose 版本，请创建自己 Firebase 应用，添加
+google-services.json 至 app 目录下。
 
 ## 特别感谢
 
-* [V2er-app/Android](https://github.com/v2er-app/Android) : 一个 Android 端的 V2ex 客户端，V2Compose 使用该项目的部分网络相关代码！
+* [V2er-app/Android](https://github.com/v2er-app/Android) : 一个 Android 端的 V2ex 客户端，V2Compose
+  使用该项目的部分网络相关代码！
 * [sov2ex](https://github.com/Bynil/sov2ex) : 一个便捷的 V2EX 站内搜索引擎，V2Compose 使用该项目的 API 实现搜索 V2ex 的功能！
 
 ## JetBrains support
+
 Thanks to JetBrains for supporting open source projects.
 
 <a href="https://jb.gg/OpenSourceSupport" target="_blank">https://jb.gg/OpenSourceSupport.</a>

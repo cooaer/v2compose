@@ -13,9 +13,9 @@
 
 ## 一些页面预览
 
-| ![news](https://raw.githubusercontent.com/cooaer/v2compose/master/metadata/zh-CN/images/phoneScreenshots/1.jpg)  | ![topic](https://raw.githubusercontent.com/cooaer/v2compose/master/metadata/zh-CN/images/phoneScreenshots/2.jpg) | ![nodes](https://raw.githubusercontent.com/cooaer/v2compose/master/metadata/zh-CN/images/phoneScreenshots/3.jpg)    |
+| ![news](https://raw.githubusercontent.com/cooaer/v2compose/master/metadata/en-US/images/phoneScreenshots/1.jpg)  | ![topic](https://raw.githubusercontent.com/cooaer/v2compose/master/metadata/en-US/images/phoneScreenshots/2.jpg) | ![nodes](https://raw.githubusercontent.com/cooaer/v2compose/master/metadata/en-US/images/phoneScreenshots/3.jpg)    |
 |------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| ![write](https://raw.githubusercontent.com/cooaer/v2compose/master/metadata/zh-CN/images/phoneScreenshots/4.jpg) | ![mine](https://raw.githubusercontent.com/cooaer/v2compose/master/metadata/zh-CN/images/phoneScreenshots/5.jpg)  | ![settings](https://raw.githubusercontent.com/cooaer/v2compose/master/metadata/zh-CN/images/phoneScreenshots/6.jpg) |
+| ![write](https://raw.githubusercontent.com/cooaer/v2compose/master/metadata/en-US/images/phoneScreenshots/4.jpg) | ![mine](https://raw.githubusercontent.com/cooaer/v2compose/master/metadata/en-US/images/phoneScreenshots/5.jpg)  | ![settings](https://raw.githubusercontent.com/cooaer/v2compose/master/metadata/en-US/images/phoneScreenshots/6.jpg) |
 
 ## 已完成功能
 

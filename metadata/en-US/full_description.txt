@@ -1,0 +1,6 @@
+V2compose is a V2ex client with simple interface and smooth interaction.
+Features:
+* Material You style;
+* The editor supports Markdown format;
+* Automatic check-in;
+* Custom proxy server;

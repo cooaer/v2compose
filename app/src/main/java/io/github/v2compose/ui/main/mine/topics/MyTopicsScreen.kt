@@ -70,28 +70,46 @@ private fun MyTopicsScreen(
                 .padding(insets)
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
-            LazyColumn() {
-                pagingRefreshItem(myTopics)
-                itemsIndexed(myTopics, key = { _, item -> item.id }) { index, item ->
-                    item?.let {
-                        Log.d(TAG, "mytopics, index = $index, item = $item")
-                        SimpleTopic(
-                            title = item.title,
-                            userName = item.userName,
-                            userAvatar = item.avatar,
-                            time = item.time,
-                            replyCount = item.commentNum.toString(),
-                            nodeName = item.tagName,
-                            nodeTitle = item.tagTitle,
-                            titleOverview = topicTitleOverview,
-                            onItemClick = { onTopicClick(item) },
-                            onNodeClick = { onNodeClick(item.tagName, item.tagTitle) },
-                            onUserAvatarClick = { onUserAvatarClick(item.userName, item.avatar) }
-                        )
-                    }
-                }
-                pagingAppendMoreItem(myTopics)
+            MyTopicsList(
+                myTopics = myTopics,
+                topicTitleOverview = topicTitleOverview,
+                onTopicClick = onTopicClick,
+                onNodeClick = onNodeClick,
+                onUserAvatarClick = onUserAvatarClick
+            )
+        }
+    }
+}
+
+@Composable
+private fun MyTopicsList(
+    myTopics: LazyPagingItems<MyTopicsInfo.Item>,
+    topicTitleOverview: Boolean,
+    onTopicClick: (MyTopicsInfo.Item) -> Unit,
+    onNodeClick: (String, String) -> Unit,
+    onUserAvatarClick: (String, String) -> Unit
+) {
+    val lazyListState = myTopics.rememberLazyListState()
+    LazyColumn(state = lazyListState) {
+        pagingRefreshItem(myTopics)
+        itemsIndexed(myTopics, key = { _, item -> item.id }) { index, item ->
+            item?.let {
+                Log.d(TAG, "mytopics, index = $index, item = $item")
+                SimpleTopic(
+                    title = item.title,
+                    userName = item.userName,
+                    userAvatar = item.avatar,
+                    time = item.time,
+                    replyCount = item.commentNum.toString(),
+                    nodeName = item.tagName,
+                    nodeTitle = item.tagTitle,
+                    titleOverview = topicTitleOverview,
+                    onItemClick = { onTopicClick(item) },
+                    onNodeClick = { onNodeClick(item.tagName, item.tagTitle) },
+                    onUserAvatarClick = { onUserAvatarClick(item.userName, item.avatar) }
+                )
             }
         }
+        pagingAppendMoreItem(myTopics)
     }
 }

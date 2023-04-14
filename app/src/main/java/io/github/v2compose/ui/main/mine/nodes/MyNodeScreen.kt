@@ -96,7 +96,7 @@ private fun NodesGrid(myNodesInfo: MyNodesInfo, onNodeClick: (MyNodesInfo.Item) 
         columns = GridCells.Adaptive(minSize = 108.dp),
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(horizontal = 16.dp),
     ) {
         if (!myNodesInfo.isValid) return@LazyVerticalGrid
         itemsIndexed(myNodesInfo.items, key = { _, item -> item.name }) { _, item ->

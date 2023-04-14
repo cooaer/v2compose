@@ -69,28 +69,46 @@ private fun MyFollowingScreen(
                 .padding(insets)
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
-            LazyColumn() {
-                pagingRefreshItem(myFollowing)
-                itemsIndexed(myFollowing, key = { _, item -> item.id }) { index, item ->
-                    item?.let {
-                        Log.d(TAG, "myfollowing, index = $index, item = $item")
-                        SimpleTopic(
-                            title = item.title,
-                            userName = item.userName,
-                            userAvatar = item.avatar,
-                            time = item.time,
-                            replyCount = item.commentNum.toString(),
-                            nodeName = item.tagTitle,
-                            nodeTitle = item.tagTitle,
-                            titleOverview = topicTitleOverview,
-                            onItemClick = { onTopicClick(item) },
-                            onNodeClick = { onNodeClick(item.tagTitle, item.tagTitle) },
-                            onUserAvatarClick = { onUserAvatarClick(item.userName, item.avatar) }
-                        )
-                    }
-                }
-                pagingAppendMoreItem(myFollowing)
+            MyFollowingTopicList(
+                myFollowing = myFollowing,
+                topicTitleOverview = topicTitleOverview,
+                onTopicClick = onTopicClick,
+                onNodeClick = onNodeClick,
+                onUserAvatarClick = onUserAvatarClick
+            )
+        }
+    }
+}
+
+@Composable
+private fun MyFollowingTopicList(
+    myFollowing: LazyPagingItems<MyFollowingInfo.Item>,
+    topicTitleOverview: Boolean,
+    onTopicClick: (MyFollowingInfo.Item) -> Unit,
+    onNodeClick: (String, String) -> Unit,
+    onUserAvatarClick: (String, String) -> Unit
+) {
+    val lazyListState = myFollowing.rememberLazyListState()
+    LazyColumn(state = lazyListState) {
+        pagingRefreshItem(myFollowing)
+        itemsIndexed(myFollowing, key = { _, item -> item.id }) { index, item ->
+            item?.let {
+                Log.d(TAG, "myfollowing, index = $index, item = $item")
+                SimpleTopic(
+                    title = item.title,
+                    userName = item.userName,
+                    userAvatar = item.avatar,
+                    time = item.time,
+                    replyCount = item.commentNum.toString(),
+                    nodeName = item.tagTitle,
+                    nodeTitle = item.tagTitle,
+                    titleOverview = topicTitleOverview,
+                    onItemClick = { onTopicClick(item) },
+                    onNodeClick = { onNodeClick(item.tagTitle, item.tagTitle) },
+                    onUserAvatarClick = { onUserAvatarClick(item.userName, item.avatar) }
+                )
             }
         }
+        pagingAppendMoreItem(myFollowing)
     }
 }

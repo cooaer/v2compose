@@ -6,6 +6,9 @@
 
 该项目已具备V站的大多的日常功能，如果对功能有想法，欢迎提交 pull request 或者 issues。
 
+[<img src="https://raw.githubusercontent.com/cooaer/v2compose/master/.github/images/badge-f-droid.png" alt='Get it on F-Droid' height="80">](https://f-droid.org/packages/io.github.v2compose) [<img src="https://raw.githubusercontent.com/cooaer/v2compose/master/.github/images/badge-github.png" alt='Get it on GitHub' height="80">](https://github.com/cooaer/v2compose/releases/latest)
+
+
 ## 项目特色
 
 * UI 部分完全使用 Compose 实现；
@@ -63,3 +66,15 @@ google-services.json 至 app 目录下。
 Thanks to JetBrains for supporting open source projects.
 
 <a href="https://jb.gg/OpenSourceSupport" target="_blank">https://jb.gg/OpenSourceSupport.</a>
+
+## License
+
+V2compose
+
+Copyright (C) 2023 cooaer
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.

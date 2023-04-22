@@ -1,0 +1,4 @@
+Updated:
+* Add to F-Droid.
+Fixes:
+* Failed to jump to the home page after Google login;

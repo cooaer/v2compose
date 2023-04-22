@@ -6,6 +6,9 @@
 
 该项目已具备V站的大多的日常功能，如果对功能有想法，欢迎提交 pull request 或者 issues。
 
+[<img src="https://raw.githubusercontent.com/cooaer/v2compose/master/.github/images/badge-f-droid.png" alt='Get it on F-Droid' height="80">](https://f-droid.org/packages/io.github.v2compose) [<img src="https://raw.githubusercontent.com/cooaer/v2compose/master/.github/images/badge-github.png" alt='Get it on GitHub' height="80">](https://github.com/cooaer/v2compose/releases/latest)
+
+
 ## 项目特色
 
 * UI 部分完全使用 Compose 实现；

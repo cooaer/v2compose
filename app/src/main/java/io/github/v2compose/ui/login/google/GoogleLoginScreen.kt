@@ -64,7 +64,7 @@ private fun GoogleLoginScreen(
     }
 
     val fetchUserInfo by rememberUpdatedState(tryToFetchUserInfo)
-    webViewState.content.getCurrentUrl()?.let {
+    webViewState.lastLoadedUrl?.let {
         Log.d(TAG, "currentUrl = $it")
         if (it.startsWith("${Constants.baseUrl}/auth/google")) {
             return@let

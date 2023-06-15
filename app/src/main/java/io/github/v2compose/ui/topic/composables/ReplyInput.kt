@@ -101,7 +101,7 @@ fun ReplyInput(
                 modifier = Modifier
                     .focusRequester(focusRequester)
                     .align(Alignment.BottomEnd)
-                    .animateContentSize(finishedListener = { initialValue, targetValue ->
+/*                    .animateContentSize(finishedListener = { initialValue, targetValue ->
                         val keyboardVisible = targetValue.width >= expandedWidthPx
                         if (keyboardVisible) {
                             focusRequester.requestFocus()
@@ -110,7 +110,7 @@ fun ReplyInput(
                             focusRequester.freeFocus()
                             keyboard?.hide()
                         }
-                    })
+                    })*/
                     .background(
                         color = MaterialTheme.colorScheme.background,
                         shape = RoundedCornerShape(fabSize / 2)

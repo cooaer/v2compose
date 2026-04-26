@@ -1,0 +1,7 @@
+Updated:
+* Prepare the F-Droid 2.0.0 release.
+* Rename the app to V2X.
+* Move most UI, navigation, and business logic to the shared KMP layer.
+* Add iOS support and shared cross-platform infrastructure.
+Fixes:
+* Improve topic/reply navigation, image loading, logging, and release stability.

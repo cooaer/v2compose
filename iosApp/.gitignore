@@ -1,4 +1,5 @@
 *.xcuserstate
-project.xcworkspace/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
 /iosApp/GoogleService-Info.plist
 /iosApp/GoogleService-Info-Debug.plist

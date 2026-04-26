@@ -1,4 +1,4 @@
-V2compose 是一个界面简洁、交互流畅的 V2ex 客户端！
+V2X 是一个界面简洁、交互流畅的 V2ex 客户端！
 特点：
 * Material You 风格；
 * 编辑器支持 Markdown 格式；

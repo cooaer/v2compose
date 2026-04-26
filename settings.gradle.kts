@@ -15,7 +15,10 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "V2compose"
-includeBuild("../fruit-kt")
+val localFruitKt = listOf(file("fruit-kt"), file("../fruit-kt")).firstOrNull { it.isDirectory }
+if (localFruitKt != null) {
+    includeBuild(localFruitKt)
+}
 include(":androidApp")
 include(":htmlText")
 include(":logging")

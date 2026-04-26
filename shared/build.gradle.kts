@@ -8,13 +8,15 @@ plugins {
     alias(libs.plugins.buildkonfig)
 }
 
+val appVersionName = providers.gradleProperty("app.versionName").get()
+
 buildkonfig {
     packageName = "io.github.v2compose"
     defaultConfigs {
         buildConfigField(
             com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
             "VERSION_NAME",
-            "\"1.0.1\""
+            "\"$appVersionName\""
         )
     }
 }

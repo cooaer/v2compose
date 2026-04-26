@@ -1,0 +1,3 @@
+[submodule "fruit-kt"]
+	path = fruit-kt
+	url = https://github.com/cooaer/fruit-kt.git

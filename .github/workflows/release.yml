@@ -1,0 +1,69 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  android-apk-release:
+    name: Build and publish Android APKs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Ensure tag commit is on master
+        run: |
+          set -euo pipefail
+          git fetch origin master
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/master
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Restore release-only files
+        env:
+          ANDROID_RELEASE_KEYSTORE_BASE64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}
+          GOOGLE_SERVICES_JSON_RELEASE_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_RELEASE_BASE64 }}
+        run: |
+          set -euo pipefail
+          : "${ANDROID_RELEASE_KEYSTORE_BASE64:?Missing ANDROID_RELEASE_KEYSTORE_BASE64 secret}"
+          : "${GOOGLE_SERVICES_JSON_RELEASE_BASE64:?Missing GOOGLE_SERVICES_JSON_RELEASE_BASE64 secret}"
+
+          mkdir -p "$RUNNER_TEMP/v2compose-signing" androidApp/src/googleRelease
+          printf '%s' "$ANDROID_RELEASE_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/v2compose-signing/release.keystore"
+          printf '%s' "$GOOGLE_SERVICES_JSON_RELEASE_BASE64" | base64 --decode > androidApp/src/googleRelease/google-services.json
+
+      - name: Build signed release APKs
+        env:
+          ANDROID_RELEASE_KEYSTORE_PATH: ${{ runner.temp }}/v2compose-signing/release.keystore
+          ANDROID_RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
+          ANDROID_RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
+          ANDROID_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
+        run: ./gradlew --no-configuration-cache :androidApp:assembleFossRelease :androidApp:assembleGoogleRelease
+
+      - name: Stage release assets
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+          cp androidApp/build/outputs/apk/foss/release/*-foss-release.apk "release-assets/v2v-${GITHUB_REF_NAME}-foss.apk"
+          cp androidApp/build/outputs/apk/google/release/*-google-release.apk "release-assets/v2v-${GITHUB_REF_NAME}-google.apk"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: release-assets/*.apk

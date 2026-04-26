@@ -11,6 +11,7 @@ object Constants {
     const val repo = "v2compose"
 
     const val topicTitleOverviewMaxLines = 2
-    const val versionName = "1.0.1" // Default or injected
+    val versionName: String
+        get() = BuildKonfig.VERSION_NAME
 
 }

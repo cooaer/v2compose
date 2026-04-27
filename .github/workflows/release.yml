@@ -23,8 +23,25 @@ jobs:
       - name: Ensure tag commit is on master
         run: |
           set -euo pipefail
-          git fetch origin master
-          git merge-base --is-ancestor "$GITHUB_SHA" origin/master
+          max_attempts=6
+          retry_delay_seconds=10
+
+          for attempt in $(seq 1 "$max_attempts"); do
+            git fetch origin master
+
+            if git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
+              echo "Tag commit $GITHUB_SHA is reachable from origin/master on attempt $attempt."
+              exit 0
+            fi
+
+            if [ "$attempt" -lt "$max_attempts" ]; then
+              echo "Tag commit $GITHUB_SHA is not yet reachable from origin/master (attempt $attempt/$max_attempts). Retrying in ${retry_delay_seconds}s..."
+              sleep "$retry_delay_seconds"
+            fi
+          done
+
+          echo "Tag commit $GITHUB_SHA is still not reachable from origin/master after $max_attempts attempts."
+          exit 1
 
       - name: Set up JDK
         uses: actions/setup-java@v4

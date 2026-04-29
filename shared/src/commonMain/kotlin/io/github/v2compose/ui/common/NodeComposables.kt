@@ -13,11 +13,12 @@ import androidx.compose.ui.unit.dp
 fun NodeTag(
     nodeName: String,
     nodeTitle: String,
+    modifier: Modifier = Modifier,
     onItemClick: ((String, String) -> Unit)? = null,
 ) {
     Text(
         nodeTitle,
-        modifier = Modifier
+        modifier = modifier
             .clickable(enabled = onItemClick != null) {
                 onItemClick?.invoke(nodeName, nodeTitle)
             }

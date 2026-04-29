@@ -1,9 +1,11 @@
 package io.github.v2compose.network.bean
 
+import androidx.compose.runtime.Immutable
 import io.github.fruit.annotations.Attrs
 import io.github.fruit.annotations.Pick
 import io.github.fruit.annotations.Slice
 
+@Immutable
 @Slice
 data class TopicInfo(
     @property:Pick("div#Wrapper")
@@ -59,6 +61,7 @@ data class TopicInfo(
 
     fun isValid(): Boolean = headerInfo?.isValid() == true
 
+    @Immutable
     @Slice
     data class Problem(
         @property:Pick(attr = Attrs.OWN_TEXT)
@@ -69,6 +72,7 @@ data class TopicInfo(
         fun isEmpty(): Boolean = tips.isEmpty() && title.isEmpty()
     }
 
+    @Immutable
     @Slice
     data class ContentInfo(
         @property:Pick(attr = Attrs.HTML)
@@ -91,6 +95,7 @@ data class TopicInfo(
 
         fun isValid(): Boolean = !formattedHtml().isNullOrEmpty()
 
+        @Immutable
         @Slice
         data class Supplement(
             @property:Pick("span.fade")
@@ -100,6 +105,7 @@ data class TopicInfo(
         )
     }
 
+    @Immutable
     @Slice
     data class HeaderInfo(
         @property:Pick(value = "div.box img.avatar", attr = "src")
@@ -183,6 +189,7 @@ data class TopicInfo(
         fun getTotalPage(): Int = maxOf(maxOf(page, currentPage), 1)
     }
 
+    @Immutable
     @Slice
     data class Reply(
         @property:Pick(value = "div.reply_content", attr = Attrs.HTML)

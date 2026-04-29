@@ -294,8 +294,8 @@ private fun AutoCheckInPreference(
 
     if (showRequestNotificationPermissionRationale) {
         TextAlertDialog(
-            title = "通知权限", // Use hardcoded for now or add to Res
-            message = "自动签到需要通知权限以在后台运行并通知您结果。请在设置中开启。",
+            title = stringResource(Res.string.notification_permission_title),
+            message = stringResource(Res.string.notification_permission_settings_message),
             onDismiss = {
                 showRequestNotificationPermissionRationale = false
                 shouldRequestNotificationPermission = false

@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Reply
@@ -433,7 +434,7 @@ fun ShakeAnimation(
             onShakeFinished()
         }
     }
-    Box(modifier.offset(x = offsetX.value.dp)) {
+    Box(modifier.offset { IntOffset(offsetX.value.roundToInt(), 0) }) {
         content()
     }
 }

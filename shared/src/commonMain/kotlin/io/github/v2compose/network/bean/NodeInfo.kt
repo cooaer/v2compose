@@ -1,5 +1,6 @@
 package io.github.v2compose.network.bean
 
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -7,6 +8,7 @@ import kotlinx.serialization.Serializable
  * 节点详情
  * https://www.v2ex.com/api/nodes/show.json?name=qna
  */
+@Immutable
 @Serializable
 data class NodeInfo(
     @SerialName("id")

@@ -245,6 +245,10 @@
     <string name="request_notification_permission">申请通知权限</string>
     <string name="request_notification_permission_message">后台自动签到时需要发送前台通知，请授予通知权限，否则无法在应用关闭后自动签到。</string>
     <string name="notification_channel_auto_check_in">自动签到通知</string>
+    <string name="notification_permission_title">通知权限</string>
+    <string name="notification_permission_settings_message">自动签到需要通知权限以在后台运行并通知您结果。请在设置中开启。</string>
 
     <!-- Notifications end -->
+
+    <string name="back">返回</string>
 </resources>

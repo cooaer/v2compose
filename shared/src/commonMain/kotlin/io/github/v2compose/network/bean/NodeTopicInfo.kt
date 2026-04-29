@@ -1,5 +1,6 @@
 package io.github.v2compose.network.bean
 
+import androidx.compose.runtime.Immutable
 import io.github.fruit.annotations.Attrs
 import io.github.fruit.annotations.Pick
 import io.github.fruit.annotations.Slice
@@ -7,6 +8,7 @@ import io.github.fruit.annotations.Slice
 /**
  * https://www.v2ex.com/go/python
  */
+@Immutable
 @Slice("div#Wrapper")
 data class NodeTopicInfo(
     @property:Pick("span.topic-count strong")
@@ -29,6 +31,7 @@ data class NodeTopicInfo(
 
     fun isValid(): Boolean = items.isEmpty() || items[0].userName.isNotEmpty()
 
+    @Immutable
     @Slice
     data class Item(
         @property:Pick(value = "img.avatar", attr = Attrs.SRC)

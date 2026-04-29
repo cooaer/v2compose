@@ -40,12 +40,13 @@ fun SimpleTopic(
     nodeTitle: String,
     title: String,
     titleOverview: Boolean = false,
+    modifier: Modifier = Modifier,
     onItemClick: (() -> Unit)? = null,
     onUserAvatarClick: (() -> Unit)? = null,
     onNodeClick: (() -> Unit)? = null,
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(enabled = onItemClick != null) { onItemClick?.invoke() },
     ) {
